@@ -4,8 +4,7 @@
 
 # Roo Code
 
-> Your AI-Powered Dev Team, Right in Your Editor
-
+> TODO: implement parallel subtasks execution; remove switch_mode tool and "roo is having trouble" (breaks automation)
 <details>
   <summary>🌐 Available languages</summary>
 
