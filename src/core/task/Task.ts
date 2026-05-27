@@ -95,7 +95,6 @@ import { buildNativeToolsArrayWithRestrictions } from "./build-tools"
 import { restoreTodoListForTask } from "../tools/UpdateTodoListTool"
 import { FileContextTracker } from "../context-tracking/FileContextTracker"
 import { RooIgnoreController } from "../ignore/RooIgnoreController"
-import { RooProtectedController } from "../protect/RooProtectedController"
 import { type AssistantMessageContent, presentAssistantMessage } from "../assistant-message"
 import { NativeToolCallParser } from "../assistant-message/NativeToolCallParser"
 import { manageContext, willManageContext } from "../context-management"
@@ -122,7 +121,6 @@ import {
 import { processUserContentMentions } from "../mentions/processUserContentMentions"
 import { getMessagesSinceLastSummary, summarizeConversation, getEffectiveApiHistory } from "../condense"
 import { MessageQueueService } from "../message-queue/MessageQueueService"
-import { AutoApprovalHandler, checkAutoApproval } from "../auto-approval"
 import { MessageManager } from "../message-manager"
 import { validateAndFixToolResultIds } from "./validateToolResultIds"
 import { mergeConsecutiveApiMessages } from "./mergeConsecutiveApiMessages"
@@ -277,7 +275,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	apiConfiguration: ProviderSettings
 	api: ApiHandler
 	private static lastGlobalApiRequestTime?: number
-	private autoApprovalHandler: AutoApprovalHandler
 
 	/**
 	 * Reset the global API request timestamp. This should only be used for testing.
@@ -288,7 +285,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	}
 
 	rooIgnoreController?: RooIgnoreController
-	rooProtectedController?: RooProtectedController
 	fileContextTracker: FileContextTracker
 	terminalProcess?: RooTerminalProcess
 
@@ -306,7 +302,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	private askResponseText?: string
 	private askResponseImages?: string[]
 	public lastMessageTs?: number
-	private autoApprovalTimeoutRef?: NodeJS.Timeout
 
 	// Tool Use
 	consecutiveMistakeCount: number = 0
@@ -464,7 +459,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.taskNumber = -1
 
 		this.rooIgnoreController = new RooIgnoreController(this.cwd)
-		this.rooProtectedController = new RooProtectedController(this.cwd)
 		this.fileContextTracker = new FileContextTracker(provider, this.taskId)
 
 		this.rooIgnoreController.initialize().catch((error) => {
@@ -473,7 +467,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		this.apiConfiguration = apiConfiguration
 		this.api = buildApiHandler(this.apiConfiguration)
-		this.autoApprovalHandler = new AutoApprovalHandler()
 
 		this.providerRef = new WeakRef(provider)
 		this.globalStoragePath = provider.context.globalStorageUri.fsPath
@@ -1212,7 +1205,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		text?: string,
 		partial?: boolean,
 		progressStatus?: ToolProgressStatus,
-		isProtected?: boolean,
 	): Promise<{ response: ClineAskResponse; text?: string; images?: string[] }> {
 		// If this Cline instance was aborted by the provider, then the only
 		// thing keeping us alive is a promise still running in the background,
@@ -1240,7 +1232,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					lastMessage.text = text
 					lastMessage.partial = partial
 					lastMessage.progressStatus = progressStatus
-					lastMessage.isProtected = isProtected
 					// TODO: Be more efficient about saving and posting only new
 					// data or one whole message at a time so ignore partial for
 					// saves, and only post parts of partial message instead of
@@ -1253,7 +1244,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					// state.
 					askTs = Date.now()
 					this.lastMessageTs = askTs
-					await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text, partial, isProtected })
+					await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text, partial })
 					// console.log("Task#ask: current ask promise was ignored (#2)")
 					throw new AskIgnoredError("new partial")
 				}
@@ -1264,7 +1255,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					this.askResponse = undefined
 					this.askResponseText = undefined
 					this.askResponseImages = undefined
-
+	
 					// Bug for the history books:
 					// In the webview we use the ts as the chatrow key for the
 					// virtuoso list. Since we would update this ts right at the
@@ -1281,7 +1272,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					lastMessage.text = text
 					lastMessage.partial = false
 					lastMessage.progressStatus = progressStatus
-					lastMessage.isProtected = isProtected
 					await this.saveClineMessages()
 					this.updateClineMessage(lastMessage)
 				} else {
@@ -1291,7 +1281,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					this.askResponseImages = undefined
 					askTs = Date.now()
 					this.lastMessageTs = askTs
-					await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text, isProtected })
+					await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text })
 				}
 			}
 		} else {
@@ -1301,29 +1291,10 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			this.askResponseImages = undefined
 			askTs = Date.now()
 			this.lastMessageTs = askTs
-			await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text, isProtected })
+			await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text })
 		}
 
 		let timeouts: NodeJS.Timeout[] = []
-
-		// Automatically approve if the ask according to the user's settings.
-		const provider = this.providerRef.deref()
-		const state = provider ? await provider.getState() : undefined
-		const approval = await checkAutoApproval({ state, ask: type, text, isProtected })
-
-		if (approval.decision === "approve") {
-			this.approveAsk()
-		} else if (approval.decision === "deny") {
-			this.denyAsk()
-		} else if (approval.decision === "timeout") {
-			// Store the auto-approval timeout so it can be cancelled if user interacts
-			this.autoApprovalTimeoutRef = setTimeout(() => {
-				const { askResponse, text, images } = approval.fn()
-				this.handleWebviewAskResponse(askResponse, text, images)
-				this.autoApprovalTimeoutRef = undefined
-			}, approval.timeout)
-			timeouts.push(this.autoApprovalTimeoutRef)
-		}
 
 		// The state is mutable if the message is complete and the task will
 		// block (via the `pWaitFor`).
@@ -1332,7 +1303,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		// Keep queued user messages intact during command_output asks. Those asks
 		// are terminal flow-control, not conversational turns.
 		const shouldDrainQueuedMessageForAsk = type !== "command_output"
-		const isStatusMutable = !partial && isBlocking && !isMessageQueued && approval.decision === "ask"
+		const isStatusMutable = !partial && isBlocking && !isMessageQueued
 
 		if (isStatusMutable) {
 			const statusMutationTimeout = 2_000
@@ -1345,7 +1316,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						if (message) {
 							this.interactiveAsk = message
 							this.emit(RooCodeEventName.TaskInteractive, this.taskId)
-							provider?.postMessageToWebview({ type: "interactionRequired" })
+							this.providerRef.deref()?.postMessageToWebview({ type: "interactionRequired" })
 						}
 					}, statusMutationTimeout),
 				)
@@ -1445,9 +1416,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	}
 
 	handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[]) {
-		// Clear any pending auto-approval timeout when user responds
-		this.cancelAutoApprovalTimeout()
-
 		this.askResponse = askResponse
 		this.askResponseText = text
 		this.askResponseImages = images
@@ -1477,7 +1445,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			}
 		}
 
-		// Mark the last tool-approval ask as answered when user approves (or auto-approval)
+		// Mark the last tool-approval ask as answered when user approves
 		if (askResponse === "yesButtonClicked") {
 			const lastToolAskIndex = findLastIndex(
 				this.clineMessages,
@@ -1490,17 +1458,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					console.error("Failed to save answered tool-ask state:", error)
 				})
 			}
-		}
-	}
-
-	/**
-	 * Cancel any pending auto-approval timeout.
-	 * Called when user interacts (types, clicks buttons, etc.) to prevent the timeout from firing.
-	 */
-	public cancelAutoApprovalTimeout(): void {
-		if (this.autoApprovalTimeoutRef) {
-			clearTimeout(this.autoApprovalTimeoutRef)
-			this.autoApprovalTimeoutRef = undefined
 		}
 	}
 
@@ -3141,20 +3098,17 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 							)
 
 							// Apply exponential backoff similar to first-chunk errors when auto-resubmit is enabled
-							const stateForBackoff = await this.providerRef.deref()?.getState()
-							if (stateForBackoff?.autoApprovalEnabled) {
-								await this.backoffAndAnnounce(currentItem.retryAttempt ?? 0, error)
-
-								// Check if task was aborted during the backoff
-								if (this.abort) {
-									console.log(
-										`[Task#${this.taskId}.${this.instanceId}] Task aborted during mid-stream retry backoff`,
-									)
-									// Abort the entire task
-									this.abortReason = "user_cancelled"
-									await this.abortTask()
-									break
-								}
+							await this.backoffAndAnnounce(currentItem.retryAttempt ?? 0, error)
+	
+							// Check if task was aborted during the backoff
+							if (this.abort) {
+								console.log(
+									`[Task#${this.taskId}.${this.instanceId}] Task aborted during mid-stream retry backoff`,
+								)
+								// Abort the entire task
+								this.abortReason = "user_cancelled"
+								await this.abortTask()
+								break
 							}
 
 							// Push the same content back onto the stack to retry, incrementing the retry attempt counter
@@ -3514,74 +3468,33 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						}
 					}
 
-					// Check if we should auto-retry or prompt the user
-					// Reuse the state variable from above
-					if (state?.autoApprovalEnabled) {
-						// Auto-retry with backoff - don't persist failure message when retrying
-						await this.backoffAndAnnounce(
-							currentItem.retryAttempt ?? 0,
-							new Error(
-								"Unexpected API Response: The language model did not provide any assistant messages. This may indicate an issue with the API or the model's output.",
-							),
+					// Auto-retry with backoff - don't persist failure message when retrying
+					await this.backoffAndAnnounce(
+						currentItem.retryAttempt ?? 0,
+						new Error(
+							"Unexpected API Response: The language model did not provide any assistant messages. This may indicate an issue with the API or the model's output.",
+						),
+					)
+	
+					// Check if task was aborted during the backoff
+					if (this.abort) {
+						console.log(
+							`[Task#${this.taskId}.${this.instanceId}] Task aborted during empty-assistant retry backoff`,
 						)
-
-						// Check if task was aborted during the backoff
-						if (this.abort) {
-							console.log(
-								`[Task#${this.taskId}.${this.instanceId}] Task aborted during empty-assistant retry backoff`,
-							)
-							break
-						}
-
-						// Push the same content back onto the stack to retry, incrementing the retry attempt counter
-						// Mark that user message was removed so it gets re-added on retry
-						stack.push({
-							userContent: currentUserContent,
-							includeFileDetails: false,
-							retryAttempt: (currentItem.retryAttempt ?? 0) + 1,
-							userMessageWasRemoved: true,
-						})
-
-						// Continue to retry the request
-						continue
-					} else {
-						// Prompt the user for retry decision
-						const { response } = await this.ask(
-							"api_req_failed",
-							"The model returned no assistant messages. This may indicate an issue with the API or the model's output.",
-						)
-
-						if (response === "yesButtonClicked") {
-							await this.say("api_req_retried")
-
-							// Push the same content back to retry
-							stack.push({
-								userContent: currentUserContent,
-								includeFileDetails: false,
-								retryAttempt: (currentItem.retryAttempt ?? 0) + 1,
-							})
-
-							// Continue to retry the request
-							continue
-						} else {
-							// User declined to retry
-							// Re-add the user message we removed.
-							await this.addToApiConversationHistory({
-								role: "user",
-								content: currentUserContent,
-							})
-
-							await this.say(
-								"error",
-								"Unexpected API Response: The language model did not provide any assistant messages. This may indicate an issue with the API or the model's output.",
-							)
-
-							await this.addToApiConversationHistory({
-								role: "assistant",
-								content: [{ type: "text", text: "Failure: I did not provide a response." }],
-							})
-						}
+						break
 					}
+	
+					// Push the same content back onto the stack to retry, incrementing the retry attempt counter
+					// Mark that user message was removed so it gets re-added on retry
+					stack.push({
+						userContent: currentUserContent,
+						includeFileDetails: false,
+						retryAttempt: (currentItem.retryAttempt ?? 0) + 1,
+						userMessageWasRemoved: true,
+					})
+
+					// Continue to retry the request
+					continue
 				}
 
 				// If we reach here without continuing, return false (will always be false for now)
@@ -3852,7 +3765,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		const {
 			apiConfiguration,
-			autoApprovalEnabled,
 			requestDelaySeconds,
 			mode,
 			autoCondenseContext = true,
@@ -4059,18 +3971,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		const messagesWithoutImages = maybeRemoveImageBlocks(mergedForApi, this.api)
 		const cleanConversationHistory = this.buildCleanConversationHistory(messagesWithoutImages as ApiMessage[])
 
-		// Check auto-approval limits
-		const approvalResult = await this.autoApprovalHandler.checkAutoApprovalLimits(
-			state,
-			this.combineMessages(this.clineMessages.slice(1)),
-			async (type, data) => this.ask(type, data),
-		)
-
-		if (!approvalResult.shouldProceed) {
-			// User did not approve, task should be aborted
-			throw new Error("Auto-approval limit reached and user did not approve continuation")
-		}
-
 		// Whether we include tools is determined by whether we have any tools to send.
 		const modelInfo = this.api.getModel().info
 
@@ -4186,10 +4086,9 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			}
 
 			// note that this api_req_failed ask is unique in that we only present this option if the api hasn't streamed any content yet (ie it fails on the first chunk due), as it would allow them to hit a retry button. However if the api failed mid-stream, it could be in any arbitrary state where some tools may have executed, so that error is handled differently and requires cancelling the task entirely.
-			if (autoApprovalEnabled) {
 				// Apply shared exponential backoff and countdown UX
 				await this.backoffAndAnnounce(retryAttempt, error)
-
+	
 				// CRITICAL: Check if task was aborted during the backoff countdown
 				// This prevents infinite loops when users cancel during auto-retry
 				// Without this check, the recursive call below would continue even after abort
@@ -4198,33 +4097,16 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						`[Task#attemptApiRequest] task ${this.taskId}.${this.instanceId} aborted during retry`,
 					)
 				}
-
+	
+				await this.say("api_req_retried")
+	
 				// Delegate generator output from the recursive call with
 				// incremented retry count.
 				yield* this.attemptApiRequest(retryAttempt + 1)
-
 				return
-			} else {
-				const { response } = await this.ask(
-					"api_req_failed",
-					error.message ?? JSON.stringify(serializeError(error), null, 2),
-				)
-
-				if (response !== "yesButtonClicked") {
-					// This will never happen since if noButtonClicked, we will
-					// clear current task, aborting this instance.
-					throw new Error("API request failed")
 				}
-
-				await this.say("api_req_retried")
-
-				// Delegate generator output from the recursive call.
-				yield* this.attemptApiRequest()
-				return
-			}
-		}
-
-		// No error, so we can continue to yield all remaining chunks.
+	
+			// No error, so we can continue to yield all remaining chunks.
 		// (Needs to be placed outside of try/catch since it we want caller to
 		// handle errors not with api_req_failed as that is reserved for first
 		// chunk failures only.)

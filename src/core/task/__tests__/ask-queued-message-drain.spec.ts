@@ -21,7 +21,6 @@ describe("Task.ask queued message drain", () => {
 		;(task as any).addToClineMessages = vi.fn(async () => {})
 		;(task as any).saveClineMessages = vi.fn(async () => {})
 		;(task as any).updateClineMessage = vi.fn(async () => {})
-		;(task as any).cancelAutoApprovalTimeout = vi.fn(() => {})
 		;(task as any).checkpointSave = vi.fn(async () => {})
 		;(task as any).emit = vi.fn()
 		;(task as any).providerRef = { deref: () => undefined }
@@ -50,7 +49,6 @@ describe("Task.ask queued message drain", () => {
 		;(task as any).addToClineMessages = vi.fn(async () => {})
 		;(task as any).saveClineMessages = vi.fn(async () => {})
 		;(task as any).updateClineMessage = vi.fn(async () => {})
-		;(task as any).cancelAutoApprovalTimeout = vi.fn(() => {})
 		;(task as any).checkpointSave = vi.fn(async () => {})
 		;(task as any).emit = vi.fn()
 		;(task as any).providerRef = { deref: () => undefined }

@@ -49,6 +49,8 @@ const vercelAiGatewayModelsResponseSchema = z.object({
 
 type VercelAiGatewayModelsResponse = z.infer<typeof vercelAiGatewayModelsResponseSchema>
 
+import { getHttpsProxyAgent, getHttpProxyAgent } from "../utils/proxy"
+
 /**
  * getVercelAiGatewayModels
  */
@@ -58,7 +60,13 @@ export async function getVercelAiGatewayModels(options?: ApiHandlerOptions): Pro
 	const baseURL = "https://ai-gateway.vercel.sh/v1"
 
 	try {
-		const response = await axios.get<VercelAiGatewayModelsResponse>(`${baseURL}/models`)
+		const config: any = {}
+		if (options?.proxyUrl) {
+			config.httpsAgent = getHttpsProxyAgent(options.proxyUrl)
+			config.httpAgent = getHttpProxyAgent(options.proxyUrl)
+		}
+
+		const response = await axios.get<VercelAiGatewayModelsResponse>(`${baseURL}/models`, config)
 		const result = vercelAiGatewayModelsResponseSchema.safeParse(response.data)
 		const data = result.success ? result.data.data : response.data.data
 

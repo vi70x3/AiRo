@@ -900,13 +900,14 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 			// Base candidates (only those handled by this aggregate fetcher)
 			const candidates: { key: RouterName; options: GetModelsOptions }[] = [
-				{ key: "openrouter", options: { provider: "openrouter" } },
+				{ key: "openrouter", options: { provider: "openrouter", proxyUrl: apiConfiguration.proxyUrl } },
 				{
 					key: "requesty",
 					options: {
 						provider: "requesty",
 						apiKey: apiConfiguration.requestyApiKey,
 						baseUrl: apiConfiguration.requestyBaseUrl,
+						proxyUrl: apiConfiguration.proxyUrl,
 					},
 				},
 				{
@@ -914,9 +915,16 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					options: {
 						provider: "unbound",
 						apiKey: apiConfiguration.unboundApiKey,
+						proxyUrl: apiConfiguration.proxyUrl,
 					},
 				},
-				{ key: "vercel-ai-gateway", options: { provider: "vercel-ai-gateway" } },
+				{
+					key: "vercel-ai-gateway",
+					options: {
+						provider: "vercel-ai-gateway",
+						proxyUrl: apiConfiguration.proxyUrl,
+					},
+				},
 			]
 
 			// LiteLLM is conditional on baseUrl+apiKey
@@ -927,12 +935,25 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				// If explicit credentials are provided in message.values (from Refresh Models button),
 				// flush the cache first to ensure we fetch fresh data with the new credentials
 				if (message?.values?.litellmApiKey || message?.values?.litellmBaseUrl) {
-					await flushModels({ provider: "litellm", apiKey: litellmApiKey, baseUrl: litellmBaseUrl }, true)
+					await flushModels(
+						{
+							provider: "litellm",
+							apiKey: litellmApiKey,
+							baseUrl: litellmBaseUrl,
+							proxyUrl: apiConfiguration.proxyUrl,
+						},
+						true,
+					)
 				}
 
 				candidates.push({
 					key: "litellm",
-					options: { provider: "litellm", apiKey: litellmApiKey, baseUrl: litellmBaseUrl },
+					options: {
+						provider: "litellm",
+						apiKey: litellmApiKey,
+						baseUrl: litellmBaseUrl,
+						proxyUrl: apiConfiguration.proxyUrl,
+					},
 				})
 			}
 
@@ -942,12 +963,20 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 			if (poeApiKey) {
 				if (message?.values?.poeApiKey || message?.values?.poeBaseUrl) {
-					await flushModels({ provider: "poe", apiKey: poeApiKey, baseUrl: poeBaseUrl }, true)
+					await flushModels(
+						{ provider: "poe", apiKey: poeApiKey, baseUrl: poeBaseUrl, proxyUrl: apiConfiguration.proxyUrl },
+						true,
+					)
 				}
 
 				candidates.push({
 					key: "poe",
-					options: { provider: "poe", apiKey: poeApiKey, baseUrl: poeBaseUrl },
+					options: {
+						provider: "poe",
+						apiKey: poeApiKey,
+						baseUrl: poeBaseUrl,
+						proxyUrl: apiConfiguration.proxyUrl,
+					},
 				})
 			}
 
@@ -1006,6 +1035,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					provider: "ollama" as const,
 					baseUrl: ollamaApiConfig.ollamaBaseUrl,
 					apiKey: ollamaApiConfig.ollamaApiKey,
+					proxyUrl: ollamaApiConfig.proxyUrl,
 				}
 				// Flush cache and refresh to ensure fresh models.
 				await flushModels(ollamaOptions, true)
@@ -1028,6 +1058,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				const lmStudioOptions = {
 					provider: "lmstudio" as const,
 					baseUrl: lmStudioApiConfig.lmStudioBaseUrl,
+					proxyUrl: lmStudioApiConfig.proxyUrl,
 				}
 				// Flush cache and refresh to ensure fresh models.
 				await flushModels(lmStudioOptions, true)
@@ -1052,6 +1083,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					message?.values?.baseUrl,
 					message?.values?.apiKey,
 					message?.values?.openAiHeaders,
+					message?.values?.proxyUrl,
 				)
 
 				provider.postMessageToWebview({ type: "openAiModels", openAiModels })
@@ -1179,10 +1211,6 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 		case "cancelTask":
 			await provider.cancelTask()
 			break
-		case "cancelAutoApproval":
-			// Cancel any pending auto-approval timeout for the current task
-			provider.getCurrentTask()?.cancelAutoApprovalTimeout()
-			break
 		case "allowedCommands": {
 			// Validate and sanitize the commands array
 			const commands = message.commands ?? []
@@ -1279,40 +1307,6 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			} catch (error) {
 				provider.log(
 					`Failed to retry connection for ${message.text}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
-				)
-			}
-			break
-		}
-		case "toggleToolAlwaysAllow": {
-			try {
-				await provider
-					.getMcpHub()
-					?.toggleToolAlwaysAllow(
-						message.serverName!,
-						message.source as "global" | "project",
-						message.toolName!,
-						Boolean(message.alwaysAllow),
-					)
-			} catch (error) {
-				provider.log(
-					`Failed to toggle auto-approve for tool ${message.toolName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
-				)
-			}
-			break
-		}
-		case "toggleToolEnabledForPrompt": {
-			try {
-				await provider
-					.getMcpHub()
-					?.toggleToolEnabledForPrompt(
-						message.serverName!,
-						message.source as "global" | "project",
-						message.toolName!,
-						Boolean(message.isEnabled),
-					)
-			} catch (error) {
-				provider.log(
-					`Failed to toggle enabled for prompt for tool ${message.toolName}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 			}
 			break
@@ -1486,10 +1480,6 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			await provider.postStateToWebview()
 			break
 
-		case "autoApprovalEnabled":
-			await updateGlobalState("autoApprovalEnabled", message.bool ?? false)
-			await provider.postStateToWebview()
-			break
 		case "enhancePrompt":
 			if (message.text) {
 				try {

@@ -21,7 +21,6 @@ import { z } from "zod"
  * - `resume_task`: Confirmation needed to resume a previously paused task
  * - `resume_completed_task`: Confirmation needed to resume a task that was already marked as completed
  * - `use_mcp_server`: Permission to use Model Context Protocol (MCP) server functionality
- * - `auto_approval_max_req_reached`: Auto-approval limit has been reached, manual approval required
  */
 export const clineAsks = [
 	"followup",
@@ -33,7 +32,6 @@ export const clineAsks = [
 	"resume_task",
 	"resume_completed_task",
 	"use_mcp_server",
-	"auto_approval_max_req_reached",
 ] as const
 
 export const clineAskSchema = z.enum(clineAsks)
@@ -49,7 +47,6 @@ export const idleAsks = [
 	"completion_result",
 	"api_req_failed",
 	"resume_completed_task",
-	"auto_approval_max_req_reached",
 ] as const satisfies readonly ClineAsk[]
 
 export type IdleAsk = (typeof idleAsks)[number]
@@ -265,7 +262,6 @@ export const clineMessageSchema = z.object({
 	 * Present when `say: "sliding_window_truncation"`.
 	 */
 	contextTruncation: contextTruncationSchema.optional(),
-	isProtected: z.boolean().optional(),
 	apiProtocol: z.union([z.literal("openai"), z.literal("anthropic")]).optional(),
 	isAnswered: z.boolean().optional(),
 })

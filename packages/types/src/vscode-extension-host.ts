@@ -232,21 +232,7 @@ export type ExtensionState = Pick<
 	| "pinnedApiConfigs"
 	| "customInstructions"
 	| "dismissedUpsells"
-	| "autoApprovalEnabled"
-	| "alwaysAllowReadOnly"
-	| "alwaysAllowReadOnlyOutsideWorkspace"
-	| "alwaysAllowWrite"
-	| "alwaysAllowWriteOutsideWorkspace"
-	| "alwaysAllowWriteProtected"
-	| "alwaysAllowMcp"
-	| "alwaysAllowModeSwitch"
-	| "alwaysAllowSubtasks"
-	| "alwaysAllowFollowupQuestions"
-	| "alwaysAllowExecute"
-	| "followupAutoApproveTimeoutMs"
 	| "allowedCommands"
-	| "allowedMaxRequests"
-	| "allowedMaxCost"
 	| "ttsEnabled"
 	| "ttsSpeed"
 	| "soundEnabled"
@@ -725,7 +711,6 @@ export interface ClineSayTool {
 	mode?: string
 	reason?: string
 	isOutsideWorkspace?: boolean
-	isProtected?: boolean
 	additionalFileCount?: number // Number of additional files in the same read_file request
 	lineNumber?: number
 	startLine?: number // Starting line for read_file operations (for navigation on click)

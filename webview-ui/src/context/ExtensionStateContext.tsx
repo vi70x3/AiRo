@@ -42,28 +42,14 @@ export interface ExtensionStateContextType extends ExtensionState {
 	organizationAllowList: OrganizationAllowList
 	hasOpenedModeSelector: boolean // New property to track if user has opened mode selector
 	setHasOpenedModeSelector: (value: boolean) => void // Setter for the new property
-	alwaysAllowFollowupQuestions: boolean // New property for follow-up questions auto-approve
-	setAlwaysAllowFollowupQuestions: (value: boolean) => void // Setter for the new property
-	followupAutoApproveTimeoutMs: number | undefined // Timeout in ms for auto-approving follow-up questions
-	setFollowupAutoApproveTimeoutMs: (value: number) => void // Setter for the timeout
 	profileThresholds: Record<string, number>
 	setProfileThresholds: (value: Record<string, number>) => void
 	setApiConfiguration: (config: ProviderSettings) => void
 	setCustomInstructions: (value?: string) => void
-	setAlwaysAllowReadOnly: (value: boolean) => void
-	setAlwaysAllowReadOnlyOutsideWorkspace: (value: boolean) => void
-	setAlwaysAllowWrite: (value: boolean) => void
-	setAlwaysAllowWriteOutsideWorkspace: (value: boolean) => void
-	setAlwaysAllowExecute: (value: boolean) => void
-	setAlwaysAllowMcp: (value: boolean) => void
-	setAlwaysAllowModeSwitch: (value: boolean) => void
-	setAlwaysAllowSubtasks: (value: boolean) => void
 	setShowRooIgnoredFiles: (value: boolean) => void
 	setEnableSubfolderRules: (value: boolean) => void
 	setShowAnnouncement: (value: boolean) => void
 	setAllowedCommands: (value: string[]) => void
-	setAllowedMaxRequests: (value: number | undefined) => void
-	setAllowedMaxCost: (value: number | undefined) => void
 	setSoundEnabled: (value: boolean) => void
 	setSoundVolume: (value: number) => void
 	terminalShellIntegrationTimeout?: number
@@ -91,7 +77,6 @@ export interface ExtensionStateContextType extends ExtensionState {
 	enhancementApiConfigId?: string
 	setEnhancementApiConfigId: (value: string) => void
 	setExperimentEnabled: (id: ExperimentId, enabled: boolean) => void
-	setAutoApprovalEnabled: (value: boolean) => void
 	customModes: ModeConfig[]
 	setCustomModes: (value: ModeConfig[]) => void
 	setMaxOpenTabsContext: (value: number) => void
@@ -199,7 +184,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		experiments: experimentDefault,
 		enhancementApiConfigId: "",
 		hasOpenedModeSelector: false, // Default to false (not opened yet)
-		autoApprovalEnabled: true,
 		customModes: [],
 		maxOpenTabsContext: 20,
 		maxWorkspaceFiles: 200,
@@ -249,8 +233,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 	const [mcpServers, setMcpServers] = useState<McpServer[]>([])
 	const [currentCheckpoint, setCurrentCheckpoint] = useState<string>()
 	const [extensionRouterModels, setExtensionRouterModels] = useState<RouterModels | undefined>(undefined)
-	const [alwaysAllowFollowupQuestions, setAlwaysAllowFollowupQuestions] = useState(false) // Add state for follow-up questions auto-approve
-	const [followupAutoApproveTimeoutMs, setFollowupAutoApproveTimeoutMs] = useState<number | undefined>(undefined) // Will be set from global settings
 	const [skills, setSkills] = useState<SkillMetadata[]>([])
 	const [includeTaskHistoryInEnhance, setIncludeTaskHistoryInEnhance] = useState(true)
 	const [includeCurrentTime, setIncludeCurrentTime] = useState(true)
@@ -280,15 +262,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 					setState((prevState) => mergeExtensionState(prevState, newState))
 					setShowWelcome(!checkExistKey(newState.apiConfiguration))
 					setDidHydrateState(true)
-					// Update alwaysAllowFollowupQuestions if present in state message
-					if ((newState as any).alwaysAllowFollowupQuestions !== undefined) {
-						setAlwaysAllowFollowupQuestions((newState as any).alwaysAllowFollowupQuestions)
-					}
-					// Update followupAutoApproveTimeoutMs if present in state message
-					if ((newState as any).followupAutoApproveTimeoutMs !== undefined) {
-						setFollowupAutoApproveTimeoutMs((newState as any).followupAutoApproveTimeoutMs)
-					}
-					// Update includeTaskHistoryInEnhance if present in state message
+						// Update includeTaskHistoryInEnhance if present in state message
 					if ((newState as any).includeTaskHistoryInEnhance !== undefined) {
 						setIncludeTaskHistoryInEnhance((newState as any).includeTaskHistoryInEnhance)
 					}
@@ -303,17 +277,8 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 					break
 				}
 				case "action": {
-					if (message.action === "toggleAutoApprove") {
-						// Toggle the auto-approval state
-						setState((prevState) => {
-							const newValue = !(prevState.autoApprovalEnabled ?? false)
-							// Also send the update to the extension
-							vscode.postMessage({ type: "autoApprovalEnabled", bool: newValue })
-							return { ...prevState, autoApprovalEnabled: newValue }
-						})
+						break
 					}
-					break
-				}
 				case "theme": {
 					if (message.text) {
 						setTheme(convertTextMateToHljs(JSON.parse(message.text)))
@@ -443,29 +408,12 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		writeDelayMs: state.writeDelayMs,
 		routerModels: extensionRouterModels,
 		profileThresholds: state.profileThresholds ?? {},
-		alwaysAllowFollowupQuestions,
-		followupAutoApproveTimeoutMs,
 		setExperimentEnabled: (id, enabled) =>
 			setState((prevState) => ({ ...prevState, experiments: { ...prevState.experiments, [id]: enabled } })),
 		setApiConfiguration,
 		setCustomInstructions: (value) => setState((prevState) => ({ ...prevState, customInstructions: value })),
-		setAlwaysAllowReadOnly: (value) => setState((prevState) => ({ ...prevState, alwaysAllowReadOnly: value })),
-		setAlwaysAllowReadOnlyOutsideWorkspace: (value) =>
-			setState((prevState) => ({ ...prevState, alwaysAllowReadOnlyOutsideWorkspace: value })),
-		setAlwaysAllowWrite: (value) => setState((prevState) => ({ ...prevState, alwaysAllowWrite: value })),
-		setAlwaysAllowWriteOutsideWorkspace: (value) =>
-			setState((prevState) => ({ ...prevState, alwaysAllowWriteOutsideWorkspace: value })),
-		setAlwaysAllowExecute: (value) => setState((prevState) => ({ ...prevState, alwaysAllowExecute: value })),
-		setAlwaysAllowMcp: (value) => setState((prevState) => ({ ...prevState, alwaysAllowMcp: value })),
-		setAlwaysAllowModeSwitch: (value) => setState((prevState) => ({ ...prevState, alwaysAllowModeSwitch: value })),
-		setAlwaysAllowSubtasks: (value) => setState((prevState) => ({ ...prevState, alwaysAllowSubtasks: value })),
-		setAlwaysAllowFollowupQuestions,
-		setFollowupAutoApproveTimeoutMs: (value) =>
-			setState((prevState) => ({ ...prevState, followupAutoApproveTimeoutMs: value })),
 		setShowAnnouncement: (value) => setState((prevState) => ({ ...prevState, shouldShowAnnouncement: value })),
 		setAllowedCommands: (value) => setState((prevState) => ({ ...prevState, allowedCommands: value })),
-		setAllowedMaxRequests: (value) => setState((prevState) => ({ ...prevState, allowedMaxRequests: value })),
-		setAllowedMaxCost: (value) => setState((prevState) => ({ ...prevState, allowedMaxCost: value })),
 		setSoundEnabled: (value) => setState((prevState) => ({ ...prevState, soundEnabled: value })),
 		setSoundVolume: (value) => setState((prevState) => ({ ...prevState, soundVolume: value })),
 		setTtsEnabled: (value) => setState((prevState) => ({ ...prevState, ttsEnabled: value })),
@@ -488,7 +436,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setCustomSupportPrompts: (value) => setState((prevState) => ({ ...prevState, customSupportPrompts: value })),
 		setEnhancementApiConfigId: (value) =>
 			setState((prevState) => ({ ...prevState, enhancementApiConfigId: value })),
-		setAutoApprovalEnabled: (value) => setState((prevState) => ({ ...prevState, autoApprovalEnabled: value })),
 		setCustomModes: (value) => setState((prevState) => ({ ...prevState, customModes: value })),
 		setMaxOpenTabsContext: (value) => setState((prevState) => ({ ...prevState, maxOpenTabsContext: value })),
 		setMaxWorkspaceFiles: (value) => setState((prevState) => ({ ...prevState, maxWorkspaceFiles: value })),

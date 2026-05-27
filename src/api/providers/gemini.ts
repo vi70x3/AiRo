@@ -22,6 +22,8 @@ import { getModelParams } from "../transform/model-params"
 import type { SingleCompletionHandler, ApiHandlerCreateMessageMetadata } from "../index"
 import { BaseProvider } from "./base-provider"
 
+import { getProxyFetch } from "./utils/proxy"
+
 type GeminiHandlerOptions = ApiHandlerOptions & {
 	isVertex?: boolean
 }
@@ -42,6 +44,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 		const project = this.options.vertexProjectId ?? "not-provided"
 		const location = this.options.vertexRegion ?? "not-provided"
 		const apiKey = this.options.geminiApiKey ?? "not-provided"
+		const proxyFetch = getProxyFetch(this.options.proxyUrl)
 
 		this.client = this.options.vertexJsonCredentials
 			? new GoogleGenAI({
@@ -51,6 +54,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 					googleAuthOptions: {
 						credentials: safeJsonParse<JWTInput>(this.options.vertexJsonCredentials, undefined),
 					},
+					httpOptions: proxyFetch ? { fetch: proxyFetch as any } : undefined,
 				})
 			: this.options.vertexKeyFile
 				? new GoogleGenAI({
@@ -58,10 +62,16 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 						project,
 						location,
 						googleAuthOptions: { keyFile: this.options.vertexKeyFile },
+						httpOptions: proxyFetch ? { fetch: proxyFetch as any } : undefined,
 					})
 				: isVertex
-					? new GoogleGenAI({ vertexai: true, project, location })
-					: new GoogleGenAI({ apiKey })
+					? new GoogleGenAI({
+							vertexai: true,
+							project,
+							location,
+							httpOptions: proxyFetch ? { fetch: proxyFetch as any } : undefined,
+						})
+					: new GoogleGenAI({ apiKey, httpOptions: proxyFetch ? { fetch: proxyFetch as any } : undefined })
 	}
 
 	async *createMessage(

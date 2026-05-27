@@ -45,7 +45,6 @@ import { ProgressIndicator } from "./ProgressIndicator"
 import { Markdown } from "./Markdown"
 import { CommandExecution } from "./CommandExecution"
 import { CommandExecutionError } from "./CommandExecutionError"
-import { AutoApprovedRequestLimitWarning } from "./AutoApprovedRequestLimitWarning"
 import { InProgressRow, CondensationResultRow, CondensationErrorRow, TruncationResultRow } from "./context-management"
 import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
 import { appendImages } from "@src/utils/imageUtils"
@@ -182,7 +181,7 @@ export const ChatRowContent = ({
 }: ChatRowContentProps) => {
 	const { t, i18n } = useTranslation()
 
-	const { mcpServers, alwaysAllowMcp, currentCheckpoint, mode, apiConfiguration, clineMessages, currentTaskItem } =
+	const { mcpServers, currentCheckpoint, mode, apiConfiguration, clineMessages, currentTaskItem } =
 		useExtensionState()
 	const { info: model } = useSelectedModel(apiConfiguration)
 	const [isEditing, setIsEditing] = useState(false)
@@ -459,20 +458,11 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div style={headerStyle}>
-							{tool.isProtected ? (
-								<span
-									className="codicon codicon-lock"
-									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
-								/>
-							) : (
-								toolIcon("diff")
-							)}
+							{toolIcon("diff")}
 							<span style={{ fontWeight: "bold" }}>
-								{tool.isProtected
-									? t("chat:fileOperations.wantsToEditProtected")
-									: tool.isOutsideWorkspace
-										? t("chat:fileOperations.wantsToEditOutsideWorkspace")
-										: t("chat:fileOperations.wantsToEdit")}
+								{tool.isOutsideWorkspace
+									? t("chat:fileOperations.wantsToEditOutsideWorkspace")
+									: t("chat:fileOperations.wantsToEdit")}
 							</span>
 						</div>
 						<div className="pl-6">
@@ -494,24 +484,15 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div style={headerStyle}>
-							{tool.isProtected ? (
-								<span
-									className="codicon codicon-lock"
-									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
-								/>
-							) : (
-								toolIcon("insert")
-							)}
+							{toolIcon("insert")}
 							<span style={{ fontWeight: "bold" }}>
-								{tool.isProtected
-									? t("chat:fileOperations.wantsToEditProtected")
-									: tool.isOutsideWorkspace
-										? t("chat:fileOperations.wantsToEditOutsideWorkspace")
-										: tool.lineNumber === 0
-											? t("chat:fileOperations.wantsToInsertAtEnd")
-											: t("chat:fileOperations.wantsToInsertWithLineNumber", {
-													lineNumber: tool.lineNumber,
-												})}
+								{tool.isOutsideWorkspace
+									? t("chat:fileOperations.wantsToEditOutsideWorkspace")
+									: tool.lineNumber === 0
+										? t("chat:fileOperations.wantsToInsertAtEnd")
+										: t("chat:fileOperations.wantsToInsertWithLineNumber", {
+												lineNumber: tool.lineNumber,
+											})}
 							</span>
 						</div>
 						<div className="pl-6">
@@ -970,21 +951,12 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div style={headerStyle}>
-							{tool.isProtected ? (
-								<span
-									className="codicon codicon-lock"
-									style={{ color: "var(--vscode-editorWarning-foreground)", marginBottom: "-1.5px" }}
-								/>
-							) : (
-								toolIcon("file-media")
-							)}
+							{toolIcon("file-media")}
 							<span style={{ fontWeight: "bold" }}>
 								{message.type === "ask"
-									? tool.isProtected
-										? t("chat:fileOperations.wantsToGenerateImageProtected")
-										: tool.isOutsideWorkspace
-											? t("chat:fileOperations.wantsToGenerateImageOutsideWorkspace")
-											: t("chat:fileOperations.wantsToGenerateImage")
+									? tool.isOutsideWorkspace
+										? t("chat:fileOperations.wantsToGenerateImageOutsideWorkspace")
+										: t("chat:fileOperations.wantsToGenerateImage")
 									: t("chat:fileOperations.didGenerateImage")}
 							</span>
 						</div>
@@ -1639,7 +1611,6 @@ export const ChatRowContent = ({
 										isArguments={true}
 										server={server}
 										useMcpServer={useMcpServer}
-										alwaysAllowMcp={alwaysAllowMcp}
 									/>
 								)}
 							</div>
@@ -1687,9 +1658,6 @@ export const ChatRowContent = ({
 							</div>
 						</>
 					)
-				case "auto_approval_max_req_reached": {
-					return <AutoApprovedRequestLimitWarning message={message} />
-				}
 				default:
 					return null
 			}

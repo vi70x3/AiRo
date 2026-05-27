@@ -182,18 +182,16 @@ export async function presentAssistantMessage(cline: Task) {
 			const toolDescription = () => `[mcp_tool: ${mcpBlock.serverName}/${mcpBlock.toolName}]`
 
 			const askApproval = async (
-				type: ClineAsk,
-				partialMessage?: string,
-				progressStatus?: ToolProgressStatus,
-				isProtected?: boolean,
-			) => {
-				const { response, text, images } = await cline.ask(
-					type,
-					partialMessage,
-					false,
-					progressStatus,
-					isProtected || false,
-				)
+					type: ClineAsk,
+					partialMessage?: string,
+					progressStatus?: ToolProgressStatus,
+				) => {
+					const { response, text, images } = await cline.ask(
+						type,
+						partialMessage,
+						false,
+						progressStatus,
+					)
 
 				if (response !== "yesButtonClicked") {
 					if (text) {
@@ -489,18 +487,16 @@ export async function presentAssistantMessage(cline: Task) {
 			}
 
 			const askApproval = async (
-				type: ClineAsk,
-				partialMessage?: string,
-				progressStatus?: ToolProgressStatus,
-				isProtected?: boolean,
-			) => {
-				const { response, text, images } = await cline.ask(
-					type,
-					partialMessage,
-					false,
-					progressStatus,
-					isProtected || false,
-				)
+					type: ClineAsk,
+					partialMessage?: string,
+					progressStatus?: ToolProgressStatus,
+				) => {
+					const { response, text, images } = await cline.ask(
+						type,
+						partialMessage,
+						false,
+						progressStatus,
+					)
 
 				if (response !== "yesButtonClicked") {
 					// Handle both messageResponse and noButtonClicked with text.

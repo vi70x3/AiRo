@@ -227,12 +227,26 @@ const ApiOptions = ({
 						apiKey: apiConfiguration?.openAiApiKey,
 						customHeaders: {}, // Reserved for any additional headers.
 						openAiHeaders: headerObject,
+						proxyUrl: apiConfiguration?.proxyUrl,
 					},
 				})
 			} else if (selectedProvider === "ollama") {
-				vscode.postMessage({ type: "requestOllamaModels" })
+				vscode.postMessage({
+					type: "requestOllamaModels",
+					values: {
+						baseUrl: apiConfiguration?.ollamaBaseUrl,
+						apiKey: apiConfiguration?.ollamaApiKey,
+						proxyUrl: apiConfiguration?.proxyUrl,
+					},
+				})
 			} else if (selectedProvider === "lmstudio") {
-				vscode.postMessage({ type: "requestLmStudioModels" })
+				vscode.postMessage({
+					type: "requestLmStudioModels",
+					values: {
+						baseUrl: apiConfiguration?.lmStudioBaseUrl,
+						proxyUrl: apiConfiguration?.proxyUrl,
+					},
+				})
 			} else if (selectedProvider === "vscode-lm") {
 				vscode.postMessage({ type: "requestVsCodeLmModels" })
 			} else if (selectedProvider === "litellm" || selectedProvider === "poe") {
@@ -777,6 +791,13 @@ const ApiOptions = ({
 									value={apiConfiguration.rateLimitSeconds || 0}
 									onChange={(value) => setApiConfigurationField("rateLimitSeconds", value)}
 								/>
+								<VSCodeTextField
+									value={apiConfiguration.proxyUrl || ""}
+									onInput={handleInputChange("proxyUrl")}
+									placeholder={t("settings:providers.proxyUrlPlaceholder")}
+									className="w-full">
+									<label className="block font-medium mb-1">{t("settings:providers.proxyUrl")}</label>
+								</VSCodeTextField>
 								{selectedProvider === "poe" && (
 									<VSCodeTextField
 										value={apiConfiguration?.poeBaseUrl || ""}

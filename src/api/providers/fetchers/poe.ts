@@ -1,11 +1,13 @@
 import type { ModelInfo, ModelRecord } from "@roo-code/types"
 import { fetchPoeModels, getModels } from "ai-sdk-provider-poe/code"
 
-export async function getPoeModels(apiKey?: string, baseURL?: string): Promise<ModelRecord> {
+import { getProxyFetch } from "../utils/proxy"
+
+export async function getPoeModels(apiKey?: string, baseURL?: string, proxyUrl?: string): Promise<ModelRecord> {
 	try {
 		// fetchPoeModels populates the internal model store, then getModels()
 		// returns only code-capable models with camelCase fields.
-		await fetchPoeModels({ apiKey, baseURL })
+		await fetchPoeModels({ apiKey, baseURL, fetch: getProxyFetch(proxyUrl) as any })
 		const poeModels = getModels()
 		const models: ModelRecord = {}
 

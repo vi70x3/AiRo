@@ -136,6 +136,8 @@ interface CompletionUsage {
 	}
 }
 
+import { getHttpsProxyAgent } from "./utils/proxy"
+
 export class OpenRouterHandler extends BaseProvider implements SingleCompletionHandler {
 	protected options: ApiHandlerOptions
 	private client: OpenAI
@@ -151,7 +153,12 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		const baseURL = this.options.openRouterBaseUrl || "https://openrouter.ai/api/v1"
 		const apiKey = this.options.openRouterApiKey ?? "not-provided"
 
-		this.client = new OpenAI({ baseURL, apiKey, defaultHeaders: DEFAULT_HEADERS })
+		this.client = new OpenAI({
+			baseURL,
+			apiKey,
+			defaultHeaders: DEFAULT_HEADERS,
+			httpAgent: getHttpsProxyAgent(this.options.proxyUrl),
+		})
 
 		// Load models asynchronously to populate cache before getModel() is called
 		this.loadDynamicModels().catch((error) => {

@@ -59,9 +59,12 @@ export const parseOllamaModel = (rawModel: OllamaModelInfoResponse): ModelInfo |
 	return modelInfo
 }
 
+import { getHttpsProxyAgent, getHttpProxyAgent } from "../utils/proxy"
+
 export async function getOllamaModels(
 	baseUrl = "http://localhost:11434",
 	apiKey?: string,
+	proxyUrl?: string,
 ): Promise<Record<string, ModelInfo>> {
 	const models: Record<string, ModelInfo> = {}
 
@@ -79,7 +82,13 @@ export async function getOllamaModels(
 			headers["Authorization"] = `Bearer ${apiKey}`
 		}
 
-		const response = await axios.get<OllamaModelsResponse>(`${baseUrl}/api/tags`, { headers })
+		const config: any = { headers }
+		if (proxyUrl) {
+			config.httpsAgent = getHttpsProxyAgent(proxyUrl)
+			config.httpAgent = getHttpProxyAgent(proxyUrl)
+		}
+
+		const response = await axios.get<OllamaModelsResponse>(`${baseUrl}/api/tags`, config)
 		const parsedResponse = OllamaModelsResponseSchema.safeParse(response.data)
 		let modelInfoPromises = []
 
@@ -92,7 +101,7 @@ export async function getOllamaModels(
 							{
 								model: ollamaModel.model,
 							},
-							{ headers },
+							config,
 						)
 						.then((ollamaModelInfo) => {
 							const modelInfo = parseOllamaModel(ollamaModelInfo.data)

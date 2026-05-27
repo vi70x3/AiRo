@@ -55,7 +55,6 @@ export class WriteToFileTool extends BaseTool<"write_to_file"> {
 			return
 		}
 
-		const isWriteProtected = task.rooProtectedController?.isWriteProtected(relPath) || false
 
 		let fileExists: boolean
 		const absolutePath = path.resolve(task.cwd, relPath)
@@ -93,7 +92,6 @@ export class WriteToFileTool extends BaseTool<"write_to_file"> {
 			path: getReadablePath(task.cwd, relPath),
 			content: newContent,
 			isOutsideWorkspace,
-			isProtected: isWriteProtected,
 		}
 
 		try {
@@ -127,7 +125,7 @@ export class WriteToFileTool extends BaseTool<"write_to_file"> {
 					diffStats: computeDiffStats(unified) || undefined,
 				} satisfies ClineSayTool)
 
-				const didApprove = await askApproval("tool", completeMessage, undefined, isWriteProtected)
+				const didApprove = await askApproval("tool", completeMessage, undefined, false)
 
 				if (!didApprove) {
 					return
@@ -159,7 +157,7 @@ export class WriteToFileTool extends BaseTool<"write_to_file"> {
 					diffStats: computeDiffStats(unified) || undefined,
 				} satisfies ClineSayTool)
 
-				const didApprove = await askApproval("tool", completeMessage, undefined, isWriteProtected)
+				const didApprove = await askApproval("tool", completeMessage, undefined, false)
 
 				if (!didApprove) {
 					await task.diffViewProvider.revertChanges()
@@ -230,7 +228,6 @@ export class WriteToFileTool extends BaseTool<"write_to_file"> {
 			await createDirectoriesForFile(absolutePath)
 		}
 
-		const isWriteProtected = task.rooProtectedController?.isWriteProtected(relPath!) || false
 		const isOutsideWorkspace = isPathOutsideWorkspace(absolutePath)
 
 		const sharedMessageProps: ClineSayTool = {
@@ -238,7 +235,6 @@ export class WriteToFileTool extends BaseTool<"write_to_file"> {
 			path: getReadablePath(task.cwd, relPath!),
 			content: newContent || "",
 			isOutsideWorkspace,
-			isProtected: isWriteProtected,
 		}
 
 		const partialMessage = JSON.stringify(sharedMessageProps)

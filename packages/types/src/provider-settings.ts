@@ -171,6 +171,7 @@ const baseProviderSettingsSchema = z.object({
 	todoListEnabled: z.boolean().optional(),
 	modelTemperature: z.number().nullish(),
 	rateLimitSeconds: z.number().optional(),
+	proxyUrl: z.string().optional(),
 
 	// Model reasoning.
 	enableReasoningEffort: z.boolean().optional(),

@@ -5,7 +5,13 @@ import type { ModelInfo } from "@roo-code/types"
 import { parseApiPrice } from "../../../shared/cost"
 import { toRequestyServiceUrl } from "../../../shared/utils/requesty"
 
-export async function getRequestyModels(baseUrl?: string, apiKey?: string): Promise<Record<string, ModelInfo>> {
+import { getHttpsProxyAgent, getHttpProxyAgent } from "../utils/proxy"
+
+export async function getRequestyModels(
+	baseUrl?: string,
+	apiKey?: string,
+	proxyUrl?: string,
+): Promise<Record<string, ModelInfo>> {
 	const models: Record<string, ModelInfo> = {}
 
 	try {
@@ -18,7 +24,13 @@ export async function getRequestyModels(baseUrl?: string, apiKey?: string): Prom
 		const resolvedBaseUrl = toRequestyServiceUrl(baseUrl)
 		const modelsUrl = new URL("v1/models", resolvedBaseUrl)
 
-		const response = await axios.get(modelsUrl.toString(), { headers })
+		const config: any = { headers }
+		if (proxyUrl) {
+			config.httpsAgent = getHttpsProxyAgent(proxyUrl)
+			config.httpAgent = getHttpProxyAgent(proxyUrl)
+		}
+
+		const response = await axios.get(modelsUrl.toString(), config)
 		const rawModels = response.data.data
 
 		for (const rawModel of rawModels) {

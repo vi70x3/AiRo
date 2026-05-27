@@ -218,7 +218,6 @@ export class EditFileTool extends BaseTool<"edit_file"> {
 			}
 
 			// Check if file is write-protected
-			const isWriteProtected = task.rooProtectedController?.isWriteProtected(relPath) || false
 
 			const absolutePath = path.resolve(task.cwd, relPath)
 			const fileExists = await fileExistsAtPath(absolutePath)
@@ -411,7 +410,6 @@ export class EditFileTool extends BaseTool<"edit_file"> {
 			const completeMessage = JSON.stringify({
 				...sharedMessageProps,
 				content: sanitizedDiff,
-				isProtected: isWriteProtected,
 				diffStats,
 			} satisfies ClineSayTool)
 
@@ -422,7 +420,7 @@ export class EditFileTool extends BaseTool<"edit_file"> {
 				task.diffViewProvider.scrollToFirstDiff()
 			}
 
-			const didApprove = await askApproval("tool", completeMessage, undefined, isWriteProtected)
+			const didApprove = await askApproval("tool", completeMessage, undefined, false)
 
 			if (!didApprove) {
 				// Revert changes if diff view was shown

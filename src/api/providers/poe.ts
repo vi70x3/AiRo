@@ -19,6 +19,8 @@ import { BaseProvider } from "./base-provider"
 import type { SingleCompletionHandler, ApiHandlerCreateMessageMetadata } from "../index"
 import { getModelsFromCache } from "./fetchers/modelCache"
 
+import { getProxyFetch } from "./utils/proxy"
+
 const DEFAULT_THINKING_BUDGET = 8192
 
 export class PoeHandler extends BaseProvider implements SingleCompletionHandler {
@@ -31,6 +33,7 @@ export class PoeHandler extends BaseProvider implements SingleCompletionHandler 
 		this.poe = createPoe({
 			apiKey: options.poeApiKey ?? "not-provided",
 			baseURL: options.poeBaseUrl || undefined,
+			fetch: getProxyFetch(options.proxyUrl) as any,
 		})
 	}
 

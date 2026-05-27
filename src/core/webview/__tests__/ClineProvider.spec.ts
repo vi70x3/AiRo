@@ -491,9 +491,6 @@ describe("ClineProvider", () => {
 				apiProvider: "openrouter",
 			},
 			customInstructions: undefined,
-			alwaysAllowReadOnly: true,
-			alwaysAllowReadOnlyOutsideWorkspace: true,
-			alwaysAllowWrite: true,
 			codebaseIndexConfig: {
 				codebaseIndexEnabled: true,
 				codebaseIndexQdrantUrl: "",
@@ -501,9 +498,6 @@ describe("ClineProvider", () => {
 				codebaseIndexEmbedderBaseUrl: "",
 				codebaseIndexEmbedderModelId: "",
 			},
-			alwaysAllowWriteOutsideWorkspace: true,
-			alwaysAllowExecute: true,
-			alwaysAllowMcp: true,
 			uriScheme: "vscode",
 			soundEnabled: false,
 			ttsEnabled: false,
@@ -736,9 +730,6 @@ describe("ClineProvider", () => {
 		expect(state).toHaveProperty("apiConfiguration")
 		expect(state.apiConfiguration).toHaveProperty("apiProvider")
 		expect(state).toHaveProperty("customInstructions")
-		expect(state).toHaveProperty("alwaysAllowReadOnly")
-		expect(state).toHaveProperty("alwaysAllowWrite")
-		expect(state).toHaveProperty("alwaysAllowExecute")
 		expect(state).toHaveProperty("taskHistory")
 		expect(state).toHaveProperty("soundEnabled")
 		expect(state).toHaveProperty("ttsEnabled")

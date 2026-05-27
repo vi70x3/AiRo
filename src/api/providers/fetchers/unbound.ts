@@ -4,7 +4,9 @@ import type { ModelInfo } from "@roo-code/types"
 
 import { parseApiPrice } from "../../../shared/cost"
 
-export async function getUnboundModels(apiKey?: string | null): Promise<Record<string, ModelInfo>> {
+import { getHttpsProxyAgent, getHttpProxyAgent } from "../utils/proxy"
+
+export async function getUnboundModels(apiKey?: string | null, proxyUrl?: string): Promise<Record<string, ModelInfo>> {
 	const models: Record<string, ModelInfo> = {}
 
 	try {
@@ -14,7 +16,13 @@ export async function getUnboundModels(apiKey?: string | null): Promise<Record<s
 			headers["Authorization"] = `Bearer ${apiKey}`
 		}
 
-		const response = await axios.get("https://api.getunbound.ai/models", { headers })
+		const config: any = { headers }
+		if (proxyUrl) {
+			config.httpsAgent = getHttpsProxyAgent(proxyUrl)
+			config.httpAgent = getHttpProxyAgent(proxyUrl)
+		}
+
+		const response = await axios.get("https://api.getunbound.ai/models", config)
 		const rawModels = response.data?.data ?? response.data
 
 		for (const rawModel of rawModels) {

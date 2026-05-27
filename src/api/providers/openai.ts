@@ -25,6 +25,8 @@ import type { SingleCompletionHandler, ApiHandlerCreateMessageMetadata } from ".
 import { getApiRequestTimeout } from "./utils/timeout-config"
 import { handleOpenAIError } from "./utils/openai-error-handler"
 
+import { getHttpsProxyAgent } from "./utils/proxy"
+
 // TODO: Rename this to OpenAICompatibleHandler. Also, I think the
 // `OpenAINativeHandler` can subclass from this, since it's obviously
 // compatible with the OpenAI API. We can also rename it to `OpenAIHandler`.
@@ -49,6 +51,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 		}
 
 		const timeout = getApiRequestTimeout()
+		const httpAgent = getHttpsProxyAgent(this.options.proxyUrl)
 
 		if (isAzureAiInference) {
 			// Azure AI Inference Service (e.g., for DeepSeek) uses a different path structure
@@ -58,6 +61,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 				defaultHeaders: headers,
 				defaultQuery: { "api-version": this.options.azureApiVersion || "2024-05-01-preview" },
 				timeout,
+				httpAgent,
 			})
 		} else if (isAzureOpenAi) {
 			// Azure API shape slightly differs from the core API shape:
@@ -68,6 +72,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 				apiVersion: this.options.azureApiVersion || azureOpenAiDefaultApiVersion,
 				defaultHeaders: headers,
 				timeout,
+				httpAgent,
 			})
 		} else {
 			this.client = new OpenAI({
@@ -75,6 +80,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 				apiKey,
 				defaultHeaders: headers,
 				timeout,
+				httpAgent,
 			})
 		}
 	}
@@ -534,7 +540,12 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 	}
 }
 
-export async function getOpenAiModels(baseUrl?: string, apiKey?: string, openAiHeaders?: Record<string, string>) {
+export async function getOpenAiModels(
+	baseUrl?: string,
+	apiKey?: string,
+	openAiHeaders?: Record<string, string>,
+	proxyUrl?: string,
+) {
 	try {
 		if (!baseUrl) {
 			return []
@@ -559,6 +570,11 @@ export async function getOpenAiModels(baseUrl?: string, apiKey?: string, openAiH
 
 		if (Object.keys(headers).length > 0) {
 			config["headers"] = headers
+		}
+
+		if (proxyUrl) {
+			config["httpsAgent"] = getHttpsProxyAgent(proxyUrl)
+			config["httpAgent"] = getHttpProxyAgent(proxyUrl)
 		}
 
 		const response = await axios.get(`${trimmedBaseUrl}/models`, config)

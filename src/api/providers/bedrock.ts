@@ -188,6 +188,9 @@ export type UsageType = {
 	cacheWriteInputTokenCount?: number
 }
 
+import { NodeHttpHandler } from "@smithy/node-http-handler"
+import { getHttpsProxyAgent, getHttpProxyAgent } from "./utils/proxy"
+
 /************************************************************************************
  *
  *     PROVIDER
@@ -255,17 +258,16 @@ export class AwsBedrockHandler extends BaseProvider implements SingleCompletionH
 			// Add the endpoint configuration when specified and enabled
 			...(this.options.awsBedrockEndpoint &&
 				this.options.awsBedrockEndpointEnabled && { endpoint: this.options.awsBedrockEndpoint }),
+			requestHandler: new NodeHttpHandler({
+				httpsAgent: getHttpsProxyAgent(this.options.proxyUrl),
+				httpAgent: getHttpProxyAgent(this.options.proxyUrl),
+			}),
 		}
 
 		if (this.options.awsUseApiKey && this.options.awsApiKey) {
 			// Use API key/token-based authentication if enabled and API key is set
 			clientConfig.token = { token: this.options.awsApiKey }
 			clientConfig.authSchemePreference = ["httpBearerAuth"] // Otherwise there's no end of credential problems.
-			clientConfig.requestHandler = {
-				// This should be the default anyway, but without setting something
-				// this provider fails to work with LiteLLM passthrough.
-				requestTimeout: 0,
-			}
 		} else if (this.options.awsUseProfile && this.options.awsProfile) {
 			// Use profile-based credentials if enabled and profile is set
 			clientConfig.credentials = fromIni({

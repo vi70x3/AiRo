@@ -10,7 +10,6 @@ import React, {
 	useState,
 } from "react"
 import {
-	CheckCheck,
 	GitBranch,
 	Bell,
 	Database,
@@ -64,7 +63,6 @@ import { SetCachedStateField, SetExperimentEnabled } from "./types"
 import { SectionHeader } from "./SectionHeader"
 import ApiConfigManager from "./ApiConfigManager"
 import ApiOptions from "./ApiOptions"
-import { AutoApproveSettings } from "./AutoApproveSettings"
 import { CheckpointSettings } from "./CheckpointSettings"
 import { NotificationSettings } from "./NotificationSettings"
 import { ContextManagementSettings } from "./ContextManagementSettings"
@@ -96,7 +94,6 @@ export interface SettingsViewRef {
 
 export const sectionNames = [
 	"providers",
-	"autoApprove",
 	"slashCommands",
 	"skills",
 	"checkpoints",
@@ -146,19 +143,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const [cachedState, setCachedState] = useState(() => extensionState)
 
 	const {
-		alwaysAllowReadOnly,
-		alwaysAllowReadOnlyOutsideWorkspace,
 		allowedCommands,
-		allowedMaxRequests,
-		allowedMaxCost,
 		language,
-		alwaysAllowExecute,
-		alwaysAllowMcp,
-		alwaysAllowModeSwitch,
-		alwaysAllowSubtasks,
-		alwaysAllowWrite,
-		alwaysAllowWriteOutsideWorkspace,
-		alwaysAllowWriteProtected,
 		autoCondenseContext,
 		autoCondenseContextPercent,
 		enableCheckpoints,
@@ -187,8 +173,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		maxTotalImageSize,
 		customSupportPrompts,
 		profileThresholds,
-		alwaysAllowFollowupQuestions,
-		followupAutoApproveTimeoutMs,
 		includeDiagnosticMessages,
 		maxDiagnosticMessages,
 		includeTaskHistoryInEnhance,
@@ -350,20 +334,10 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 				type: "updateSettings",
 				updatedSettings: {
 					language,
-					alwaysAllowReadOnly: alwaysAllowReadOnly ?? undefined,
-					alwaysAllowReadOnlyOutsideWorkspace: alwaysAllowReadOnlyOutsideWorkspace ?? undefined,
-					alwaysAllowWrite: alwaysAllowWrite ?? undefined,
-					alwaysAllowWriteOutsideWorkspace: alwaysAllowWriteOutsideWorkspace ?? undefined,
-					alwaysAllowWriteProtected: alwaysAllowWriteProtected ?? undefined,
-					alwaysAllowExecute: alwaysAllowExecute ?? undefined,
-					alwaysAllowMcp,
-					alwaysAllowModeSwitch,
 					allowedCommands: allowedCommands ?? [],
 					// Note that we use `null` instead of `undefined` since `JSON.stringify`
 					// will omit `undefined` when serializing the object and passing it to the
 					// extension host. We may need to do the same for other nullable fields.
-					allowedMaxRequests: allowedMaxRequests ?? null,
-					allowedMaxCost: allowedMaxCost ?? null,
 					autoCondenseContext,
 					autoCondenseContextPercent,
 					soundEnabled: soundEnabled ?? true,
@@ -392,9 +366,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					includeDiagnosticMessages:
 						includeDiagnosticMessages !== undefined ? includeDiagnosticMessages : true,
 					maxDiagnosticMessages: maxDiagnosticMessages ?? 50,
-					alwaysAllowSubtasks,
-					alwaysAllowFollowupQuestions: alwaysAllowFollowupQuestions ?? false,
-					followupAutoApproveTimeoutMs,
 					includeTaskHistoryInEnhance: includeTaskHistoryInEnhance ?? true,
 					reasoningBlockCollapsed: reasoningBlockCollapsed ?? true,
 					enterBehavior: enterBehavior ?? "send",
@@ -496,7 +467,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "modes", icon: Users2 },
 			{ id: "skills", icon: GraduationCap },
 			{ id: "slashCommands", icon: SquareSlash },
-			{ id: "autoApprove", icon: CheckCheck },
 			{ id: "mcp", icon: Server },
 			{ id: "checkpoints", icon: GitCommitVertical },
 			{ id: "notifications", icon: Bell },
@@ -759,27 +729,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 									/>
 								</Section>
 							</div>
-						)}
-
-						{/* Auto-Approve Section */}
-						{renderTab === "autoApprove" && (
-							<AutoApproveSettings
-								alwaysAllowReadOnly={alwaysAllowReadOnly}
-								alwaysAllowReadOnlyOutsideWorkspace={alwaysAllowReadOnlyOutsideWorkspace}
-								alwaysAllowWrite={alwaysAllowWrite}
-								alwaysAllowWriteOutsideWorkspace={alwaysAllowWriteOutsideWorkspace}
-								alwaysAllowWriteProtected={alwaysAllowWriteProtected}
-								alwaysAllowMcp={alwaysAllowMcp}
-								alwaysAllowModeSwitch={alwaysAllowModeSwitch}
-								alwaysAllowSubtasks={alwaysAllowSubtasks}
-								alwaysAllowExecute={alwaysAllowExecute}
-								alwaysAllowFollowupQuestions={alwaysAllowFollowupQuestions}
-								followupAutoApproveTimeoutMs={followupAutoApproveTimeoutMs}
-								allowedCommands={allowedCommands}
-								allowedMaxRequests={allowedMaxRequests ?? undefined}
-								allowedMaxCost={allowedMaxCost ?? undefined}
-								setCachedStateField={setCachedStateField}
-							/>
 						)}
 
 						{/* Slash Commands Section */}

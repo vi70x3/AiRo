@@ -3,15 +3,18 @@ import axios from "axios"
 import type { ModelRecord } from "@roo-code/types"
 
 import { DEFAULT_HEADERS } from "../constants"
+import { getHttpsProxyAgent, getHttpProxyAgent } from "../utils/proxy"
+
 /**
  * Fetches available models from a LiteLLM server
  *
  * @param apiKey The API key for the LiteLLM server
  * @param baseUrl The base URL of the LiteLLM server
+ * @param proxyUrl Optional proxy URL
  * @returns A promise that resolves to a record of model IDs to model info
  * @throws Will throw an error if the request fails or the response is not as expected.
  */
-export async function getLiteLLMModels(apiKey: string, baseUrl: string): Promise<ModelRecord> {
+export async function getLiteLLMModels(apiKey: string, baseUrl: string, proxyUrl?: string): Promise<ModelRecord> {
 	try {
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
@@ -28,7 +31,13 @@ export async function getLiteLLMModels(apiKey: string, baseUrl: string): Promise
 		urlObj.pathname = urlObj.pathname.replace(/\/+$/, "").replace(/\/+/g, "/") + "/v1/model/info"
 		const url = urlObj.href
 		// Added timeout to prevent indefinite hanging
-		const response = await axios.get(url, { headers, timeout: 5000 })
+		const config: any = { headers, timeout: 5000 }
+		if (proxyUrl) {
+			config.httpsAgent = getHttpsProxyAgent(proxyUrl)
+			config.httpAgent = getHttpProxyAgent(proxyUrl)
+		}
+
+		const response = await axios.get(url, config)
 		const models: ModelRecord = {}
 
 		// Process the model info from the response

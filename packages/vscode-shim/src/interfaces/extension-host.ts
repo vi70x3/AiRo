@@ -3,7 +3,7 @@
  * to work with the vscode-shim WindowAPI.
  *
  * This interface is used implicitly by WindowAPI when accessing global.__extensionHost.
- * The ExtensionHost implementation (e.g., in apps/cli) must satisfy this contract.
+ * The ExtensionHost implementation must satisfy this contract.
  */
 
 import type { WebviewViewProvider } from "./webview.js"

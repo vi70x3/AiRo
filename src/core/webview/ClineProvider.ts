@@ -68,35 +68,6 @@ import { setTtsEnabled, setTtsSpeed } from "../../utils/tts"
 import { getWorkspaceGitInfo } from "../../utils/git"
 import { getWorkspacePath } from "../../utils/path"
 
-/**
- * Resolves auto-approval state fields from raw state values,
- * applying `false` defaults for any undefined values.
- */
-function resolveAutoApprovalState(values: {
-	alwaysAllowReadOnly?: boolean
-	alwaysAllowReadOnlyOutsideWorkspace?: boolean
-	alwaysAllowWrite?: boolean
-	alwaysAllowWriteOutsideWorkspace?: boolean
-	alwaysAllowWriteProtected?: boolean
-	alwaysAllowExecute?: boolean
-	alwaysAllowMcp?: boolean
-	alwaysAllowModeSwitch?: boolean
-	alwaysAllowSubtasks?: boolean
-	alwaysAllowFollowupQuestions?: boolean
-}) {
-	return {
-		alwaysAllowReadOnly: values.alwaysAllowReadOnly ?? true,
-		alwaysAllowReadOnlyOutsideWorkspace: values.alwaysAllowReadOnlyOutsideWorkspace ?? true,
-		alwaysAllowWrite: values.alwaysAllowWrite ?? true,
-		alwaysAllowWriteOutsideWorkspace: values.alwaysAllowWriteOutsideWorkspace ?? true,
-		alwaysAllowWriteProtected: values.alwaysAllowWriteProtected ?? true,
-		alwaysAllowExecute: values.alwaysAllowExecute ?? true,
-		alwaysAllowMcp: values.alwaysAllowMcp ?? true,
-		alwaysAllowModeSwitch: values.alwaysAllowModeSwitch ?? true,
-		alwaysAllowSubtasks: values.alwaysAllowSubtasks ?? true,
-		alwaysAllowFollowupQuestions: values.alwaysAllowFollowupQuestions ?? true,
-	}
-}
 import { OrganizationAllowListViolationError } from "../../utils/errors"
 
 import { setPanel } from "../../activate/registerCommands"
@@ -2000,19 +1971,8 @@ export class ClineProvider
 			apiConfiguration,
 			lastShownAnnouncementId,
 			customInstructions,
-			alwaysAllowReadOnly,
-			alwaysAllowReadOnlyOutsideWorkspace,
-			alwaysAllowWrite,
-			alwaysAllowWriteOutsideWorkspace,
-			alwaysAllowWriteProtected,
-			alwaysAllowExecute,
-			allowedCommands,
-			alwaysAllowMcp,
-			alwaysAllowModeSwitch,
-			alwaysAllowSubtasks,
-			allowedMaxRequests,
-			allowedMaxCost,
-			autoCondenseContext,
+									allowedCommands,
+								autoCondenseContext,
 			autoCondenseContextPercent,
 			soundEnabled,
 			ttsEnabled,
@@ -2038,8 +1998,7 @@ export class ClineProvider
 			customModePrompts,
 			customSupportPrompts,
 			enhancementApiConfigId,
-			autoApprovalEnabled,
-			customModes,
+				customModes,
 			experiments,
 			maxOpenTabsContext,
 			maxWorkspaceFiles,
@@ -2057,9 +2016,7 @@ export class ClineProvider
 			codebaseIndexConfig,
 			codebaseIndexModels,
 			profileThresholds,
-			alwaysAllowFollowupQuestions,
-			followupAutoApproveTimeoutMs,
-			includeDiagnosticMessages,
+					includeDiagnosticMessages,
 			maxDiagnosticMessages,
 			includeTaskHistoryInEnhance,
 			includeCurrentTime,
@@ -2079,20 +2036,7 @@ export class ClineProvider
 			version: this.context.extension?.packageJSON?.version ?? "",
 			apiConfiguration,
 			customInstructions,
-			...resolveAutoApprovalState({
-				alwaysAllowReadOnly,
-				alwaysAllowReadOnlyOutsideWorkspace,
-				alwaysAllowWrite,
-				alwaysAllowWriteOutsideWorkspace,
-				alwaysAllowWriteProtected,
-				alwaysAllowExecute,
-				alwaysAllowMcp,
-				alwaysAllowModeSwitch,
-				alwaysAllowSubtasks,
-			}),
-			allowedMaxRequests,
-			allowedMaxCost,
-			autoCondenseContext: autoCondenseContext ?? true,
+								autoCondenseContext: autoCondenseContext ?? true,
 			autoCondenseContextPercent: autoCondenseContextPercent ?? 100,
 			uriScheme: vscode.env.uriScheme,
 			currentTaskId: currentTask?.taskId,
@@ -2126,8 +2070,7 @@ export class ClineProvider
 			customModePrompts: customModePrompts ?? {},
 			customSupportPrompts: customSupportPrompts ?? {},
 			enhancementApiConfigId,
-			autoApprovalEnabled: autoApprovalEnabled ?? true,
-			customModes,
+				customModes,
 			experiments: experiments ?? experimentDefault,
 			mcpServers: this.mcpHub?.getAllServers() ?? [],
 			maxOpenTabsContext: maxOpenTabsContext ?? 20,
@@ -2164,9 +2107,7 @@ export class ClineProvider
 			profileThresholds: profileThresholds ?? {},
 			hasOpenedModeSelector: this.getGlobalState("hasOpenedModeSelector") ?? false,
 			lockApiConfigAcrossModes: lockApiConfigAcrossModes ?? false,
-			alwaysAllowFollowupQuestions: alwaysAllowFollowupQuestions ?? true,
-			followupAutoApproveTimeoutMs: followupAutoApproveTimeoutMs ?? 10000,
-			includeDiagnosticMessages: includeDiagnosticMessages ?? true,
+					includeDiagnosticMessages: includeDiagnosticMessages ?? true,
 			maxDiagnosticMessages: maxDiagnosticMessages ?? 50,
 			includeTaskHistoryInEnhance: includeTaskHistoryInEnhance ?? true,
 			includeCurrentTime: includeCurrentTime ?? true,
@@ -2228,11 +2169,6 @@ export class ClineProvider
 			lastShownAnnouncementId: stateValues.lastShownAnnouncementId,
 			customInstructions: stateValues.customInstructions,
 			apiModelId: stateValues.apiModelId,
-			...resolveAutoApprovalState(stateValues),
-			followupAutoApproveTimeoutMs: stateValues.followupAutoApproveTimeoutMs ?? 10000,
-			diagnosticsEnabled: stateValues.diagnosticsEnabled ?? true,
-			allowedMaxRequests: stateValues.allowedMaxRequests,
-			allowedMaxCost: stateValues.allowedMaxCost,
 			autoCondenseContext: stateValues.autoCondenseContext ?? true,
 			autoCondenseContextPercent: stateValues.autoCondenseContextPercent ?? 100,
 			taskHistory: this.taskHistoryStore.getAll(),
@@ -2265,8 +2201,7 @@ export class ClineProvider
 			customSupportPrompts: stateValues.customSupportPrompts ?? {},
 			enhancementApiConfigId: stateValues.enhancementApiConfigId,
 			experiments: stateValues.experiments ?? experimentDefault,
-			autoApprovalEnabled: stateValues.autoApprovalEnabled ?? true,
-			customModes,
+				customModes,
 			maxOpenTabsContext: stateValues.maxOpenTabsContext ?? 20,
 			maxWorkspaceFiles: stateValues.maxWorkspaceFiles ?? 200,
 			disabledTools: stateValues.disabledTools,

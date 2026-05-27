@@ -119,7 +119,6 @@ export class GenerateImageTool extends BaseTool<"generate_image"> {
 			}
 		}
 
-		const isWriteProtected = task.rooProtectedController?.isWriteProtected(relPath) || false
 
 		// Use shared utility for backwards compatibility logic
 		const imageProvider = getImageGenerationProvider(
@@ -170,7 +169,6 @@ export class GenerateImageTool extends BaseTool<"generate_image"> {
 			path: getReadablePath(task.cwd, relPath),
 			content: prompt,
 			isOutsideWorkspace,
-			isProtected: isWriteProtected,
 		}
 
 		try {
@@ -182,7 +180,7 @@ export class GenerateImageTool extends BaseTool<"generate_image"> {
 				...(inputImagePath && { inputImage: getReadablePath(task.cwd, inputImagePath) }),
 			})
 
-			const didApprove = await askApproval("tool", approvalMessage, undefined, isWriteProtected)
+			const didApprove = await askApproval("tool", approvalMessage, undefined, false)
 
 			if (!didApprove) {
 				return

@@ -134,7 +134,6 @@ export class ApplyDiffTool extends BaseTool<"apply_diff"> {
 			)
 
 			// Check if file is write-protected
-			const isWriteProtected = task.rooProtectedController?.isWriteProtected(relPath) || false
 
 			const sharedMessageProps: ClineSayTool = {
 				tool: "appliedDiff",
@@ -150,7 +149,6 @@ export class ApplyDiffTool extends BaseTool<"apply_diff"> {
 					content: unifiedPatch,
 					originalContent,
 					diffStats,
-					isProtected: isWriteProtected,
 				} satisfies ClineSayTool)
 
 				let toolProgressStatus
@@ -165,7 +163,7 @@ export class ApplyDiffTool extends BaseTool<"apply_diff"> {
 					toolProgressStatus = task.diffStrategy.getProgressStatus(block, diffResult)
 				}
 
-				const didApprove = await askApproval("tool", completeMessage, toolProgressStatus, isWriteProtected)
+				const didApprove = await askApproval("tool", completeMessage, toolProgressStatus, false)
 
 				if (!didApprove) {
 					return
@@ -195,7 +193,6 @@ export class ApplyDiffTool extends BaseTool<"apply_diff"> {
 					content: unifiedPatch,
 					originalContent,
 					diffStats,
-					isProtected: isWriteProtected,
 				} satisfies ClineSayTool)
 
 				let toolProgressStatus
@@ -210,7 +207,7 @@ export class ApplyDiffTool extends BaseTool<"apply_diff"> {
 					toolProgressStatus = task.diffStrategy.getProgressStatus(block, diffResult)
 				}
 
-				const didApprove = await askApproval("tool", completeMessage, toolProgressStatus, isWriteProtected)
+				const didApprove = await askApproval("tool", completeMessage, toolProgressStatus, false)
 
 				if (!didApprove) {
 					await task.diffViewProvider.revertChanges()

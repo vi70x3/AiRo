@@ -41,13 +41,12 @@ export class ListFilesTool extends BaseTool<"list_files"> {
 			const { showRooIgnoredFiles = false } = (await task.providerRef.deref()?.getState()) ?? {}
 
 			const result = formatResponse.formatFilesList(
-				absolutePath,
-				files,
-				didHitLimit,
-				task.rooIgnoreController,
-				showRooIgnoredFiles,
-				task.rooProtectedController,
-			)
+					absolutePath,
+					files,
+					didHitLimit,
+					task.rooIgnoreController,
+					showRooIgnoredFiles,
+				)
 
 			const sharedMessageProps: ClineSayTool = {
 				tool: !recursive ? "listFilesTopLevel" : "listFilesRecursive",

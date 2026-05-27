@@ -145,6 +145,8 @@ function convertToOllamaMessages(anthropicMessages: Anthropic.Messages.MessagePa
 	return ollamaMessages
 }
 
+import { getProxyFetch } from "./utils/proxy"
+
 export class NativeOllamaHandler extends BaseProvider implements SingleCompletionHandler {
 	protected options: ApiHandlerOptions
 	private client: Ollama | undefined
@@ -158,9 +160,11 @@ export class NativeOllamaHandler extends BaseProvider implements SingleCompletio
 	private ensureClient(): Ollama {
 		if (!this.client) {
 			try {
+				const proxyFetch = getProxyFetch(this.options.proxyUrl)
 				const clientOptions: OllamaOptions = {
 					host: this.options.ollamaBaseUrl || "http://localhost:11434",
 					// Note: The ollama npm package handles timeouts internally
+					fetch: proxyFetch as any,
 				}
 
 				// Add API key if provided (for Ollama cloud or authenticated instances)

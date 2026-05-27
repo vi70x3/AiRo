@@ -18,6 +18,8 @@ import { getModelsFromCache } from "./fetchers/modelCache"
 import { getApiRequestTimeout } from "./utils/timeout-config"
 import { handleOpenAIError } from "./utils/openai-error-handler"
 
+import { getHttpsProxyAgent, getHttpProxyAgent } from "./utils/proxy"
+
 export class LmStudioHandler extends BaseProvider implements SingleCompletionHandler {
 	protected options: ApiHandlerOptions
 	private client: OpenAI
@@ -34,6 +36,7 @@ export class LmStudioHandler extends BaseProvider implements SingleCompletionHan
 			baseURL: (this.options.lmStudioBaseUrl || "http://localhost:1234") + "/v1",
 			apiKey: apiKey,
 			timeout: getApiRequestTimeout(),
+			httpAgent: getHttpsProxyAgent(this.options.proxyUrl),
 		})
 	}
 
@@ -215,13 +218,19 @@ export class LmStudioHandler extends BaseProvider implements SingleCompletionHan
 	}
 }
 
-export async function getLmStudioModels(baseUrl = "http://localhost:1234") {
+export async function getLmStudioModels(baseUrl = "http://localhost:1234", proxyUrl?: string) {
 	try {
 		if (!URL.canParse(baseUrl)) {
 			return []
 		}
 
-		const response = await axios.get(`${baseUrl}/v1/models`)
+		const config: any = {}
+		if (proxyUrl) {
+			config.httpsAgent = getHttpsProxyAgent(proxyUrl)
+			config.httpAgent = getHttpProxyAgent(proxyUrl)
+		}
+
+		const response = await axios.get(`${baseUrl}/v1/models`, config)
 		const modelsArray = response.data?.data?.map((model: any) => model.id) || []
 		return [...new Set<string>(modelsArray)]
 	} catch (error) {

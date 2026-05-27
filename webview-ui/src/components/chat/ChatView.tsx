@@ -77,7 +77,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		organizationAllowList,
 		mode,
 		setMode,
-		alwaysAllowModeSwitch,
 		customModes,
 		soundEnabled,
 		soundVolume,
@@ -158,7 +157,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			ttl: 1000 * 60 * 5,
 		}),
 	)
-	const autoApproveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const userRespondedRef = useRef<boolean>(false)
 	const [currentFollowUpTs, setCurrentFollowUpTs] = useState<number | null>(null)
 	const [aggregatedCostsMap, setAggregatedCostsMap] = useState<
@@ -181,20 +179,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	useEffect(() => {
 		inputValueRef.current = inputValue
 	}, [inputValue])
-
-	// Compute whether auto-approval is paused (user is typing in a followup)
-	const isFollowUpAutoApprovalPaused = useMemo(() => {
-		return !!(inputValue && inputValue.trim().length > 0 && clineAsk === "followup")
-	}, [inputValue, clineAsk])
-
-	// Cancel auto-approval timeout when user starts typing
-	useEffect(() => {
-		// Only send cancel if there's actual input (user is typing)
-		// and we have a pending follow-up question
-		if (isFollowUpAutoApprovalPaused) {
-			vscode.postMessage({ type: "cancelAutoApproval" })
-		}
-	}, [isFollowUpAutoApprovalPaused])
 
 	const isProfileDisabled = useMemo(
 		() => !!apiConfiguration && !ProfileValidator.isProfileAllowed(apiConfiguration, organizationAllowList),
@@ -460,11 +444,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		everVisibleMessagesTsRef.current.clear()
 		setCurrentFollowUpTs(null)
 		setIsCondensing(false)
-
-		if (autoApproveTimeoutRef.current) {
-			clearTimeout(autoApproveTimeoutRef.current)
-			autoApproveTimeoutRef.current = null
-		}
 		userRespondedRef.current = false
 	}, [task?.ts])
 
@@ -545,11 +524,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [])
 
 	const handleChatReset = useCallback(() => {
-		// Clear any pending auto-approval timeout
-		if (autoApproveTimeoutRef.current) {
-			clearTimeout(autoApproveTimeoutRef.current)
-			autoApproveTimeoutRef.current = null
-		}
 		// Reset user response flag for new message
 		userRespondedRef.current = false
 
@@ -1320,12 +1294,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			// Check if we need to switch modes
 			if (suggestion.mode) {
-				// Only switch modes if it's a manual click (event exists) or auto-approval is allowed
-				const isManualClick = !!event
-				if (isManualClick || alwaysAllowModeSwitch) {
-					// Switch mode without waiting
-					switchToMode(suggestion.mode)
-				}
+				// Always switch modes without waiting (YOLO mode)
+				switchToMode(suggestion.mode)
 			}
 
 			if (event?.shiftKey) {
@@ -1342,18 +1312,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				setInputValue(preservedInput)
 			}
 		},
-		[handleSendMessage, setInputValue, switchToMode, alwaysAllowModeSwitch, clineAsk, markFollowUpAsAnswered],
+		[handleSendMessage, setInputValue, switchToMode, clineAsk, markFollowUpAsAnswered],
 	)
 
 	const handleBatchFileResponse = useCallback((response: { [key: string]: boolean }) => {
 		// Handle batch file response, e.g., for file uploads
 		vscode.postMessage({ type: "askResponse", askResponse: "objectResponse", text: JSON.stringify(response) })
-	}, [])
-
-	// Cancel backend auto-approval timeout when FollowUpSuggest's countdown effect cleans up.
-	// This is called when auto-approve is toggled off, a suggestion is clicked, or the component unmounts.
-	const handleFollowUpUnmount = useCallback(() => {
-		vscode.postMessage({ type: "cancelAutoApproval" })
 	}, [])
 
 	const handleScrollToBottomAndResetCheckpointCursor = useCallback(() => {
@@ -1396,9 +1360,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					isStreaming={isStreaming}
 					onSuggestionClick={handleSuggestionClickInRow} // This was already stabilized
 					onBatchFileResponse={handleBatchFileResponse}
-					onFollowUpUnmount={handleFollowUpUnmount}
 					isFollowUpAnswered={messageOrGroup.isAnswered === true || messageOrGroup.ts === currentFollowUpTs}
-					isFollowUpAutoApprovalPaused={isFollowUpAutoApprovalPaused}
 					editable={
 						messageOrGroup.type === "ask" &&
 						messageOrGroup.ask === "tool" &&
@@ -1421,20 +1383,18 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		},
 		[
 			expandedRows,
-			toggleRowExpansion,
-			modifiedMessages,
-			groupedMessages.length,
-			handleRowHeightChange,
-			isStreaming,
-			handleSuggestionClickInRow,
-			handleBatchFileResponse,
-			handleFollowUpUnmount,
-			currentFollowUpTs,
-			isFollowUpAutoApprovalPaused,
-			enableButtons,
-			primaryButtonText,
-			handleScrollToLatestCheckpoint,
-		],
+				toggleRowExpansion,
+				modifiedMessages,
+				groupedMessages.length,
+				handleRowHeightChange,
+				isStreaming,
+				handleSuggestionClickInRow,
+				handleBatchFileResponse,
+				currentFollowUpTs,
+				enableButtons,
+				primaryButtonText,
+				handleScrollToLatestCheckpoint,
+			],
 	)
 
 	// Function to handle mode switching

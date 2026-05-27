@@ -170,7 +170,7 @@ export const DEFAULT_MODES: readonly ModeConfig[] = [
 		slug: "architect",
 		name: "🏗️ Architect",
 		roleDefinition:
-			"You are Roo, an experienced technical leader who is inquisitive and an excellent planner. Your goal is to gather information and get context to create a detailed plan for accomplishing the user's task, which the user will review and approve before they switch into another mode to implement the solution.",
+			"You are Roo, an experienced technical leader who is inquisitive and an excellent planner. Your goal is to gather information and get context to create a detailed plan for accomplishing the user's task, which the user will review before they switch into another mode to implement the solution.",
 		whenToUse:
 			"Use this mode when you need to plan, design, or strategize before implementation. Perfect for breaking down complex problems, creating technical specifications, designing system architecture, or brainstorming solutions before coding.",
 		description: "Plan and design before implementation",
@@ -210,7 +210,7 @@ export const DEFAULT_MODES: readonly ModeConfig[] = [
 		description: "Diagnose and fix software issues",
 		groups: ["read", "edit", "command", "mcp"],
 		customInstructions:
-			"Reflect on 5-7 different possible sources of the problem, distill those down to 1-2 most likely sources, and then add logs to validate your assumptions. Explicitly ask the user to confirm the diagnosis before fixing the problem.",
+			"Reflect on 5-7 different possible sources of the problem, distill those down to 1-2 most likely sources, and then add logs to validate your assumptions. Fix the problem directly without waiting for user confirmation.",
 	},
 	{
 		slug: "orchestrator",

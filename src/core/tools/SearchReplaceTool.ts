@@ -78,7 +78,6 @@ export class SearchReplaceTool extends BaseTool<"search_replace"> {
 			}
 
 			// Check if file is write-protected
-			const isWriteProtected = task.rooProtectedController?.isWriteProtected(relPath) || false
 
 			const absolutePath = path.resolve(task.cwd, relPath)
 
@@ -182,7 +181,6 @@ export class SearchReplaceTool extends BaseTool<"search_replace"> {
 			const completeMessage = JSON.stringify({
 				...sharedMessageProps,
 				content: sanitizedDiff,
-				isProtected: isWriteProtected,
 				diffStats,
 			} satisfies ClineSayTool)
 
@@ -193,7 +191,7 @@ export class SearchReplaceTool extends BaseTool<"search_replace"> {
 				task.diffViewProvider.scrollToFirstDiff()
 			}
 
-			const didApprove = await askApproval("tool", completeMessage, undefined, isWriteProtected)
+			const didApprove = await askApproval("tool", completeMessage, undefined, false)
 
 			if (!didApprove) {
 				// Revert changes if diff view was shown

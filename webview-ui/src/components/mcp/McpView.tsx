@@ -28,7 +28,7 @@ import McpEnabledToggle from "./McpEnabledToggle"
 import { McpErrorRow } from "./McpErrorRow"
 
 const McpView = () => {
-	const { mcpServers: servers, alwaysAllowMcp, mcpEnabled } = useExtensionState()
+	const { mcpServers: servers, mcpEnabled } = useExtensionState()
 
 	const { t } = useAppTranslation()
 	const { isOverThreshold, title, message } = useTooManyTools()
@@ -90,7 +90,6 @@ const McpView = () => {
 									<ServerRow
 										key={`${server.name}-${server.source || "global"}`}
 										server={server}
-										alwaysAllowMcp={alwaysAllowMcp}
 									/>
 								))}
 							</div>
@@ -155,7 +154,7 @@ const McpView = () => {
 	)
 }
 
-const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowMcp?: boolean }) => {
+const ServerRow = ({ server }: { server: McpServer }) => {
 	const { t } = useAppTranslation()
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -348,7 +347,6 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 													tool={tool}
 													serverName={server.name}
 													serverSource={server.source || "global"}
-													alwaysAllowMcp={alwaysAllowMcp}
 												/>
 											))}
 										</div>

@@ -1,4 +1,5 @@
 import { t } from "../../../i18n"
+import { getProxyFetch } from "./proxy"
 
 // Image generation types
 interface ImageGenerationResponse {
@@ -45,6 +46,7 @@ interface ImageGenerationOptions {
 	model: string
 	prompt: string
 	inputImage?: string
+	proxyUrl?: string
 }
 
 interface ImagesApiOptions {
@@ -56,16 +58,20 @@ interface ImagesApiOptions {
 	size?: string
 	quality?: string
 	outputFormat?: string
+	proxyUrl?: string
 }
 
 /**
  * Shared image generation implementation for OpenAI-compatible image providers.
  */
 export async function generateImageWithProvider(options: ImageGenerationOptions): Promise<ImageGenerationResult> {
-	const { baseURL, authToken, model, prompt, inputImage } = options
+	const { baseURL, authToken, model, prompt, inputImage, proxyUrl } = options
 
 	try {
-		const response = await fetch(`${baseURL}/chat/completions`, {
+		const proxyFetch = getProxyFetch(proxyUrl)
+		const fetchFn = proxyFetch || fetch
+
+		const response = await fetchFn(`${baseURL}/chat/completions`, {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${authToken}`,
@@ -176,7 +182,7 @@ export async function generateImageWithProvider(options: ImageGenerationOptions)
  * Supports BFL models (Flux) with provider-specific options for image editing
  */
 export async function generateImageWithImagesApi(options: ImagesApiOptions): Promise<ImageGenerationResult> {
-	const { baseURL, authToken, model, prompt, inputImage, outputFormat = "png" } = options
+	const { baseURL, authToken, model, prompt, inputImage, outputFormat = "png", proxyUrl } = options
 
 	try {
 		const url = `${baseURL}/images/generations`
@@ -222,7 +228,10 @@ export async function generateImageWithImagesApi(options: ImagesApiOptions): Pro
 			body: JSON.stringify(requestBody),
 		}
 
-		const response = await fetch(url, fetchOptions)
+		const proxyFetch = getProxyFetch(proxyUrl)
+		const fetchFn = proxyFetch || fetch
+
+		const response = await fetchFn(url, fetchOptions)
 
 		if (!response.ok) {
 			const errorText = await response.text()

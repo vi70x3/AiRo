@@ -116,17 +116,16 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 				}
 
 				// Check if file is write-protected
-				const isWriteProtected = task.rooProtectedController?.isWriteProtected(relPath) || false
 
 				if (change.type === "add") {
 					// Create new file
-					await this.handleAddFile(change, absolutePath, relPath, task, callbacks, isWriteProtected)
+					await this.handleAddFile(change, absolutePath, relPath, task, callbacks)
 				} else if (change.type === "delete") {
 					// Delete file
-					await this.handleDeleteFile(absolutePath, relPath, task, callbacks, isWriteProtected)
+					await this.handleDeleteFile(absolutePath, relPath, task, callbacks)
 				} else if (change.type === "update") {
 					// Update file
-					await this.handleUpdateFile(change, absolutePath, relPath, task, callbacks, isWriteProtected)
+					await this.handleUpdateFile(change, absolutePath, relPath, task, callbacks)
 				}
 			}
 
@@ -144,7 +143,6 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		relPath: string,
 		task: Task,
 		callbacks: ToolCallbacks,
-		isWriteProtected: boolean,
 	): Promise<void> {
 		const { askApproval, pushToolResult } = callbacks
 
@@ -191,7 +189,6 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		const completeMessage = JSON.stringify({
 			...sharedMessageProps,
 			content: sanitizedDiff,
-			isProtected: isWriteProtected,
 			diffStats,
 		} satisfies ClineSayTool)
 
@@ -202,7 +199,7 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 			task.diffViewProvider.scrollToFirstDiff()
 		}
 
-		const didApprove = await askApproval("tool", completeMessage, undefined, isWriteProtected)
+		const didApprove = await askApproval("tool", completeMessage, undefined)
 
 		if (!didApprove) {
 			if (!isPreventFocusDisruptionEnabled) {
@@ -235,7 +232,6 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		relPath: string,
 		task: Task,
 		callbacks: ToolCallbacks,
-		isWriteProtected: boolean,
 	): Promise<void> {
 		const { askApproval, pushToolResult } = callbacks
 
@@ -262,10 +258,9 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		const completeMessage = JSON.stringify({
 			...sharedMessageProps,
 			content: `Delete file: ${relPath}`,
-			isProtected: isWriteProtected,
 		} satisfies ClineSayTool)
 
-		const didApprove = await askApproval("tool", completeMessage, undefined, isWriteProtected)
+		const didApprove = await askApproval("tool", completeMessage, undefined)
 
 		if (!didApprove) {
 			pushToolResult("Delete operation was rejected by the user.")
@@ -293,7 +288,6 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		relPath: string,
 		task: Task,
 		callbacks: ToolCallbacks,
-		isWriteProtected: boolean,
 	): Promise<void> {
 		const { askApproval, pushToolResult } = callbacks
 
@@ -348,7 +342,6 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 		const completeMessage = JSON.stringify({
 			...sharedMessageProps,
 			content: sanitizedDiff,
-			isProtected: isWriteProtected,
 			diffStats,
 		} satisfies ClineSayTool)
 
@@ -359,7 +352,7 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 			task.diffViewProvider.scrollToFirstDiff()
 		}
 
-		const didApprove = await askApproval("tool", completeMessage, undefined, isWriteProtected)
+		const didApprove = await askApproval("tool", completeMessage, undefined)
 
 		if (!didApprove) {
 			if (!isPreventFocusDisruptionEnabled) {
@@ -379,18 +372,6 @@ export class ApplyPatchTool extends BaseTool<"apply_patch"> {
 			if (!moveAccessAllowed) {
 				await task.say("rooignore_error", change.movePath)
 				pushToolResult(formatResponse.rooIgnoreError(change.movePath))
-				await task.diffViewProvider.reset()
-				return
-			}
-
-			// Check if destination path is write-protected
-			const isMovePathWriteProtected = task.rooProtectedController?.isWriteProtected(change.movePath) || false
-			if (isMovePathWriteProtected) {
-				task.consecutiveMistakeCount++
-				task.recordToolError("apply_patch")
-				const errorMessage = `Cannot move file to write-protected path: ${change.movePath}`
-				await task.say("error", errorMessage)
-				pushToolResult(formatResponse.toolError(errorMessage))
 				await task.diffViewProvider.reset()
 				return
 			}
