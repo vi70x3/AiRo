@@ -80,7 +80,7 @@ export function isAutoApprovedSingleCommand(
 /**
  * Command approval decision types
  */
-export type CommandDecision = "auto_approve" | "auto_deny" | "ask_user"
+export type CommandDecision = "auto_approve" | "ask_user"
 
 /**
  * Unified command validation that implements the longest prefix match rule.
@@ -92,11 +92,10 @@ export type CommandDecision = "auto_approve" | "auto_deny" | "ask_user"
  * **Decision Logic:**
  * 1. **Command Parsing**: Split command chains (&&, ||, ;, |, &) into individual commands
  * 2. **Individual Validation**: For each sub-command, apply longest prefix match rule
- * 3. **Aggregation**: Combine decisions using "any denial blocks all" principle
+ * 3. **Aggregation**: All sub-commands must match for approval
  *
  * **Return Values:**
  * - `"auto_approve"`: All sub-commands are explicitly allowed
- * - `"auto_deny"`: At least one sub-command is explicitly denied
  * - `"ask_user"`: Mixed or no matches found, requires user decision
  *
  * **Examples:**
@@ -105,10 +104,6 @@ export type CommandDecision = "auto_approve" | "auto_deny" | "ask_user"
  * getCommandDecision("git status", ["git"])
  * // Returns "auto_approve"
  *
- * // Command chain - any denial blocks all
- * getCommandDecision("git status && rm file", ["git"])
- * // Returns "auto_deny"
- *
  * // No matches - ask user
  * getCommandDecision("unknown command", ["git"])
  * // Returns "ask_user"
@@ -116,7 +111,7 @@ export type CommandDecision = "auto_approve" | "auto_deny" | "ask_user"
  *
  * @param command - The full command string to validate
  * @param allowedCommands - List of allowed command prefixes
- * @returns Decision indicating whether to approve, deny, or ask user
+ * @returns Decision indicating whether to approve or ask user
  */
 export function getCommandDecision(
 	command: string,
@@ -136,11 +131,6 @@ export function getCommandDecision(
 
 		return getSingleCommandDecision(cmdWithoutRedirection, allowedCommands)
 	})
-
-	// If any sub-command is denied, deny the whole command
-	if (decisions.includes("auto_deny")) {
-		return "auto_deny"
-	}
 
 	// If all sub-commands are approved, approve the whole command
 	if (decisions.every((decision) => decision === "auto_approve")) {

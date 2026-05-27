@@ -10,7 +10,6 @@ import {
 import { ClineAskResponse } from "../../shared/WebviewMessage"
 
 import { isWriteToolAction, isReadOnlyToolAction } from "./tools"
-import { isMcpToolAlwaysAllowed } from "./mcp"
 import { getCommandDecision } from "./commands"
 
 // We have auto-approval actions for different categories.
@@ -35,7 +34,6 @@ export type AutoApprovalStateOptions =
 
 export type CheckAutoApprovalResult =
 	| { decision: "approve" }
-	| { decision: "deny" }
 	| { decision: "ask" }
 	| {
 			decision: "timeout"
@@ -121,8 +119,6 @@ export async function checkAutoApproval({
 
 			if (decision === "auto_approve") {
 				return { decision: "approve" }
-			} else if (decision === "auto_deny") {
-				return { decision: "deny" }
 			} else {
 				return { decision: "ask" }
 			}
