@@ -9,7 +9,7 @@
 TODO:
 - [x] allow full YOLO by default (KISS approach since AiRoo project will evolve to be kind of like local opensource RooMote customized to be used with [vi70x3/airi](https://github.com/vi70x3/airi); and you're not having trust issues with your cyber waifu aren't you?)
 - [ ] implement async subtasks execution (utilize existing worktrees support with orchestrator delegating auto-merging codetrees after all subtasks are complete using code merger Roo mode from roo marketplace) each subtask pops up in editor as a separate tab
-- [ ] optionally gate switch_mode tool behind master switch in settings (might break carefully designed automation)
+- [ ] optionally gate ability for agent to request switching modes behind master switch in settings (might break carefully designed automation)
 - [x] remove "roo is having trouble" (breaks automation)
 - [ ] integrate with [vi70x3/airi](https://github.com/vi70x3/airi)
 
