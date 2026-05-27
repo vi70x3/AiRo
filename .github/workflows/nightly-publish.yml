@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
 jobs:
   publish-nightly:
     runs-on: ubuntu-latest
@@ -36,7 +40,7 @@ jobs:
           node <<'EOF'
             const fs = require('fs');
             const path = require('path');
-            const pkgPath = path.join(__dirname, 'apps', 'vscode-nightly', 'package.nightly.json');
+            const pkgPath = path.join(process.cwd(), 'apps', 'vscode-nightly', 'package.nightly.json');
             const pkg = JSON.parse(fs.readFileSync(pkgPath,'utf8'));
             const [maj, min] = pkg.version.split('.');
             pkg.version = `${maj}.${min}.${process.env.VERSION_NUMBER}`;
@@ -53,8 +57,7 @@ jobs:
         run: |
           if gh release view nightly &> /dev/null; then
             echo "Deleting existing nightly release..."
-            gh release delete nightly --yes || true
-            git push origin :refs/tags/nightly || true
+            gh release delete nightly --yes --cleanup-tag || true
           else
             echo "No existing nightly release to delete."
           fi
@@ -64,10 +67,19 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION_NUMBER: ${{ steps.version.outputs.number }}
         run: |
-          VSIX_FILE="bin/$(ls bin | head -n1)"
+          VSIX_FILE="bin/roo-code-nightly-0.0.${VERSION_NUMBER}.vsix"
           COMMIT_SHA="${{ github.sha }}"
           SHORT_SHA="${COMMIT_SHA:0:7}"
           DATE=$(date -u +'%Y-%m-%d')
+
+          if [ ! -f "$VSIX_FILE" ]; then
+            echo "❌ Expected VSIX file not found: $VSIX_FILE"
+            echo "Contents of bin/:"
+            ls -la bin/
+            exit 1
+          fi
+
+          echo "✅ Found VSIX: $VSIX_FILE"
 
           gh release create nightly \
             --title "Nightly v0.0.${VERSION_NUMBER} (${DATE})" \
@@ -79,5 +91,5 @@ jobs:
 
             > ⚠️ This is a pre-release nightly build. It may contain bugs or incomplete features. Install by downloading the .vsix below and running \`code --install-extension roo-code-nightly-0.0.${VERSION_NUMBER}.vsix\`" \
             --prerelease \
-            --target main \
+            --target "$COMMIT_SHA" \
             "$VSIX_FILE"
