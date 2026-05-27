@@ -85,16 +85,16 @@ function resolveAutoApprovalState(values: {
 	alwaysAllowFollowupQuestions?: boolean
 }) {
 	return {
-		alwaysAllowReadOnly: values.alwaysAllowReadOnly ?? false,
-		alwaysAllowReadOnlyOutsideWorkspace: values.alwaysAllowReadOnlyOutsideWorkspace ?? false,
-		alwaysAllowWrite: values.alwaysAllowWrite ?? false,
-		alwaysAllowWriteOutsideWorkspace: values.alwaysAllowWriteOutsideWorkspace ?? false,
-		alwaysAllowWriteProtected: values.alwaysAllowWriteProtected ?? false,
-		alwaysAllowExecute: values.alwaysAllowExecute ?? false,
-		alwaysAllowMcp: values.alwaysAllowMcp ?? false,
-		alwaysAllowModeSwitch: values.alwaysAllowModeSwitch ?? false,
-		alwaysAllowSubtasks: values.alwaysAllowSubtasks ?? false,
-		alwaysAllowFollowupQuestions: values.alwaysAllowFollowupQuestions ?? false,
+		alwaysAllowReadOnly: values.alwaysAllowReadOnly ?? true,
+		alwaysAllowReadOnlyOutsideWorkspace: values.alwaysAllowReadOnlyOutsideWorkspace ?? true,
+		alwaysAllowWrite: values.alwaysAllowWrite ?? true,
+		alwaysAllowWriteOutsideWorkspace: values.alwaysAllowWriteOutsideWorkspace ?? true,
+		alwaysAllowWriteProtected: values.alwaysAllowWriteProtected ?? true,
+		alwaysAllowExecute: values.alwaysAllowExecute ?? true,
+		alwaysAllowMcp: values.alwaysAllowMcp ?? true,
+		alwaysAllowModeSwitch: values.alwaysAllowModeSwitch ?? true,
+		alwaysAllowSubtasks: values.alwaysAllowSubtasks ?? true,
+		alwaysAllowFollowupQuestions: values.alwaysAllowFollowupQuestions ?? true,
 	}
 }
 import { OrganizationAllowListViolationError } from "../../utils/errors"
@@ -1903,16 +1903,8 @@ export class ClineProvider
 	}
 
 	/**
-	 * Merges denied commands from global state and workspace configuration
-	 * with proper validation and deduplication
-	 */
-	private mergeDeniedCommands(globalStateCommands?: string[]): string[] {
-		return this.mergeCommandLists("deniedCommands", "denied", globalStateCommands)
-	}
-
-	/**
 	 * Common utility for merging command lists from global state and workspace configuration.
-	 * Implements the Command Denylist feature's merging strategy with proper validation.
+	 * Implements proper validation.
 	 *
 	 * @param configKey - VSCode workspace configuration key
 	 * @param commandType - Type of commands for error logging
@@ -1920,8 +1912,8 @@ export class ClineProvider
 	 * @returns Merged and deduplicated command list
 	 */
 	private mergeCommandLists(
-		configKey: "allowedCommands" | "deniedCommands",
-		commandType: "allowed" | "denied",
+		configKey: "allowedCommands",
+		commandType: "allowed",
 		globalStateCommands?: string[],
 	): string[] {
 		try {
@@ -1965,7 +1957,6 @@ export class ClineProvider
 			alwaysAllowWriteProtected,
 			alwaysAllowExecute,
 			allowedCommands,
-			deniedCommands,
 			alwaysAllowMcp,
 			alwaysAllowModeSwitch,
 			alwaysAllowSubtasks,
@@ -2031,7 +2022,6 @@ export class ClineProvider
 		} = await this.getState()
 
 		const mergedAllowedCommands = this.mergeAllowedCommands(allowedCommands)
-		const mergedDeniedCommands = this.mergeDeniedCommands(deniedCommands)
 		const cwd = this.cwd
 		const currentTask = this.getCurrentTask()
 
@@ -2068,9 +2058,8 @@ export class ClineProvider
 			checkpointTimeout: checkpointTimeout ?? DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 			shouldShowAnnouncement: lastShownAnnouncementId !== this.latestAnnouncementId,
 			allowedCommands: mergedAllowedCommands,
-			deniedCommands: mergedDeniedCommands,
 			soundVolume: soundVolume ?? 0.5,
-			writeDelayMs: writeDelayMs ?? DEFAULT_WRITE_DELAY_MS,
+			writeDelayMs: writeDelayMs ?? 0,
 			terminalShellIntegrationTimeout: terminalShellIntegrationTimeout ?? Terminal.defaultShellIntegrationTimeout,
 			terminalShellIntegrationDisabled: terminalShellIntegrationDisabled ?? true,
 			terminalCommandDelay: terminalCommandDelay ?? 0,
@@ -2087,7 +2076,7 @@ export class ClineProvider
 			customModePrompts: customModePrompts ?? {},
 			customSupportPrompts: customSupportPrompts ?? {},
 			enhancementApiConfigId,
-			autoApprovalEnabled: autoApprovalEnabled ?? false,
+			autoApprovalEnabled: autoApprovalEnabled ?? true,
 			customModes,
 			experiments: experiments ?? experimentDefault,
 			mcpServers: this.mcpHub?.getAllServers() ?? [],
@@ -2125,8 +2114,8 @@ export class ClineProvider
 			profileThresholds: profileThresholds ?? {},
 			hasOpenedModeSelector: this.getGlobalState("hasOpenedModeSelector") ?? false,
 			lockApiConfigAcrossModes: lockApiConfigAcrossModes ?? false,
-			alwaysAllowFollowupQuestions: alwaysAllowFollowupQuestions ?? false,
-			followupAutoApproveTimeoutMs: followupAutoApproveTimeoutMs ?? 60000,
+			alwaysAllowFollowupQuestions: alwaysAllowFollowupQuestions ?? true,
+			followupAutoApproveTimeoutMs: followupAutoApproveTimeoutMs ?? 10000,
 			includeDiagnosticMessages: includeDiagnosticMessages ?? true,
 			maxDiagnosticMessages: maxDiagnosticMessages ?? 50,
 			includeTaskHistoryInEnhance: includeTaskHistoryInEnhance ?? true,
@@ -2197,7 +2186,6 @@ export class ClineProvider
 			autoCondenseContextPercent: stateValues.autoCondenseContextPercent ?? 100,
 			taskHistory: this.taskHistoryStore.getAll(),
 			allowedCommands: stateValues.allowedCommands,
-			deniedCommands: stateValues.deniedCommands,
 			soundEnabled: stateValues.soundEnabled ?? false,
 			ttsEnabled: stateValues.ttsEnabled ?? false,
 			ttsSpeed: stateValues.ttsSpeed ?? 1.0,
@@ -2226,7 +2214,7 @@ export class ClineProvider
 			customSupportPrompts: stateValues.customSupportPrompts ?? {},
 			enhancementApiConfigId: stateValues.enhancementApiConfigId,
 			experiments: stateValues.experiments ?? experimentDefault,
-			autoApprovalEnabled: stateValues.autoApprovalEnabled ?? false,
+			autoApprovalEnabled: stateValues.autoApprovalEnabled ?? true,
 			customModes,
 			maxOpenTabsContext: stateValues.maxOpenTabsContext ?? 20,
 			maxWorkspaceFiles: stateValues.maxWorkspaceFiles ?? 200,
@@ -2569,12 +2557,6 @@ export class ClineProvider
 				await vscode.workspace
 					.getConfiguration(Package.name)
 					.update("allowedCommands", configuration.allowedCommands, vscode.ConfigurationTarget.Global)
-			}
-
-			if (configuration.deniedCommands) {
-				await vscode.workspace
-					.getConfiguration(Package.name)
-					.update("deniedCommands", configuration.deniedCommands, vscode.ConfigurationTarget.Global)
 			}
 
 			if (configuration.commandExecutionTimeout !== undefined) {

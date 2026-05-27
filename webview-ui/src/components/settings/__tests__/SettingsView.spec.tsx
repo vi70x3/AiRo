@@ -275,7 +275,7 @@ const mockPostMessage = (state: any) => {
 				taskHistory: [],
 				shouldShowAnnouncement: false,
 				allowedCommands: [],
-				alwaysAllowExecute: false,
+				alwaysAllowExecute: true,
 				ttsEnabled: false,
 				ttsSpeed: 1,
 				soundEnabled: false,

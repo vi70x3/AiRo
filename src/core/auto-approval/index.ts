@@ -32,7 +32,6 @@ export type AutoApprovalStateOptions =
 	| "followupAutoApproveTimeoutMs" // For `alwaysAllowFollowupQuestions`.
 	| "mcpServers" // For `alwaysAllowMcp`.
 	| "allowedCommands" // For `alwaysAllowExecute`.
-	| "deniedCommands"
 
 export type CheckAutoApprovalResult =
 	| { decision: "approve" }
@@ -98,7 +97,7 @@ export async function checkAutoApproval({
 			const mcpServerUse = JSON.parse(text) as McpServerUse
 
 			if (mcpServerUse.type === "use_mcp_tool") {
-				return state.alwaysAllowMcp === true && isMcpToolAlwaysAllowed(mcpServerUse, state.mcpServers)
+				return state.alwaysAllowMcp === true
 					? { decision: "approve" }
 					: { decision: "ask" }
 			} else if (mcpServerUse.type === "access_mcp_resource") {
@@ -117,7 +116,8 @@ export async function checkAutoApproval({
 		}
 
 		if (state.alwaysAllowExecute === true) {
-			const decision = getCommandDecision(text, state.allowedCommands || [], state.deniedCommands || [])
+			const effectiveAllowed = state.allowedCommands?.length ? state.allowedCommands : ["*"]
+			const decision = getCommandDecision(text, effectiveAllowed)
 
 			if (decision === "auto_approve") {
 				return { decision: "approve" }

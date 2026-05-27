@@ -69,7 +69,7 @@ const mockPostMessage = (state: any) => {
 				taskHistory: [],
 				shouldShowAnnouncement: false,
 				allowedCommands: [],
-				alwaysAllowExecute: false,
+				alwaysAllowExecute: true,
 				cloudIsAuthenticated: false,
 				mode: "code",
 				customModes: [],

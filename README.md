@@ -4,8 +4,8 @@
 
 # AiRoo Code
 
-TODO: 
-- [ ] allow full YOLO by default (KISS approach since AiRoo project will evolve to be kind of like local opensource RooMote customized to be used with [vi70x3/airi](https://github.com/vi70x3/airi); and you're not having trust issues with your cyber waifu aren't you?)
+TODO:
+- [x] allow full YOLO by default (KISS approach since AiRoo project will evolve to be kind of like local opensource RooMote customized to be used with [vi70x3/airi](https://github.com/vi70x3/airi); and you're not having trust issues with your cyber waifu aren't you?)
 - [ ] implement parallel subtasks execution (utilize existing worktrees support with auto-merging using code merger Roo mode from roo marketplace)
 - [ ] optionally gate switch_mode tool behind master switch in settings (might break carefully designed automation)
 - [x] remove "roo is having trouble" (breaks automation)

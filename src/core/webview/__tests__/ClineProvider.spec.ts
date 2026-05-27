@@ -491,9 +491,9 @@ describe("ClineProvider", () => {
 				apiProvider: "openrouter",
 			},
 			customInstructions: undefined,
-			alwaysAllowReadOnly: false,
-			alwaysAllowReadOnlyOutsideWorkspace: false,
-			alwaysAllowWrite: false,
+			alwaysAllowReadOnly: true,
+			alwaysAllowReadOnlyOutsideWorkspace: true,
+			alwaysAllowWrite: true,
 			codebaseIndexConfig: {
 				codebaseIndexEnabled: true,
 				codebaseIndexQdrantUrl: "",
@@ -501,14 +501,14 @@ describe("ClineProvider", () => {
 				codebaseIndexEmbedderBaseUrl: "",
 				codebaseIndexEmbedderModelId: "",
 			},
-			alwaysAllowWriteOutsideWorkspace: false,
-			alwaysAllowExecute: false,
-			alwaysAllowMcp: false,
+			alwaysAllowWriteOutsideWorkspace: true,
+			alwaysAllowExecute: true,
+			alwaysAllowMcp: true,
 			uriScheme: "vscode",
 			soundEnabled: false,
 			ttsEnabled: false,
 			enableCheckpoints: false,
-			writeDelayMs: 1000,
+			writeDelayMs: 0,
 			mcpEnabled: true,
 			mode: defaultModeSlug,
 			customModes: [],
@@ -753,14 +753,14 @@ describe("ClineProvider", () => {
 		expect(state.language).toBe("pt-BR")
 	})
 
-	test("writeDelayMs defaults to 1000ms", async () => {
+	test("writeDelayMs defaults to 0ms", async () => {
 		// Mock globalState.get to return undefined for writeDelayMs
 		;(mockContext.globalState.get as any).mockImplementation((key: string) =>
 			key === "writeDelayMs" ? undefined : null,
 		)
 
 		const state = await provider.getState()
-		expect(state.writeDelayMs).toBe(1000)
+		expect(state.writeDelayMs).toBe(0)
 	})
 
 	test("handles writeDelayMs message", async () => {
