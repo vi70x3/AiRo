@@ -2,7 +2,7 @@
 	"name": "roo-cline",
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
-	"publisher": "RooVeterinaryInc",
+	"publisher": "airoo",
 	"version": "3.53.0",
 	"icon": "assets/icons/icon.png",
 	"galleryBanner": {

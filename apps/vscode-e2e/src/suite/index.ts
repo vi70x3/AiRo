@@ -8,7 +8,7 @@ import type { RooCodeAPI } from "@roo-code/types"
 import { waitFor } from "./utils"
 
 export async function run() {
-	const extension = vscode.extensions.getExtension<RooCodeAPI>("RooVeterinaryInc.roo-cline")
+	const extension = vscode.extensions.getExtension<RooCodeAPI>("airoo.roo-cline")
 
 	if (!extension) {
 		throw new Error("Extension not found")
