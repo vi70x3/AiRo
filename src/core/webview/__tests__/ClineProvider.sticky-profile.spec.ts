@@ -389,6 +389,9 @@ describe("ClineProvider - Sticky Provider Profile", () => {
 
 			// Verify task's _taskApiConfigName property was updated
 			expect(mockTask._taskApiConfigName).toBe("new-profile")
+
+			// Verify instance API config name was updated
+			expect((provider as any)._instanceApiConfigName).toBe("new-profile")
 		})
 
 		it("should update in-memory task profile even if task history item does not exist yet", async () => {
