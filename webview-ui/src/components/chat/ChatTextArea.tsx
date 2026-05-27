@@ -41,7 +41,7 @@ interface ChatTextAreaProps {
 	placeholderText: string
 	selectedImages: string[]
 	setSelectedImages: React.Dispatch<React.SetStateAction<string[]>>
-	onSend: () => void
+	onSend: (text: string, images: string[]) => void
 	onSelectImages: () => void
 	shouldDisableImages: boolean
 	onHeightChange?: (height: number) => void
@@ -487,24 +487,24 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				}
 
 				// Handle Enter key based on enterBehavior setting
-				if (event.key === "Enter" && !isComposing) {
-					if (enterBehavior === "newline") {
-						// New behavior: Enter = newline, Shift+Enter or Ctrl+Enter = send
-						if (event.shiftKey || event.ctrlKey || event.metaKey) {
-							event.preventDefault()
-							resetHistoryNavigation()
-							onSend()
-						}
-						// Otherwise, let Enter create newline (don't preventDefault)
-					} else {
-						// Default behavior: Enter = send, Shift+Enter = newline
-						if (!event.shiftKey) {
-							event.preventDefault()
-							resetHistoryNavigation()
-							onSend()
+					if (event.key === "Enter" && !isComposing) {
+						if (enterBehavior === "newline") {
+							// New behavior: Enter = newline, Shift+Enter or Ctrl+Enter = send
+							if (event.shiftKey || event.ctrlKey || event.metaKey) {
+								event.preventDefault()
+								resetHistoryNavigation()
+								onSend(textAreaRef.current?.value ?? "", selectedImages)
+							}
+							// Otherwise, let Enter create newline (don't preventDefault)
+						} else {
+							// Default behavior: Enter = send, Shift+Enter = newline
+							if (!event.shiftKey) {
+								event.preventDefault()
+								resetHistoryNavigation()
+								onSend(textAreaRef.current?.value ?? "", selectedImages)
+							}
 						}
 					}
-				}
 
 				if (event.key === "Backspace" && !isComposing) {
 					const charBeforeCursor = inputValue[cursorPosition - 1]
