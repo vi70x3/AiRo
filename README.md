@@ -11,6 +11,7 @@ TODO:
 - [ ] implement async subtasks execution (utilize existing worktrees support with orchestrator delegating auto-merging codetrees after all subtasks are complete using code merger Roo mode from roo marketplace) each subtask pops up in editor as a separate tab
 - [ ] optionally gate ability for agent to request switching modes behind master switch in settings (might break carefully designed automation)
 - [x] remove "roo is having trouble" (breaks automation)
+- [ ] each tab of roo will have separate mode and model, not shared between all
 - [ ] integrate with [vi70x3/airi](https://github.com/vi70x3/airi)
 
 ---
