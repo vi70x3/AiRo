@@ -163,6 +163,15 @@ export class ClineProvider
 	private currentWorkspacePath: string | undefined
 	private _disposed = false
 
+	// Per-instance mode and API configuration overrides.
+	// Each ClineProvider instance (sidebar or editor tab) maintains its own
+	// mode and API config, independent of other instances. These override
+	// the global state values in getState(). When undefined, global state
+	// is used as the fallback (which also serves as the default for new instances).
+	private _instanceMode: Mode | undefined
+	private _instanceApiConfigName: string | undefined
+	private _instanceApiConfiguration: ProviderSettings | undefined
+
 	private recentTasksCache?: string[]
 	public readonly taskHistoryStore: TaskHistoryStore
 	private taskHistoryStoreInitialized = false
@@ -317,6 +326,25 @@ export class ClineProvider
 				() => instance.off(RooCodeEventName.TaskTokenUsageUpdated, onTaskTokenUsageUpdated),
 			])
 		}
+	}
+
+	/**
+	 * Pre-configure this instance's mode and API profile before the webview resolves.
+	 * This is used when spawning instances for specific purposes (e.g., subtask tabs)
+	 * where the instance should start with a particular configuration rather than
+	 * inheriting the current global state defaults.
+	 *
+	 * If not called before resolveWebviewView(), the instance will inherit from
+	 * global state (the default behavior for user-initiated tabs).
+	 */
+	public configureInstance(config: {
+		mode?: Mode
+		apiConfigName?: string
+		apiConfiguration?: ProviderSettings
+	}): void {
+		if (config.mode) this._instanceMode = config.mode
+		if (config.apiConfigName) this._instanceApiConfigName = config.apiConfigName
+		if (config.apiConfiguration) this._instanceApiConfiguration = config.apiConfiguration
 	}
 
 	/**
@@ -760,8 +788,18 @@ export class ClineProvider
 				setTtsSpeed(ttsSpeed ?? 1)
 			},
 		)
-
-		// Set up webview options with proper resource roots
+	
+			// Initialize per-instance state from global defaults ONLY if not already set.
+			// This allows configureInstance() to pre-set values before resolveWebviewView()
+			// (e.g., for subtask tabs that need a specific mode/model from the start).
+			if (!this._instanceMode || !this._instanceApiConfigName || !this._instanceApiConfiguration) {
+				const initialState = await this.getState()
+				this._instanceMode = this._instanceMode ?? initialState.mode
+				this._instanceApiConfigName = this._instanceApiConfigName ?? initialState.currentApiConfigName
+				this._instanceApiConfiguration = this._instanceApiConfiguration ?? initialState.apiConfiguration
+			}
+	
+			// Set up webview options with proper resource roots
 		const resourceRoots = [this.contextProxy.extensionUri]
 
 		// Add workspace folders to allow access to workspace files
@@ -884,6 +922,7 @@ export class ClineProvider
 				historyItem.mode = defaultModeSlug
 			}
 
+			this._instanceMode = historyItem.mode as Mode
 			await this.updateGlobalState("mode", historyItem.mode)
 
 			// Load the saved API config for the restored mode if it exists.
@@ -1310,6 +1349,7 @@ export class ClineProvider
 			}
 		}
 
+		this._instanceMode = newMode
 		await this.updateGlobalState("mode", newMode)
 
 		this.emit(RooCodeEventName.ModeChanged, newMode)
@@ -1352,7 +1392,7 @@ export class ClineProvider
 			}
 		} else {
 			// If no saved config for this mode, save current config as default.
-			const currentApiConfigNameAfter = this.getGlobalState("currentApiConfigName")
+			const currentApiConfigNameAfter = this._instanceApiConfigName ?? this.getGlobalState("currentApiConfigName")
 
 			if (currentApiConfigNameAfter) {
 				const config = listApiConfig.find((c) => c.name === currentApiConfigNameAfter)
@@ -1444,12 +1484,14 @@ export class ClineProvider
 				// this.contextProxy.setValues({ ...providerSettings, listApiConfigMeta: ..., currentApiConfigName: ... })
 				// We should probably switch to that and verify that it works.
 				// I left the original implementation in just to be safe.
-				await Promise.all([
-					this.updateGlobalState("listApiConfigMeta", await this.providerSettingsManager.listConfig()),
-					this.updateGlobalState("currentApiConfigName", name),
-					this.providerSettingsManager.setModeConfig(mode, id),
-					this.contextProxy.setProviderSettings(providerSettings),
-				])
+				this._instanceApiConfigName = name
+					this._instanceApiConfiguration = providerSettings
+					await Promise.all([
+						this.updateGlobalState("listApiConfigMeta", await this.providerSettingsManager.listConfig()),
+						this.updateGlobalState("currentApiConfigName", name),
+						this.providerSettingsManager.setModeConfig(mode, id),
+						this.contextProxy.setProviderSettings(providerSettings),
+					])
 
 				// Change the provider for the current task.
 				// TODO: We should rename `buildApiHandler` for clarity (e.g. `getProviderClient`).
@@ -1483,6 +1525,12 @@ export class ClineProvider
 
 		if (!profileToActivate) {
 			throw new Error("You cannot delete the last profile")
+		}
+
+		// If the deleted profile is this instance's active profile, reset to fallback.
+		if (this._instanceApiConfigName === profileToDelete.name) {
+			this._instanceApiConfigName = undefined
+			this._instanceApiConfiguration = undefined
 		}
 
 		const entries = this.getProviderProfileEntries().filter(({ name }) => name !== profileToDelete.name)
@@ -1534,6 +1582,8 @@ export class ClineProvider
 		const persistTaskHistory = options?.persistTaskHistory ?? true
 
 		// See `upsertProviderProfile` for a description of what this is doing.
+		this._instanceApiConfigName = name
+		this._instanceApiConfiguration = providerSettings
 		await Promise.all([
 			this.contextProxy.setValue("listApiConfigMeta", await this.providerSettingsManager.listConfig()),
 			this.contextProxy.setValue("currentApiConfigName", name),
@@ -2159,7 +2209,8 @@ export class ClineProvider
 				: "openrouter"
 
 		// Build the apiConfiguration object combining state values and secrets.
-		const providerSettings = this.contextProxy.getProviderSettings()
+		// Use instance-specific API configuration if available, otherwise fall back to global state.
+		const providerSettings = this._instanceApiConfiguration ?? this.contextProxy.getProviderSettings()
 
 		// Ensure apiProvider is set properly if not already in state
 		if (!providerSettings.apiProvider) {
@@ -2171,7 +2222,7 @@ export class ClineProvider
 
 		const organizationAllowList = ORGANIZATION_ALLOW_ALL
 
-		// Return the same structure as before.
+		// Return the same structure as before, with per-instance overrides for mode and API config.
 		return {
 			apiConfiguration: providerSettings,
 			lastShownAnnouncementId: stateValues.lastShownAnnouncementId,
@@ -2202,11 +2253,11 @@ export class ClineProvider
 			terminalZshOhMy: stateValues.terminalZshOhMy ?? false,
 			terminalZshP10k: stateValues.terminalZshP10k ?? false,
 			terminalZdotdir: stateValues.terminalZdotdir ?? false,
-			mode: stateValues.mode ?? defaultModeSlug,
+			mode: this._instanceMode ?? stateValues.mode ?? defaultModeSlug,
 			language: stateValues.language ?? formatLanguage(vscode.env.language),
 			mcpEnabled: stateValues.mcpEnabled ?? true,
 			mcpServers: this.mcpHub?.getAllServers() ?? [],
-			currentApiConfigName: stateValues.currentApiConfigName ?? "default",
+			currentApiConfigName: this._instanceApiConfigName ?? stateValues.currentApiConfigName ?? "default",
 			listApiConfigMeta: stateValues.listApiConfigMeta ?? [],
 			pinnedApiConfigs: stateValues.pinnedApiConfigs ?? {},
 			modeApiConfigs: stateValues.modeApiConfigs ?? ({} as Record<Mode, string>),
@@ -2388,6 +2439,9 @@ export class ClineProvider
 			return
 		}
 
+		this._instanceMode = undefined
+		this._instanceApiConfigName = undefined
+		this._instanceApiConfiguration = undefined
 		await this.contextProxy.resetAllState()
 		await this.providerSettingsManager.resetAllConfigs()
 		await this.customModesManager.resetCustomModes()

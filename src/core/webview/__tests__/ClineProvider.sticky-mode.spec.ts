@@ -351,6 +351,9 @@ describe("ClineProvider - Sticky Mode", () => {
 			// Verify task's _taskMode property was updated (using private property)
 			expect((mockTask as any)._taskMode).toBe("architect")
 
+			// Verify instance mode was updated
+			expect((provider as any)._instanceMode).toBe("architect")
+
 			// Verify emit was called with taskModeSwitched event
 			expect(mockTask.emit).toHaveBeenCalledWith("taskModeSwitched", mockTask.taskId, "architect")
 		})
