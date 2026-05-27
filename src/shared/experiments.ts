@@ -16,10 +16,10 @@ interface ExperimentConfig {
 }
 
 export const experimentConfigsMap: Record<ExperimentKey, ExperimentConfig> = {
-	PREVENT_FOCUS_DISRUPTION: { enabled: false },
+	PREVENT_FOCUS_DISRUPTION: { enabled: true },
 	IMAGE_GENERATION: { enabled: false },
-	RUN_SLASH_COMMAND: { enabled: false },
-	CUSTOM_TOOLS: { enabled: false },
+	RUN_SLASH_COMMAND: { enabled: true },
+	CUSTOM_TOOLS: { enabled: true },
 }
 
 export const experimentDefault = Object.fromEntries(

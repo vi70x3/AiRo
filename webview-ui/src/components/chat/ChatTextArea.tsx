@@ -41,7 +41,7 @@ interface ChatTextAreaProps {
 	placeholderText: string
 	selectedImages: string[]
 	setSelectedImages: React.Dispatch<React.SetStateAction<string[]>>
-	onSend: () => void
+	onSend: (text: string, images: string[]) => void
 	onSelectImages: () => void
 	shouldDisableImages: boolean
 	onHeightChange?: (height: number) => void
@@ -493,7 +493,7 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						if (event.shiftKey || event.ctrlKey || event.metaKey) {
 							event.preventDefault()
 							resetHistoryNavigation()
-							onSend()
+							onSend(inputValue, selectedImages)
 						}
 						// Otherwise, let Enter create newline (don't preventDefault)
 					} else {
@@ -501,7 +501,7 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						if (!event.shiftKey) {
 							event.preventDefault()
 							resetHistoryNavigation()
-							onSend()
+							onSend(inputValue, selectedImages)
 						}
 					}
 				}
@@ -1235,7 +1235,7 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 													: t("chat:pressToSend", { keyCombination: sendKeyCombination })
 										}
 										disabled={false}
-										onClick={isStreaming ? onStop : onSend}
+										onClick={isStreaming ? onStop : () => onSend(inputValue, selectedImages)}
 										className={cn(
 											"relative inline-flex items-center justify-center",
 											"bg-transparent border-none p-1.5",

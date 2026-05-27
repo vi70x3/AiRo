@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react"
-import { Check, CheckCheck, ChevronUp, X } from "lucide-react"
+import { Check, CheckCheck, ChevronUp } from "lucide-react"
 import { cn } from "../../lib/utils"
 import { useTranslation } from "react-i18next"
 import { StandardTooltip } from "../ui/standard-tooltip"
@@ -12,28 +12,20 @@ interface CommandPattern {
 interface CommandPatternSelectorProps {
 	patterns: CommandPattern[]
 	allowedCommands: string[]
-	deniedCommands: string[]
 	onAllowPatternChange: (pattern: string) => void
-	onDenyPatternChange: (pattern: string) => void
 }
 
 export const CommandPatternSelector: React.FC<CommandPatternSelectorProps> = ({
 	patterns,
 	allowedCommands,
-	deniedCommands,
 	onAllowPatternChange,
-	onDenyPatternChange,
 }) => {
 	const { t } = useTranslation()
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [editingStates, setEditingStates] = useState<Record<string, { isEditing: boolean; value: string }>>({})
 
-	// Create a combined list with full command first, then patterns
 	const allPatterns = useMemo(() => {
-		// Create a set to track unique patterns we've already seen
 		const seenPatterns = new Set<string>()
-
-		// Filter out any patterns that are duplicates or are the same as the full command
 		const uniquePatterns = patterns.filter((p) => {
 			if (seenPatterns.has(p.pattern)) {
 				return false
@@ -41,13 +33,11 @@ export const CommandPatternSelector: React.FC<CommandPatternSelectorProps> = ({
 			seenPatterns.add(p.pattern)
 			return true
 		})
-
 		return uniquePatterns
 	}, [patterns])
 
-	const getPatternStatus = (pattern: string): "allowed" | "denied" | "none" => {
+	const getPatternStatus = (pattern: string): "allowed" | "none" => {
 		if (allowedCommands.includes(pattern)) return "allowed"
-		if (deniedCommands.includes(pattern)) return "denied"
 		return "none"
 	}
 
@@ -147,27 +137,6 @@ export const CommandPatternSelector: React.FC<CommandPatternSelectorProps> = ({
 													: "chat:commandExecution.addToAllowed",
 											)}>
 											<Check className="size-3.5" />
-										</button>
-									</StandardTooltip>
-									<StandardTooltip
-										content={t(
-											status === "denied"
-												? "chat:commandExecution.removeFromDenied"
-												: "chat:commandExecution.addToDenied",
-										)}>
-										<button
-											className={cn("p-1 rounded transition-all cursor-pointer", {
-												"bg-red-500/20 text-red-500 hover:bg-red-500/30": status === "denied",
-												"text-vscode-descriptionForeground hover:text-red-500 hover:bg-red-500/10":
-													status !== "denied",
-											})}
-											onClick={() => onDenyPatternChange(editState.value)}
-											aria-label={t(
-												status === "denied"
-													? "chat:commandExecution.removeFromDenied"
-													: "chat:commandExecution.addToDenied",
-											)}>
-											<X className="size-3.5" />
 										</button>
 									</StandardTooltip>
 								</div>

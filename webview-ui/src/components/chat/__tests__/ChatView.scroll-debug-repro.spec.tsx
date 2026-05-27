@@ -114,10 +114,10 @@ vi.mock("../ChatTextArea", () => {
 				value={props.inputValue ?? ""}
 				onChange={(event) => props.setInputValue?.(event.target.value)}
 				onKeyDown={(event) => {
-					if (event.key === "Enter" && !props.sendingDisabled) {
-						props.onSend()
-					}
-				}}
+						if (event.key === "Enter" && !props.sendingDisabled) {
+							;(props.onSend as (text: string, images: string[]) => void)((event.target as HTMLInputElement).value, [])
+						}
+					}}
 			/>
 		)
 	})

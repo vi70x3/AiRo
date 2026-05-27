@@ -143,11 +143,11 @@ vi.mock("../ChatTextArea", () => {
 						}
 					}}
 					onKeyDown={(e) => {
-						if (e.key === "Enter" && !e.shiftKey) {
-							e.preventDefault()
-							props.onSend()
-						}
-					}}
+							if (e.key === "Enter" && !e.shiftKey) {
+								e.preventDefault()
+								;(props.onSend as (text: string, images: string[]) => void)((e.target as HTMLInputElement).value, [])
+							}
+						}}
 					data-sending-disabled={props.sendingDisabled}
 				/>
 			</div>
