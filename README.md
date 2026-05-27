@@ -7,7 +7,7 @@
 TODO: 
 - [ ] allow full YOLO by default (you're not having trust issues with your cyber waifu aren't you?)
 - [ ] implement parallel subtasks execution
-- [?] remove switch_mode tool (might break carefully designed automation)
+- [ ] optionally gate switch_mode tool behind master switch in settings (might break carefully designed automation)
 - [x] remove "roo is having trouble" (breaks automation)
 - [ ] integrate with vi70x3/airi
 
