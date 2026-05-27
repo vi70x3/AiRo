@@ -146,7 +146,7 @@ vi.mock("react-i18next", () => ({
 }))
 
 interface ChatTextAreaProps {
-	onSend: (value: string) => void
+	onSend: (text: string, images: string[]) => void
 	inputValue?: string
 	sendingDisabled?: boolean
 	placeholderText?: string

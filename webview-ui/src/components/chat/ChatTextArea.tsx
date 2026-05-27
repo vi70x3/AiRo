@@ -1235,7 +1235,7 @@ export const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 													: t("chat:pressToSend", { keyCombination: sendKeyCombination })
 										}
 										disabled={false}
-										onClick={isStreaming ? onStop : onSend}
+										onClick={isStreaming ? onStop : () => onSend(inputValue, selectedImages)}
 										className={cn(
 											"relative inline-flex items-center justify-center",
 											"bg-transparent border-none p-1.5",
