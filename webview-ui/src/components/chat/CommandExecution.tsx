@@ -36,9 +36,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 	const {
 		terminalShellIntegrationDisabled = false,
 		allowedCommands = [],
-		deniedCommands = [],
 		setAllowedCommands,
-		setDeniedCommands,
 	} = useExtensionState()
 
 	const { command, output: parsedOutput } = useMemo(() => parseCommandAndOutput(text), [text])
@@ -84,28 +82,12 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 	const handleAllowPatternChange = (pattern: string) => {
 		const isAllowed = allowedCommands.includes(pattern)
 		const newAllowed = isAllowed ? allowedCommands.filter((p) => p !== pattern) : [...allowedCommands, pattern]
-		const newDenied = deniedCommands.filter((p) => p !== pattern)
 
 		setAllowedCommands(newAllowed)
-		setDeniedCommands(newDenied)
 
 		vscode.postMessage({
 			type: "updateSettings",
-			updatedSettings: { allowedCommands: newAllowed, deniedCommands: newDenied },
-		})
-	}
-
-	const handleDenyPatternChange = (pattern: string) => {
-		const isDenied = deniedCommands.includes(pattern)
-		const newDenied = isDenied ? deniedCommands.filter((p) => p !== pattern) : [...deniedCommands, pattern]
-		const newAllowed = allowedCommands.filter((p) => p !== pattern)
-
-		setAllowedCommands(newAllowed)
-		setDeniedCommands(newDenied)
-
-		vscode.postMessage({
-			type: "updateSettings",
-			updatedSettings: { allowedCommands: newAllowed, deniedCommands: newDenied },
+			updatedSettings: { allowedCommands: newAllowed },
 		})
 	}
 
@@ -208,9 +190,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 					<CommandPatternSelector
 						patterns={commandPatterns}
 						allowedCommands={allowedCommands}
-						deniedCommands={deniedCommands}
 						onAllowPatternChange={handleAllowPatternChange}
-						onDenyPatternChange={handleDenyPatternChange}
 					/>
 				)}
 			</div>
