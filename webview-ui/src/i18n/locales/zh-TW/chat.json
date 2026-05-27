@@ -329,7 +329,6 @@
 	"diffError": {
 		"title": "編輯失敗"
 	},
-	"troubleMessage": "Roo 遇到問題...",
 	"powershell": {
 		"issues": "似乎遇到 Windows PowerShell 問題，請參閱此說明文件"
 	},

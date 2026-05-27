@@ -268,14 +268,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setPrimaryButtonText(t("chat:retry.title"))
 							setSecondaryButtonText(t("chat:startNewTask.title"))
 							break
-						case "mistake_limit_reached":
-							playSound("progress_loop")
-							setSendingDisabled(false)
-							setClineAsk("mistake_limit_reached")
-							setEnableButtons(true)
-							setPrimaryButtonText(t("chat:proceedAnyways.title"))
-							setSecondaryButtonText(t("chat:startNewTask.title"))
-							break
 						case "followup":
 							setSendingDisabled(isPartial)
 							setClineAsk("followup")
@@ -635,14 +627,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						case "completion_result": // If this happens then the user has feedback for the completion result.
 						case "resume_task":
 						case "resume_completed_task":
-						case "mistake_limit_reached":
-							vscode.postMessage({
-								type: "askResponse",
-								askResponse: "messageResponse",
-								text,
-								images,
-							})
-							break
 						// There is no other case that a textfield should be enabled.
 					}
 				} else {
@@ -718,22 +702,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "command":
 				case "tool":
 				case "use_mcp_server":
-				case "mistake_limit_reached":
-					// Only send text/images if they exist
-					if (trimmedInput || (images && images.length > 0)) {
-						vscode.postMessage({
-							type: "askResponse",
-							askResponse: "yesButtonClicked",
-							text: trimmedInput,
-							images: images,
-						})
-						// Clear input state after sending
-						setInputValue("")
-						setSelectedImages([])
-					} else {
-						vscode.postMessage({ type: "askResponse", askResponse: "yesButtonClicked" })
-					}
-					break
 				case "resume_task":
 					// For completed subtasks (tasks with a parentTaskId and a completion_result),
 					// start a new task instead of resuming since the subtask is done
@@ -795,10 +763,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			switch (clineAsk) {
 				case "api_req_failed":
-				case "mistake_limit_reached":
-				case "resume_task":
-					startNewTask()
-					break
 				case "command":
 				case "tool":
 				case "use_mcp_server":

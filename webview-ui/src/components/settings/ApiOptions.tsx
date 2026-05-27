@@ -8,7 +8,6 @@ import {
 	type ProviderName,
 	type ProviderSettings,
 	isRetiredProvider,
-	DEFAULT_CONSECUTIVE_MISTAKE_LIMIT,
 	openRouterDefaultModelId,
 	poeDefaultModelId,
 	requestyDefaultModelId,
@@ -103,7 +102,6 @@ import { Verbosity } from "./Verbosity"
 import { TodoListSettingsControl } from "./TodoListSettingsControl"
 import { TemperatureControl } from "./TemperatureControl"
 import { RateLimitSecondsControl } from "./RateLimitSecondsControl"
-import { ConsecutiveMistakeLimitControl } from "./ConsecutiveMistakeLimitControl"
 import { BedrockCustomArn } from "./providers/BedrockCustomArn"
 import { buildDocLink } from "@src/utils/docLinks"
 import { BookOpenText } from "lucide-react"
@@ -778,14 +776,6 @@ const ApiOptions = ({
 								<RateLimitSecondsControl
 									value={apiConfiguration.rateLimitSeconds || 0}
 									onChange={(value) => setApiConfigurationField("rateLimitSeconds", value)}
-								/>
-								<ConsecutiveMistakeLimitControl
-									value={
-										apiConfiguration.consecutiveMistakeLimit !== undefined
-											? apiConfiguration.consecutiveMistakeLimit
-											: DEFAULT_CONSECUTIVE_MISTAKE_LIMIT
-									}
-									onChange={(value) => setApiConfigurationField("consecutiveMistakeLimit", value)}
 								/>
 								{selectedProvider === "poe" && (
 									<VSCodeTextField

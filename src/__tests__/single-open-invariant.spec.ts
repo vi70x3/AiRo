@@ -44,7 +44,6 @@ describe("Single-open-task invariant", () => {
 			clineStack: [{ taskId: "existing-1" }],
 			setValues: vi.fn(),
 			getState: vi.fn().mockResolvedValue({
-				apiConfiguration: { apiProvider: "anthropic", consecutiveMistakeLimit: 0 },
 				organizationAllowList: "*",
 				enableCheckpoints: true,
 				checkpointTimeout: 60,
@@ -90,7 +89,6 @@ describe("Single-open-task invariant", () => {
 				listConfig: vi.fn().mockResolvedValue([]),
 			},
 			getState: vi.fn().mockResolvedValue({
-				apiConfiguration: { apiProvider: "anthropic", consecutiveMistakeLimit: 0 },
 				enableCheckpoints: true,
 				checkpointTimeout: 60,
 				experiments: {},

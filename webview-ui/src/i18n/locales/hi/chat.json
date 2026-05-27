@@ -135,7 +135,6 @@
 	"diffError": {
 		"title": "संपादन असफल"
 	},
-	"troubleMessage": "Roo को समस्या हो रही है...",
 	"apiRequest": {
 		"title": "API अनुरोध",
 		"failed": "API अनुरोध विफल हुआ",

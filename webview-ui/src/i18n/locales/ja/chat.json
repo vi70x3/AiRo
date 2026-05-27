@@ -135,7 +135,6 @@
 	"diffError": {
 		"title": "編集に失敗しました"
 	},
-	"troubleMessage": "Rooに問題が発生しています...",
 	"apiRequest": {
 		"title": "APIリクエスト",
 		"failed": "APIリクエスト失敗",

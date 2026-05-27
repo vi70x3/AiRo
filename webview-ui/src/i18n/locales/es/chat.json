@@ -135,7 +135,6 @@
 	"diffError": {
 		"title": "Edición fallida"
 	},
-	"troubleMessage": "Roo está teniendo problemas...",
 	"apiRequest": {
 		"title": "Solicitud API",
 		"failed": "Solicitud API falló",
