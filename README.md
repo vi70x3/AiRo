@@ -1,33 +1,15 @@
-<p align="center">
+<!-- <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline"><img src="https://img.shields.io/badge/VS_Code_Marketplace-007ACC?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace"></a>  
-</p>
+</p> -->
 
-# Roo Code
+# AiRoo Code
 
-> TODO: implement parallel subtasks execution; remove switch_mode tool and "roo is having trouble" (breaks automation)
-<details>
-  <summary>🌐 Available languages</summary>
-
-- [English](README.md)
-- [Català](locales/ca/README.md)
-- [Deutsch](locales/de/README.md)
-- [Español](locales/es/README.md)
-- [Français](locales/fr/README.md)
-- [हिंदी](locales/hi/README.md)
-- [Bahasa Indonesia](locales/id/README.md)
-- [Italiano](locales/it/README.md)
-- [日本語](locales/ja/README.md)
-- [한국어](locales/ko/README.md)
-- [Nederlands](locales/nl/README.md)
-- [Polski](locales/pl/README.md)
-- [Português (BR)](locales/pt-BR/README.md)
-- [Русский](locales/ru/README.md)
-- [Türkçe](locales/tr/README.md)
-- [Tiếng Việt](locales/vi/README.md)
-- [简体中文](locales/zh-CN/README.md)
-- [繁體中文](locales/zh-TW/README.md)
-- ...
-    </details>
+TODO: 
+- [ ] allow full YOLO by default (you're not having trust issues with your cyber waifu aren't you?)
+- [ ] implement parallel subtasks execution
+- [?] remove switch_mode tool (might break carefully designed automation)
+- [x] remove "roo is having trouble" (breaks automation)
+- [ ] integrate with vi70x3/airi
 
 ---
 
