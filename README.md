@@ -5,15 +5,15 @@
 # AiRoo Code
 
 TODO: 
-- [ ] allow full YOLO by default (KISS approach since this project will evolve to be kind of like local opensource RooMote; plus you're not having trust issues with your cyber waifu aren't you?)
-- [ ] implement parallel subtasks execution (utilize existing worktrees support with auto-merging using code merger roo mode from roo marketplace)
+- [ ] allow full YOLO by default (KISS approach since AiRoo project will evolve to be kind of like local opensource RooMote customized to be used with [vi70x3/airi](https://github.com/vi70x3/airi); and you're not having trust issues with your cyber waifu aren't you?)
+- [ ] implement parallel subtasks execution (utilize existing worktrees support with auto-merging using code merger Roo mode from roo marketplace)
 - [ ] optionally gate switch_mode tool behind master switch in settings (might break carefully designed automation)
 - [x] remove "roo is having trouble" (breaks automation)
 - [ ] integrate with [vi70x3/airi](https://github.com/vi70x3/airi)
 
 ---
 
-## What Can Roo Code Do For YOU?
+## What Can AiRoo Code Do For YOU?
 
 - Generate Code from natural language descriptions and specs
 - Adapt with Modes: Code, Architect, Ask, Debug, and Custom Modes
@@ -25,7 +25,7 @@ TODO:
 
 ## Modes
 
-Roo Code adapts to how you work:
+AiRoo Code adapts to how you work:
 
 - Code Mode: everyday coding, edits, and file ops
 - Architect Mode: plan systems, specs, and migrations
@@ -37,5 +37,5 @@ Learn more: [Using Modes](https://roocodeinc.github.io/Roo-Code/basic-usage/usin
 
 ## Resources
 
-- **[Documentation](https://roocodeinc.github.io/Roo-Code/):** The official guide to installing, configuring, and mastering Roo Code.
+- **[Documentation](https://roocodeinc.github.io/AiRoo-Code/):** The official guide to installing, configuring, and mastering AiRoo Code.
 
