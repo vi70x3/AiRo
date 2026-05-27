@@ -135,7 +135,6 @@
 	"diffError": {
 		"title": "编辑失败"
 	},
-	"troubleMessage": "Roo遇到问题...",
 	"apiRequest": {
 		"title": "API请求",
 		"failed": "API请求失败",

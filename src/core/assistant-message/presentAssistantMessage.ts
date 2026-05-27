@@ -610,44 +610,6 @@ export async function presentAssistantMessage(cline: Task) {
 				}
 			}
 
-			// Check for identical consecutive tool calls.
-			if (!block.partial) {
-				// Use the detector to check for repetition, passing the ToolUse
-				// block directly.
-				const repetitionCheck = cline.toolRepetitionDetector.check(block)
-
-				// If execution is not allowed, notify user and break.
-				if (!repetitionCheck.allowExecution && repetitionCheck.askUser) {
-					// Handle repetition similar to mistake_limit_reached pattern.
-					const { response, text, images } = await cline.ask(
-						repetitionCheck.askUser.messageKey as ClineAsk,
-						repetitionCheck.askUser.messageDetail.replace("{toolName}", block.name),
-					)
-
-					if (response === "messageResponse") {
-						// Add user feedback to userContent.
-						cline.userMessageContent.push(
-							{
-								type: "text" as const,
-								text: `Tool repetition limit reached. User feedback: ${text}`,
-							},
-							...formatResponse.imageBlocks(images),
-						)
-
-						// Add user feedback to chat.
-						await cline.say("user_feedback", text, images)
-					}
-
-					// Return tool result message about the repetition
-					pushToolResult(
-						formatResponse.toolError(
-							`Tool call repetition limit reached for ${block.name}. Please try a different approach.`,
-						),
-					)
-					break
-				}
-			}
-
 			switch (block.name) {
 				case "write_to_file":
 					await checkpointSaveAndMark(cline)

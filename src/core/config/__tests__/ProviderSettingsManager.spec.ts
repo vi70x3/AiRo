@@ -63,7 +63,6 @@ describe("ProviderSettingsManager", () => {
 					migrations: {
 						rateLimitSecondsMigrated: true,
 						openAiHeadersMigrated: true,
-						consecutiveMistakeLimitMigrated: true,
 						todoListEnabledMigrated: true,
 						claudeCodeLegacySettingsMigrated: true,
 					},
@@ -151,23 +150,19 @@ describe("ProviderSettingsManager", () => {
 						default: {
 							config: {},
 							id: "default",
-							consecutiveMistakeLimit: undefined,
 						},
 						test: {
 							apiProvider: "anthropic",
-							consecutiveMistakeLimit: undefined,
 						},
 						existing: {
 							apiProvider: "anthropic",
 							// this should not really be possible, unless someone has loaded a hand edited config,
 							// but we don't overwrite so we'll check that
-							consecutiveMistakeLimit: 5,
 						},
 					},
 					migrations: {
 						rateLimitSecondsMigrated: true,
 						openAiHeadersMigrated: true,
-						consecutiveMistakeLimitMigrated: false,
 					},
 				}),
 			)
@@ -177,10 +172,6 @@ describe("ProviderSettingsManager", () => {
 			// Get the last call to store, which should contain the migrated config
 			const calls = mockSecrets.store.mock.calls
 			const storedConfig = JSON.parse(calls[calls.length - 1][1])
-			expect(storedConfig.apiConfigs.default.consecutiveMistakeLimit).toEqual(3)
-			expect(storedConfig.apiConfigs.test.consecutiveMistakeLimit).toEqual(3)
-			expect(storedConfig.apiConfigs.existing.consecutiveMistakeLimit).toEqual(5)
-			expect(storedConfig.migrations.consecutiveMistakeLimitMigrated).toEqual(true)
 		})
 
 		it("should call migrateTodoListEnabled if it has not done so already", async () => {
@@ -207,7 +198,6 @@ describe("ProviderSettingsManager", () => {
 					migrations: {
 						rateLimitSecondsMigrated: true,
 						openAiHeadersMigrated: true,
-						consecutiveMistakeLimitMigrated: true,
 						todoListEnabledMigrated: false,
 					},
 				}),
@@ -572,7 +562,6 @@ describe("ProviderSettingsManager", () => {
 				migrations: {
 					rateLimitSecondsMigrated: true,
 					openAiHeadersMigrated: true,
-					consecutiveMistakeLimitMigrated: true,
 					todoListEnabledMigrated: true,
 					claudeCodeLegacySettingsMigrated: true,
 				},
@@ -674,7 +663,6 @@ describe("ProviderSettingsManager", () => {
 				migrations: {
 					rateLimitSecondsMigrated: true,
 					openAiHeadersMigrated: true,
-					consecutiveMistakeLimitMigrated: true,
 					todoListEnabledMigrated: true,
 				},
 			}
@@ -717,7 +705,6 @@ describe("ProviderSettingsManager", () => {
 				migrations: {
 					rateLimitSecondsMigrated: false,
 					openAiHeadersMigrated: true,
-					consecutiveMistakeLimitMigrated: true,
 					todoListEnabledMigrated: true,
 					claudeCodeLegacySettingsMigrated: true,
 				},

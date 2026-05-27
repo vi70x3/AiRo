@@ -20,7 +20,6 @@ import { z } from "zod"
  * - `api_req_failed`: API request failed, asking user whether to retry
  * - `resume_task`: Confirmation needed to resume a previously paused task
  * - `resume_completed_task`: Confirmation needed to resume a task that was already marked as completed
- * - `mistake_limit_reached`: Too many errors encountered, needs user guidance on how to proceed
  * - `use_mcp_server`: Permission to use Model Context Protocol (MCP) server functionality
  * - `auto_approval_max_req_reached`: Auto-approval limit has been reached, manual approval required
  */
@@ -33,7 +32,6 @@ export const clineAsks = [
 	"api_req_failed",
 	"resume_task",
 	"resume_completed_task",
-	"mistake_limit_reached",
 	"use_mcp_server",
 	"auto_approval_max_req_reached",
 ] as const
@@ -51,7 +49,6 @@ export const idleAsks = [
 	"completion_result",
 	"api_req_failed",
 	"resume_completed_task",
-	"mistake_limit_reached",
 	"auto_approval_max_req_reached",
 ] as const satisfies readonly ClineAsk[]
 

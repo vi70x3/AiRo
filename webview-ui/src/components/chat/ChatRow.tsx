@@ -275,7 +275,6 @@ export const ChatRowContent = ({
 	const [icon, title] = useMemo(() => {
 		switch (type) {
 			case "error":
-			case "mistake_limit_reached":
 				return [null, null] // These will be handled by ErrorRow component
 			case "command":
 				return [
@@ -1578,8 +1577,6 @@ export const ChatRowContent = ({
 			}
 		case "ask":
 			switch (message.ask) {
-				case "mistake_limit_reached":
-					return <ErrorRow type="mistake_limit" message={message.text || ""} errorDetails={message.text} />
 				case "command":
 					return (
 						<CommandExecution

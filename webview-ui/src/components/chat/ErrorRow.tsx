@@ -50,14 +50,7 @@ import { PROVIDERS } from "../settings/constants"
  * />
  */
 export interface ErrorRowProps {
-	type:
-		| "error"
-		| "mistake_limit"
-		| "api_failure"
-		| "diff_error"
-		| "streaming_failed"
-		| "cancelled"
-		| "api_req_retry_delayed"
+	type: "error" | "api_failure" | "diff_error" | "streaming_failed" | "cancelled" | "api_req_retry_delayed"
 	title?: string
 	message: string
 	showCopyButton?: boolean
@@ -140,8 +133,6 @@ export const ErrorRow = memo(
 			switch (type) {
 				case "error":
 					return t("chat:error")
-				case "mistake_limit":
-					return t("chat:troubleMessage")
 				case "api_failure":
 					return t("chat:apiRequest.failed")
 				case "api_req_retry_delayed":

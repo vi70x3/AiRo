@@ -54,12 +54,6 @@ Otherwise, if you have not completed the task and do not need additional informa
 (This is an automated message, so do not respond to it conversationally.)`
 	},
 
-	tooManyMistakes: (feedback?: string) =>
-		JSON.stringify({
-			status: "guidance",
-			feedback,
-		}),
-
 	missingToolParameterError: (paramName: string) => {
 		const instructions = getToolInstructionsReminder()
 

@@ -6,7 +6,6 @@ import {
 	providerSettingsWithIdSchema,
 	discriminatedProviderSettingsWithIdSchema,
 	ProviderSettingsEntry,
-	DEFAULT_CONSECUTIVE_MISTAKE_LIMIT,
 	getModelId,
 	openRouterDefaultModelId,
 	type ProviderName,
@@ -32,7 +31,6 @@ export const providerProfilesSchema = z.object({
 		.object({
 			rateLimitSecondsMigrated: z.boolean().optional(),
 			openAiHeadersMigrated: z.boolean().optional(),
-			consecutiveMistakeLimitMigrated: z.boolean().optional(),
 			todoListEnabledMigrated: z.boolean().optional(),
 			claudeCodeLegacySettingsMigrated: z.boolean().optional(),
 		})
@@ -62,7 +60,6 @@ export class ProviderSettingsManager {
 		migrations: {
 			rateLimitSecondsMigrated: true, // Mark as migrated on fresh installs
 			openAiHeadersMigrated: true, // Mark as migrated on fresh installs
-			consecutiveMistakeLimitMigrated: true, // Mark as migrated on fresh installs
 			todoListEnabledMigrated: true, // Mark as migrated on fresh installs
 			claudeCodeLegacySettingsMigrated: true, // Mark as migrated on fresh installs
 		},
@@ -134,7 +131,6 @@ export class ProviderSettingsManager {
 					providerProfiles.migrations = {
 						rateLimitSecondsMigrated: false,
 						openAiHeadersMigrated: false,
-						consecutiveMistakeLimitMigrated: false,
 						todoListEnabledMigrated: false,
 						claudeCodeLegacySettingsMigrated: false,
 					} // Initialize with default values
@@ -150,12 +146,6 @@ export class ProviderSettingsManager {
 				if (!providerProfiles.migrations.openAiHeadersMigrated) {
 					await this.migrateOpenAiHeaders(providerProfiles)
 					providerProfiles.migrations.openAiHeadersMigrated = true
-					isDirty = true
-				}
-
-				if (!providerProfiles.migrations.consecutiveMistakeLimitMigrated) {
-					await this.migrateConsecutiveMistakeLimit(providerProfiles)
-					providerProfiles.migrations.consecutiveMistakeLimitMigrated = true
 					isDirty = true
 				}
 
@@ -241,18 +231,6 @@ export class ProviderSettingsManager {
 			}
 		} catch (error) {
 			console.error(`[MigrateOpenAiHeaders] Failed to migrate OpenAI headers:`, error)
-		}
-	}
-
-	private async migrateConsecutiveMistakeLimit(providerProfiles: ProviderProfiles) {
-		try {
-			for (const [name, apiConfig] of Object.entries(providerProfiles.apiConfigs)) {
-				if (apiConfig.consecutiveMistakeLimit == null) {
-					apiConfig.consecutiveMistakeLimit = DEFAULT_CONSECUTIVE_MISTAKE_LIMIT
-				}
-			}
-		} catch (error) {
-			console.error(`[MigrateConsecutiveMistakeLimit] Failed to migrate consecutive mistake limit:`, error)
 		}
 	}
 

@@ -138,7 +138,6 @@
 	"diffError": {
 		"title": "Modifica non riuscita"
 	},
-	"troubleMessage": "Roo sta avendo problemi...",
 	"apiRequest": {
 		"title": "Richiesta API",
 		"failed": "Richiesta API fallita",

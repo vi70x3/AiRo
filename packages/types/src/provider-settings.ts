@@ -23,12 +23,6 @@ import {
 } from "./providers/index.js"
 
 /**
- * constants
- */
-
-export const DEFAULT_CONSECUTIVE_MISTAKE_LIMIT = 3
-
-/**
  * DynamicProvider
  *
  * Dynamic provider requires external API calls in order to get the model list.
@@ -177,7 +171,6 @@ const baseProviderSettingsSchema = z.object({
 	todoListEnabled: z.boolean().optional(),
 	modelTemperature: z.number().nullish(),
 	rateLimitSeconds: z.number().optional(),
-	consecutiveMistakeLimit: z.number().min(0).optional(),
 
 	// Model reasoning.
 	enableReasoningEffort: z.boolean().optional(),

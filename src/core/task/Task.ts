@@ -45,7 +45,6 @@ import {
 	isInteractiveAsk,
 	isResumableAsk,
 	QueuedMessage,
-	DEFAULT_CONSECUTIVE_MISTAKE_LIMIT,
 	DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 	MAX_CHECKPOINT_TIMEOUT_SECONDS,
 	MIN_CHECKPOINT_TIMEOUT_SECONDS,
@@ -93,7 +92,6 @@ import { SYSTEM_PROMPT } from "../prompts/system"
 import { buildNativeToolsArrayWithRestrictions } from "./build-tools"
 
 // core modules
-import { ToolRepetitionDetector } from "../tools/ToolRepetitionDetector"
 import { restoreTodoListForTask } from "../tools/UpdateTodoListTool"
 import { FileContextTracker } from "../context-tracking/FileContextTracker"
 import { RooIgnoreController } from "../ignore/RooIgnoreController"
@@ -139,7 +137,6 @@ export interface TaskOptions extends CreateTaskOptions {
 	apiConfiguration: ProviderSettings
 	enableCheckpoints?: boolean
 	checkpointTimeout?: number
-	consecutiveMistakeLimit?: number
 	task?: string
 	images?: string[]
 	historyItem?: HistoryItem
@@ -290,7 +287,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		Task.lastGlobalApiRequestTime = undefined
 	}
 
-	toolRepetitionDetector: ToolRepetitionDetector
 	rooIgnoreController?: RooIgnoreController
 	rooProtectedController?: RooProtectedController
 	fileContextTracker: FileContextTracker
@@ -314,7 +310,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 	// Tool Use
 	consecutiveMistakeCount: number = 0
-	consecutiveMistakeLimit: number
 	consecutiveMistakeCountForApplyDiff: Map<string, number> = new Map()
 	consecutiveMistakeCountForEditFile: Map<string, number> = new Map()
 	consecutiveNoToolUseCount: number = 0
@@ -416,7 +411,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		apiConfiguration,
 		enableCheckpoints = true,
 		checkpointTimeout = DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
-		consecutiveMistakeLimit = DEFAULT_CONSECUTIVE_MISTAKE_LIMIT,
 		taskId,
 		task,
 		images,
@@ -481,7 +475,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.api = buildApiHandler(this.apiConfiguration)
 		this.autoApprovalHandler = new AutoApprovalHandler()
 
-		this.consecutiveMistakeLimit = consecutiveMistakeLimit ?? DEFAULT_CONSECUTIVE_MISTAKE_LIMIT
 		this.providerRef = new WeakRef(provider)
 		this.globalStoragePath = provider.context.globalStorageUri.fsPath
 		this.diffViewProvider = new DiffViewProvider(this.cwd, this)
@@ -509,8 +502,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		// Set up diff strategy
 		this.diffStrategy = new MultiSearchReplaceDiffStrategy()
-
-		this.toolRepetitionDetector = new ToolRepetitionDetector(this.consecutiveMistakeLimit)
 
 		// Initialize todo list if provided
 		if (initialTodos && initialTodos.length > 0) {
@@ -2478,26 +2469,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 			if (this.abort) {
 				throw new Error(`[RooCode#recursivelyMakeRooRequests] task ${this.taskId}.${this.instanceId} aborted`)
-			}
-
-			if (this.consecutiveMistakeLimit > 0 && this.consecutiveMistakeCount >= this.consecutiveMistakeLimit) {
-				const { response, text, images } = await this.ask(
-					"mistake_limit_reached",
-					t("common:errors.mistake_limit_guidance"),
-				)
-
-				if (response === "messageResponse") {
-					currentUserContent.push(
-						...[
-							{ type: "text" as const, text: formatResponse.tooManyMistakes(text) },
-							...formatResponse.imageBlocks(images),
-						],
-					)
-
-					await this.say("user_feedback", text, images)
-				}
-
-				this.consecutiveMistakeCount = 0
 			}
 
 			// Getting verbose details is an expensive operation, it uses ripgrep to

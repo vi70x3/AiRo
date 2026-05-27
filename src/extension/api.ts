@@ -202,9 +202,7 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 		await provider.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
 		await provider.postMessageToWebview({ type: "invoke", invoke: "newChat", text, images })
 
-		const options: CreateTaskOptions = {
-			consecutiveMistakeLimit: Number.MAX_SAFE_INTEGER,
-		}
+		const options: CreateTaskOptions = {}
 
 		const task = await provider.createTask(text, images, undefined, options, configuration)
 
