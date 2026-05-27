@@ -67,6 +67,36 @@ import { fileExistsAtPath } from "../../utils/fs"
 import { setTtsEnabled, setTtsSpeed } from "../../utils/tts"
 import { getWorkspaceGitInfo } from "../../utils/git"
 import { getWorkspacePath } from "../../utils/path"
+
+/**
+ * Resolves auto-approval state fields from raw state values,
+ * applying `false` defaults for any undefined values.
+ */
+function resolveAutoApprovalState(values: {
+	alwaysAllowReadOnly?: boolean
+	alwaysAllowReadOnlyOutsideWorkspace?: boolean
+	alwaysAllowWrite?: boolean
+	alwaysAllowWriteOutsideWorkspace?: boolean
+	alwaysAllowWriteProtected?: boolean
+	alwaysAllowExecute?: boolean
+	alwaysAllowMcp?: boolean
+	alwaysAllowModeSwitch?: boolean
+	alwaysAllowSubtasks?: boolean
+	alwaysAllowFollowupQuestions?: boolean
+}) {
+	return {
+		alwaysAllowReadOnly: values.alwaysAllowReadOnly ?? false,
+		alwaysAllowReadOnlyOutsideWorkspace: values.alwaysAllowReadOnlyOutsideWorkspace ?? false,
+		alwaysAllowWrite: values.alwaysAllowWrite ?? false,
+		alwaysAllowWriteOutsideWorkspace: values.alwaysAllowWriteOutsideWorkspace ?? false,
+		alwaysAllowWriteProtected: values.alwaysAllowWriteProtected ?? false,
+		alwaysAllowExecute: values.alwaysAllowExecute ?? false,
+		alwaysAllowMcp: values.alwaysAllowMcp ?? false,
+		alwaysAllowModeSwitch: values.alwaysAllowModeSwitch ?? false,
+		alwaysAllowSubtasks: values.alwaysAllowSubtasks ?? false,
+		alwaysAllowFollowupQuestions: values.alwaysAllowFollowupQuestions ?? false,
+	}
+}
 import { OrganizationAllowListViolationError } from "../../utils/errors"
 
 import { setPanel } from "../../activate/registerCommands"
@@ -2009,15 +2039,17 @@ export class ClineProvider
 			version: this.context.extension?.packageJSON?.version ?? "",
 			apiConfiguration,
 			customInstructions,
-			alwaysAllowReadOnly: alwaysAllowReadOnly ?? false,
-			alwaysAllowReadOnlyOutsideWorkspace: alwaysAllowReadOnlyOutsideWorkspace ?? false,
-			alwaysAllowWrite: alwaysAllowWrite ?? false,
-			alwaysAllowWriteOutsideWorkspace: alwaysAllowWriteOutsideWorkspace ?? false,
-			alwaysAllowWriteProtected: alwaysAllowWriteProtected ?? false,
-			alwaysAllowExecute: alwaysAllowExecute ?? false,
-			alwaysAllowMcp: alwaysAllowMcp ?? false,
-			alwaysAllowModeSwitch: alwaysAllowModeSwitch ?? false,
-			alwaysAllowSubtasks: alwaysAllowSubtasks ?? false,
+			...resolveAutoApprovalState({
+				alwaysAllowReadOnly,
+				alwaysAllowReadOnlyOutsideWorkspace,
+				alwaysAllowWrite,
+				alwaysAllowWriteOutsideWorkspace,
+				alwaysAllowWriteProtected,
+				alwaysAllowExecute,
+				alwaysAllowMcp,
+				alwaysAllowModeSwitch,
+				alwaysAllowSubtasks,
+			}),
 			allowedMaxRequests,
 			allowedMaxCost,
 			autoCondenseContext: autoCondenseContext ?? true,
@@ -2156,16 +2188,7 @@ export class ClineProvider
 			lastShownAnnouncementId: stateValues.lastShownAnnouncementId,
 			customInstructions: stateValues.customInstructions,
 			apiModelId: stateValues.apiModelId,
-			alwaysAllowReadOnly: stateValues.alwaysAllowReadOnly ?? false,
-			alwaysAllowReadOnlyOutsideWorkspace: stateValues.alwaysAllowReadOnlyOutsideWorkspace ?? false,
-			alwaysAllowWrite: stateValues.alwaysAllowWrite ?? false,
-			alwaysAllowWriteOutsideWorkspace: stateValues.alwaysAllowWriteOutsideWorkspace ?? false,
-			alwaysAllowWriteProtected: stateValues.alwaysAllowWriteProtected ?? false,
-			alwaysAllowExecute: stateValues.alwaysAllowExecute ?? false,
-			alwaysAllowMcp: stateValues.alwaysAllowMcp ?? false,
-			alwaysAllowModeSwitch: stateValues.alwaysAllowModeSwitch ?? false,
-			alwaysAllowSubtasks: stateValues.alwaysAllowSubtasks ?? false,
-			alwaysAllowFollowupQuestions: stateValues.alwaysAllowFollowupQuestions ?? false,
+			...resolveAutoApprovalState(stateValues),
 			followupAutoApproveTimeoutMs: stateValues.followupAutoApproveTimeoutMs ?? 60000,
 			diagnosticsEnabled: stateValues.diagnosticsEnabled ?? true,
 			allowedMaxRequests: stateValues.allowedMaxRequests,
