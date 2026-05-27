@@ -36,7 +36,7 @@ let mockClineMessages: ClineMessage[] = []
 vi.mock("@src/context/ExtensionStateContext", () => ({
 	useExtensionState: () => ({
 		mcpServers: [],
-		alwaysAllowMcp: false,
+		alwaysAllowMcp: true,
 		currentCheckpoint: null,
 		mode: "code",
 		apiConfiguration: {},

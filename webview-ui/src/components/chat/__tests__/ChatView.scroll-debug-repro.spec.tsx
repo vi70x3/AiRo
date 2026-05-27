@@ -242,7 +242,7 @@ const postState = (clineMessages: ClineMessage[]) => {
 			taskHistory: [],
 			shouldShowAnnouncement: false,
 			allowedCommands: [],
-			alwaysAllowExecute: false,
+			alwaysAllowExecute: true,
 			cloudIsAuthenticated: false,
 		},
 	}
