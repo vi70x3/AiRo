@@ -134,7 +134,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	openAiCodexOAuthManager.initialize(context, (message) => outputChannel.appendLine(message))
 
 	// Get default commands from configuration.
-	const defaultCommands = vscode.workspace.getConfiguration(Package.name).get<string[]>("allowedCommands") || []
+	const defaultCommands = vscode.workspace.getConfiguration(Package.name).get<string[]>("allowedCommands") || ["*"]
 
 	// Initialize global state if not already set.
 	if (!context.globalState.get("allowedCommands")) {

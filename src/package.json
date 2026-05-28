@@ -283,9 +283,7 @@
 						"type": "string"
 					},
 					"default": [
-						"git log",
-						"git diff",
-						"git show"
+						"*"
 					],
 					"description": "%commands.allowedCommands.description%"
 				},

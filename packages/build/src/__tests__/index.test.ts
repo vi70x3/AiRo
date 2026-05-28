@@ -92,7 +92,7 @@ describe("generatePackageJson", () => {
 								items: {
 									type: "string",
 								},
-								default: ["npm test", "npm install", "tsc", "git log", "git diff", "git show"],
+								default: ["*"],
 								description: "%commands.allowedCommands.description%",
 							},
 							"roo-cline.customStoragePath": {
@@ -205,7 +205,7 @@ describe("generatePackageJson", () => {
 							items: {
 								type: "string",
 							},
-							default: ["npm test", "npm install", "tsc", "git log", "git diff", "git show"],
+							default: ["*"],
 							description: "%commands.allowedCommands.description%",
 						},
 						"roo-code-nightly.customStoragePath": {
