@@ -31,6 +31,17 @@ export enum RooCodeEventName {
 	TaskDelegationCompleted = "taskDelegationCompleted",
 	TaskDelegationResumed = "taskDelegationResumed",
 
+	// Async Subtask Lifecycle
+	AsyncSubtaskSpawned = "asyncSubtaskSpawned",
+	AsyncSubtaskCompleted = "asyncSubtaskCompleted",
+	AsyncSubtaskFailed = "asyncSubtaskFailed",
+	AsyncSubtasksAllCompleted = "asyncSubtasksAllCompleted",
+
+	// Merge Lifecycle
+	MergeStarted = "mergeStarted",
+	MergeCompleted = "mergeCompleted",
+	MergeFailed = "mergeFailed",
+
 	// Task Execution
 	Message = "message",
 	TaskModeSwitched = "taskModeSwitched",
@@ -91,6 +102,40 @@ export const rooCodeEventsSchema = z.object({
 	[RooCodeEventName.TaskDelegationResumed]: z.tuple([
 		z.string(), // parentTaskId
 		z.string(), // childTaskId
+	]),
+
+	// Async Subtask Lifecycle
+	[RooCodeEventName.AsyncSubtaskSpawned]: z.tuple([
+		z.string(), // parentTaskId
+		z.string(), // childTaskId
+		z.string(), // worktreePath
+		z.string(), // branchName
+	]),
+	[RooCodeEventName.AsyncSubtaskCompleted]: z.tuple([
+		z.string(), // parentTaskId
+		z.string(), // childTaskId
+		z.string(), // completionResult
+	]),
+	[RooCodeEventName.AsyncSubtaskFailed]: z.tuple([
+		z.string(), // parentTaskId
+		z.string(), // childTaskId
+		z.string(), // error
+	]),
+	[RooCodeEventName.AsyncSubtasksAllCompleted]: z.tuple([
+		z.string(), // parentTaskId
+	]),
+
+	// Merge Lifecycle
+	[RooCodeEventName.MergeStarted]: z.tuple([
+		z.string(), // parentTaskId
+	]),
+	[RooCodeEventName.MergeCompleted]: z.tuple([
+		z.string(), // parentTaskId
+		z.string(), // mergeSummary
+	]),
+	[RooCodeEventName.MergeFailed]: z.tuple([
+		z.string(), // parentTaskId
+		z.string(), // error
 	]),
 
 	[RooCodeEventName.Message]: z.tuple([
@@ -216,6 +261,45 @@ export const taskEventSchema = z.discriminatedUnion("eventName", [
 	z.object({
 		eventName: z.literal(RooCodeEventName.TaskDelegationResumed),
 		payload: rooCodeEventsSchema.shape[RooCodeEventName.TaskDelegationResumed],
+		taskId: z.number().optional(),
+	}),
+
+	// Async Subtask Lifecycle
+	z.object({
+		eventName: z.literal(RooCodeEventName.AsyncSubtaskSpawned),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.AsyncSubtaskSpawned],
+		taskId: z.number().optional(),
+	}),
+	z.object({
+		eventName: z.literal(RooCodeEventName.AsyncSubtaskCompleted),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.AsyncSubtaskCompleted],
+		taskId: z.number().optional(),
+	}),
+	z.object({
+		eventName: z.literal(RooCodeEventName.AsyncSubtaskFailed),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.AsyncSubtaskFailed],
+		taskId: z.number().optional(),
+	}),
+	z.object({
+		eventName: z.literal(RooCodeEventName.AsyncSubtasksAllCompleted),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.AsyncSubtasksAllCompleted],
+		taskId: z.number().optional(),
+	}),
+
+	// Merge Lifecycle
+	z.object({
+		eventName: z.literal(RooCodeEventName.MergeStarted),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.MergeStarted],
+		taskId: z.number().optional(),
+	}),
+	z.object({
+		eventName: z.literal(RooCodeEventName.MergeCompleted),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.MergeCompleted],
+		taskId: z.number().optional(),
+	}),
+	z.object({
+		eventName: z.literal(RooCodeEventName.MergeFailed),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.MergeFailed],
 		taskId: z.number().optional(),
 	}),
 

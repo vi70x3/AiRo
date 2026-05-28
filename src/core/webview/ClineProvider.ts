@@ -161,6 +161,7 @@ export class ClineProvider
 	private taskCreationCallback: (task: Task) => void
 	private taskEventListeners: WeakMap<Task, Array<() => void>> = new WeakMap()
 	private currentWorkspacePath: string | undefined
+	private _asyncSubtaskManager: any = null
 	private _disposed = false
 
 	// Per-instance mode and API configuration overrides.
@@ -2969,6 +2970,26 @@ export class ClineProvider
 		return child
 	}
 
+
+	/**
+	 * Get or create the AsyncSubtaskManager for this provider.
+	 * Used by the async_task tool to spawn parallel subtasks.
+	 */
+	public getAsyncSubtaskManager(parentTaskId?: string): any {
+		if (!parentTaskId) {
+			return this._asyncSubtaskManager || null
+		}
+		// Recreate manager if parentTaskId differs from existing manager
+		if (this._asyncSubtaskManager) {
+			const existingParentId = (this._asyncSubtaskManager as any).getParentTaskId?.()
+			if (existingParentId === parentTaskId) {
+				return this._asyncSubtaskManager
+			}
+		}
+		const { AsyncSubtaskManager } = require("../subtasks/AsyncSubtaskManager")
+		this._asyncSubtaskManager = new AsyncSubtaskManager(this, parentTaskId)
+		return this._asyncSubtaskManager
+	}
 	/**
 	 * Reopen parent task from delegation with write-back and events.
 	 */

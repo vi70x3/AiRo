@@ -20,12 +20,26 @@ export const historyItemSchema = z.object({
 	workspace: z.string().optional(),
 	mode: z.string().optional(),
 	apiConfigName: z.string().optional(), // Provider profile name for sticky profile feature
-	status: z.enum(["active", "completed", "delegated"]).optional(),
+	status: z.enum(["active", "completed", "delegated", "merging"]).optional(),
 	delegatedToId: z.string().optional(), // Last child this parent delegated to
 	childIds: z.array(z.string()).optional(), // All children spawned by this task
 	awaitingChildId: z.string().optional(), // Child currently awaited (set when delegated)
 	completedByChildId: z.string().optional(), // Child that completed and resumed this parent
 	completionResultSummary: z.string().optional(), // Summary from completed child
+
+	// Async subtask fields
+	asyncChildIds: z.array(z.string()).optional(), // All async children spawned by this task
+	asyncSubtaskResults: z.array(
+		z.object({
+			childId: z.string(),
+			branchName: z.string(),
+			worktreePath: z.string(),
+			completionResult: z.string().optional(),
+			status: z.enum(["completed", "failed"]),
+		}),
+	).optional(),
+	mergeStatus: z.enum(["pending", "in_progress", "completed", "failed"]).optional(),
+	mergeSummary: z.string().optional(), // Summary of merge results
 })
 
 export type HistoryItem = z.infer<typeof historyItemSchema>
