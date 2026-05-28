@@ -68,7 +68,7 @@ async function main() {
 					copyPaths(
 						[
 							["../README.md", "README.md"],
-							["../CHANGELOG.md", "CHANGELOG.md"],
+							["../CHANGELOG.md", "CHANGELOG.md", { optional: true }],
 							["../LICENSE", "LICENSE"],
 							["../.env", ".env", { optional: true }],
 							["node_modules/vscode-material-icons/generated", "assets/vscode-material-icons"],
