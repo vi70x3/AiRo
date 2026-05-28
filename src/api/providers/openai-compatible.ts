@@ -58,8 +58,8 @@ export abstract class OpenAICompatibleHandler extends BaseProvider implements Si
 		this.options = options
 		this.config = config
 
-		// Get httpProxy from options (provider-specific)
-		const httpProxy = (options as any).moonshotHttpProxy
+		// Get httpProxy from options (generic field)
+		const httpProxy = (options as any).httpProxy
 
 		// Create the OpenAI-compatible provider using AI SDK
 		this.provider = createOpenAICompatible({

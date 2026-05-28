@@ -180,6 +180,9 @@ const baseProviderSettingsSchema = z.object({
 
 	// Model verbosity.
 	verbosity: verbosityLevelsSchema.optional(),
+
+	// HTTP proxy for outbound requests (generic field for all providers).
+	httpProxy: z.string().optional(),
 })
 
 // Several of the providers share common model config properties.
@@ -192,7 +195,6 @@ const anthropicSchema = apiModelIdProviderModelSchema.extend({
 	anthropicBaseUrl: z.string().optional(),
 	anthropicUseAuthToken: z.boolean().optional(),
 	anthropicBeta1MContext: z.boolean().optional(), // Enable 'context-1m-2025-08-07' beta for 1M context window.
-	anthropicHttpProxy: z.string().optional(),
 })
 
 const openRouterSchema = baseProviderSettingsSchema.extend({
@@ -200,7 +202,6 @@ const openRouterSchema = baseProviderSettingsSchema.extend({
 	openRouterModelId: z.string().optional(),
 	openRouterBaseUrl: z.string().optional(),
 	openRouterSpecificProvider: z.string().optional(),
-	openRouterHttpProxy: z.string().optional(),
 })
 
 const bedrockSchema = apiModelIdProviderModelSchema.extend({
@@ -221,7 +222,6 @@ const bedrockSchema = apiModelIdProviderModelSchema.extend({
 	awsBedrockEndpoint: z.string().optional(),
 	awsBedrock1MContext: z.boolean().optional(), // Enable 'context-1m-2025-08-07' beta for 1M context window.
 	awsBedrockServiceTier: z.enum(["STANDARD", "FLEX", "PRIORITY"]).optional(), // AWS Bedrock service tier selection
-	bedrockHttpProxy: z.string().optional(),
 })
 
 const vertexSchema = apiModelIdProviderModelSchema.extend({
@@ -230,7 +230,6 @@ const vertexSchema = apiModelIdProviderModelSchema.extend({
 	vertexProjectId: z.string().optional(),
 	vertexRegion: z.string().optional(),
 	vertex1MContext: z.boolean().optional(), // Enable 'context-1m-2025-08-07' beta for 1M context window.
-	vertexHttpProxy: z.string().optional(),
 })
 
 const openAiSchema = baseProviderSettingsSchema.extend({
@@ -244,7 +243,6 @@ const openAiSchema = baseProviderSettingsSchema.extend({
 	openAiStreamingEnabled: z.boolean().optional(),
 	openAiHostHeader: z.string().optional(), // Keep temporarily for backward compatibility during migration.
 	openAiHeaders: z.record(z.string(), z.string()).optional(),
-	openAiHttpProxy: z.string().optional(),
 })
 
 const ollamaSchema = baseProviderSettingsSchema.extend({
@@ -252,7 +250,6 @@ const ollamaSchema = baseProviderSettingsSchema.extend({
 	ollamaBaseUrl: z.string().optional(),
 	ollamaApiKey: z.string().optional(),
 	ollamaNumCtx: z.number().int().min(128).optional(),
-	ollamaHttpProxy: z.string().optional(),
 })
 
 const vsCodeLmSchema = baseProviderSettingsSchema.extend({
@@ -271,13 +268,11 @@ const lmStudioSchema = baseProviderSettingsSchema.extend({
 	lmStudioBaseUrl: z.string().optional(),
 	lmStudioDraftModelId: z.string().optional(),
 	lmStudioSpeculativeDecodingEnabled: z.boolean().optional(),
-	lmStudioHttpProxy: z.string().optional(),
 })
 
 const geminiSchema = apiModelIdProviderModelSchema.extend({
 	geminiApiKey: z.string().optional(),
 	googleGeminiBaseUrl: z.string().optional(),
-	geminiHttpProxy: z.string().optional(),
 })
 
 const geminiCliSchema = apiModelIdProviderModelSchema.extend({
@@ -295,25 +290,21 @@ const openAiNativeSchema = apiModelIdProviderModelSchema.extend({
 	// OpenAI Responses API service tier for openai-native provider only.
 	// UI should only expose this when the selected model supports flex/priority.
 	openAiNativeServiceTier: serviceTierSchema.optional(),
-	openAiNativeHttpProxy: z.string().optional(),
 })
 
 const mistralSchema = apiModelIdProviderModelSchema.extend({
 	mistralApiKey: z.string().optional(),
 	mistralCodestralUrl: z.string().optional(),
-	mistralHttpProxy: z.string().optional(),
 })
 
 const deepSeekSchema = apiModelIdProviderModelSchema.extend({
 	deepSeekBaseUrl: z.string().optional(),
 	deepSeekApiKey: z.string().optional(),
-	deepSeekHttpProxy: z.string().optional(),
 })
 
 const poeSchema = apiModelIdProviderModelSchema.extend({
 	poeApiKey: z.string().optional(),
 	poeBaseUrl: z.string().optional(),
-	poeHttpProxy: z.string().optional(),
 })
 
 const moonshotSchema = apiModelIdProviderModelSchema.extend({
@@ -321,7 +312,6 @@ const moonshotSchema = apiModelIdProviderModelSchema.extend({
 		.union([z.literal("https://api.moonshot.ai/v1"), z.literal("https://api.moonshot.cn/v1")])
 		.optional(),
 	moonshotApiKey: z.string().optional(),
-	moonshotHttpProxy: z.string().optional(),
 })
 
 const minimaxSchema = apiModelIdProviderModelSchema.extend({
@@ -329,14 +319,12 @@ const minimaxSchema = apiModelIdProviderModelSchema.extend({
 		.union([z.literal("https://api.minimax.io/v1"), z.literal("https://api.minimaxi.com/v1")])
 		.optional(),
 	minimaxApiKey: z.string().optional(),
-	minimaxHttpProxy: z.string().optional(),
 })
 
 const requestySchema = baseProviderSettingsSchema.extend({
 	requestyBaseUrl: z.string().optional(),
 	requestyApiKey: z.string().optional(),
 	requestyModelId: z.string().optional(),
-	requestyHttpProxy: z.string().optional(),
 })
 
 const unboundSchema = baseProviderSettingsSchema.extend({
@@ -357,7 +345,6 @@ const litellmSchema = baseProviderSettingsSchema.extend({
 	litellmApiKey: z.string().optional(),
 	litellmModelId: z.string().optional(),
 	litellmUsePromptCache: z.boolean().optional(),
-	litellmHttpProxy: z.string().optional(),
 })
 
 const sambaNovaSchema = apiModelIdProviderModelSchema.extend({
@@ -371,12 +358,10 @@ export type ZaiApiLine = z.infer<typeof zaiApiLineSchema>
 const zaiSchema = apiModelIdProviderModelSchema.extend({
 	zaiApiKey: z.string().optional(),
 	zaiApiLine: zaiApiLineSchema.optional(),
-	zaiHttpProxy: z.string().optional(),
 })
 
 const fireworksSchema = apiModelIdProviderModelSchema.extend({
 	fireworksApiKey: z.string().optional(),
-	fireworksHttpProxy: z.string().optional(),
 })
 
 const qwenCodeSchema = apiModelIdProviderModelSchema.extend({
@@ -386,12 +371,10 @@ const qwenCodeSchema = apiModelIdProviderModelSchema.extend({
 const vercelAiGatewaySchema = baseProviderSettingsSchema.extend({
 	vercelAiGatewayApiKey: z.string().optional(),
 	vercelAiGatewayModelId: z.string().optional(),
-	vercelAiGatewayHttpProxy: z.string().optional(),
 })
 
 const basetenSchema = apiModelIdProviderModelSchema.extend({
 	basetenApiKey: z.string().optional(),
-	basetenHttpProxy: z.string().optional(),
 })
 
 const defaultSchema = z.object({

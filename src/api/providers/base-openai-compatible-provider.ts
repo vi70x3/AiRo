@@ -60,7 +60,7 @@ export abstract class BaseOpenAiCompatibleProvider<ModelName extends string>
 			throw new Error("API key is required")
 		}
 
-		const httpProxy = (this.options as any).moonshotHttpProxy || (this.options as any).fireworksHttpProxy
+		const httpProxy = (this.options as any).httpProxy
 
 		this.client = new OpenAI({
 			baseURL,

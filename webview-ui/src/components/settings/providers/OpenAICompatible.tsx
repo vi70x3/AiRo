@@ -141,6 +141,14 @@ export const OpenAICompatible = ({
 				className="w-full">
 				<label className="block font-medium mb-1">{t("settings:providers.apiKey")}</label>
 			</VSCodeTextField>
+			<VSCodeTextField
+				value={(apiConfiguration as any)?.httpProxy || ""}
+				type="url"
+				onInput={handleInputChange("httpProxy")}
+				placeholder="http://proxy.example.com:8080"
+				className="w-full">
+				<label className="block font-medium mb-1">HTTP Proxy</label>
+			</VSCodeTextField>
 			<ModelPicker
 				apiConfiguration={apiConfiguration}
 				setApiConfigurationField={setApiConfigurationField}
