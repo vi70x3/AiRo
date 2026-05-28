@@ -259,6 +259,7 @@ describe("SettingsView - Change Detection Fix", () => {
 		alwaysAllowExecute: true,
 		alwaysAllowMcp: true,
 		alwaysAllowModeSwitch: true,
+		modeSwitchingEnabled: true,
 		alwaysAllowSubtasks: true,
 		alwaysAllowWrite: true,
 		alwaysAllowWriteOutsideWorkspace: true,

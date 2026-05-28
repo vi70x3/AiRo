@@ -264,6 +264,7 @@ describe("SettingsView - Unsaved Changes Detection", () => {
 		alwaysAllowExecute: true,
 		alwaysAllowMcp: true,
 		alwaysAllowModeSwitch: true,
+		modeSwitchingEnabled: true,
 		alwaysAllowSubtasks: true,
 		alwaysAllowWrite: true,
 		alwaysAllowWriteOutsideWorkspace: true,

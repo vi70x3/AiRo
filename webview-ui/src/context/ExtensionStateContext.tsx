@@ -57,6 +57,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setAlwaysAllowExecute: (value: boolean) => void
 	setAlwaysAllowMcp: (value: boolean) => void
 	setAlwaysAllowModeSwitch: (value: boolean) => void
+	setModeSwitchingEnabled: (value: boolean) => void
 	setAlwaysAllowSubtasks: (value: boolean) => void
 	setShowRooIgnoredFiles: (value: boolean) => void
 	setEnableSubfolderRules: (value: boolean) => void
@@ -458,6 +459,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setAlwaysAllowExecute: (value) => setState((prevState) => ({ ...prevState, alwaysAllowExecute: value })),
 		setAlwaysAllowMcp: (value) => setState((prevState) => ({ ...prevState, alwaysAllowMcp: value })),
 		setAlwaysAllowModeSwitch: (value) => setState((prevState) => ({ ...prevState, alwaysAllowModeSwitch: value })),
+		setModeSwitchingEnabled: (value) => setState((prevState) => ({ ...prevState, modeSwitchingEnabled: value })),
 		setAlwaysAllowSubtasks: (value) => setState((prevState) => ({ ...prevState, alwaysAllowSubtasks: value })),
 		setAlwaysAllowFollowupQuestions,
 		setFollowupAutoApproveTimeoutMs: (value) =>

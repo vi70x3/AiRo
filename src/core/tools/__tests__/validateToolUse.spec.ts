@@ -250,5 +250,17 @@ describe("mode-validator", () => {
 
 			expect(() => validateToolUse("execute_command", codeMode, [], toolRequirements)).not.toThrow()
 		})
+
+		it("blocks switch_mode via toolRequirements when modeSwitchingEnabled is false", () => {
+			const toolRequirements = { switch_mode: false }
+			expect(() => validateToolUse("switch_mode", codeMode, [], toolRequirements)).toThrow(
+				'Tool "switch_mode" is not allowed in code mode.',
+			)
+		})
+
+		it("allows switch_mode when toolRequirements does not block it", () => {
+			const toolRequirements = { execute_command: false }
+			expect(() => validateToolUse("switch_mode", codeMode, [], toolRequirements)).not.toThrow()
+		})
 	})
 })

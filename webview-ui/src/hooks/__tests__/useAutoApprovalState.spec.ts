@@ -12,6 +12,7 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowModeSwitch: false,
 				alwaysAllowSubtasks: false,
 				alwaysAllowFollowupQuestions: false,
+				modeSwitchingEnabled: false,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
@@ -28,6 +29,7 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowModeSwitch: undefined,
 				alwaysAllowSubtasks: undefined,
 				alwaysAllowFollowupQuestions: undefined,
+				modeSwitchingEnabled: undefined,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
@@ -44,6 +46,7 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowModeSwitch: false,
 				alwaysAllowSubtasks: false,
 				alwaysAllowFollowupQuestions: false,
+				modeSwitchingEnabled: false,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
@@ -60,6 +63,7 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowModeSwitch: false,
 				alwaysAllowSubtasks: false,
 				alwaysAllowFollowupQuestions: false,
+				modeSwitchingEnabled: false,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
@@ -76,11 +80,29 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowModeSwitch: true,
 				alwaysAllowSubtasks: true,
 				alwaysAllowFollowupQuestions: true,
+				modeSwitchingEnabled: true,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
 
 			expect(result.current.hasEnabledOptions).toBe(true)
+		})
+
+		it("should return false when only modeSwitchingEnabled is true (not an auto-approval toggle)", () => {
+			const toggles = {
+				alwaysAllowReadOnly: false,
+				alwaysAllowWrite: false,
+				alwaysAllowExecute: false,
+				alwaysAllowMcp: false,
+				alwaysAllowModeSwitch: false,
+				alwaysAllowSubtasks: false,
+				alwaysAllowFollowupQuestions: false,
+				modeSwitchingEnabled: true,
+			}
+
+			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
+
+			expect(result.current.hasEnabledOptions).toBe(false)
 		})
 	})
 
@@ -90,6 +112,7 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowReadOnly: true,
 				alwaysAllowWrite: true,
 				alwaysAllowExecute: true,
+				modeSwitchingEnabled: true,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, false))
@@ -102,6 +125,7 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowReadOnly: true,
 				alwaysAllowWrite: true,
 				alwaysAllowExecute: true,
+				modeSwitchingEnabled: true,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, undefined))
@@ -118,6 +142,7 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowModeSwitch: false,
 				alwaysAllowSubtasks: false,
 				alwaysAllowFollowupQuestions: false,
+				modeSwitchingEnabled: false,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
@@ -130,6 +155,7 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowReadOnly: true,
 				alwaysAllowWrite: false,
 				alwaysAllowExecute: false,
+				modeSwitchingEnabled: true,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
@@ -143,6 +169,7 @@ describe("useAutoApprovalState", () => {
 			const initialToggles = {
 				alwaysAllowReadOnly: true,
 				alwaysAllowWrite: false,
+				modeSwitchingEnabled: true,
 			}
 
 			const { result, rerender } = renderHook(
@@ -162,6 +189,7 @@ describe("useAutoApprovalState", () => {
 			const newToggles = {
 				alwaysAllowReadOnly: true,
 				alwaysAllowWrite: false,
+				modeSwitchingEnabled: true,
 			}
 
 			rerender({ toggles: newToggles, autoApprovalEnabled: true })
@@ -175,6 +203,7 @@ describe("useAutoApprovalState", () => {
 			const initialToggles = {
 				alwaysAllowReadOnly: true,
 				alwaysAllowWrite: false,
+				modeSwitchingEnabled: false,
 			}
 
 			const { result, rerender } = renderHook(
@@ -194,6 +223,7 @@ describe("useAutoApprovalState", () => {
 			const newToggles = {
 				alwaysAllowReadOnly: false,
 				alwaysAllowWrite: false,
+				modeSwitchingEnabled: false,
 			}
 
 			rerender({ toggles: newToggles, autoApprovalEnabled: true })
@@ -206,6 +236,7 @@ describe("useAutoApprovalState", () => {
 			const toggles = {
 				alwaysAllowReadOnly: true,
 				alwaysAllowWrite: false,
+				modeSwitchingEnabled: true,
 			}
 
 			const { result, rerender } = renderHook(
@@ -230,6 +261,7 @@ describe("useAutoApprovalState", () => {
 		it("should handle partial toggle objects", () => {
 			const toggles = {
 				alwaysAllowReadOnly: true,
+				modeSwitchingEnabled: true,
 				// Other properties are optional
 			}
 
@@ -254,6 +286,7 @@ describe("useAutoApprovalState", () => {
 				alwaysAllowWrite: "" as any, // falsy non-boolean
 				alwaysAllowExecute: null as any, // falsy non-boolean
 				alwaysAllowMcp: "yes" as any, // truthy non-boolean
+				modeSwitchingEnabled: true,
 			}
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
