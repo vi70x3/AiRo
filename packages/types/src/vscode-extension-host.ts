@@ -240,6 +240,7 @@ export type ExtensionState = Pick<
 	| "alwaysAllowWriteProtected"
 	| "alwaysAllowMcp"
 	| "alwaysAllowModeSwitch"
+	| "modeSwitchingEnabled"
 	| "alwaysAllowSubtasks"
 	| "alwaysAllowFollowupQuestions"
 	| "alwaysAllowExecute"
