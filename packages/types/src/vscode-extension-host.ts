@@ -520,6 +520,7 @@ export interface WebviewMessage {
 		| "moveSkill"
 		| "updateSkillModes"
 		| "openSkillFile"
+		| "modeSwitchingEnabled"
 	text?: string
 	taskId?: string
 	editedMessageContent?: string
