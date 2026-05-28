@@ -71,6 +71,17 @@ export type TaskProviderEvents = {
 	[RooCodeEventName.TaskDelegationCompleted]: [parentTaskId: string, childTaskId: string, summary: string]
 	[RooCodeEventName.TaskDelegationResumed]: [parentTaskId: string, childTaskId: string]
 
+	// Async Subtask Events
+	[RooCodeEventName.AsyncSubtaskSpawned]: [parentTaskId: string, childTaskId: string, worktreePath: string, branchName: string]
+	[RooCodeEventName.AsyncSubtaskCompleted]: [parentTaskId: string, childTaskId: string, completionResult: string]
+	[RooCodeEventName.AsyncSubtaskFailed]: [parentTaskId: string, childTaskId: string, error: string]
+	[RooCodeEventName.AsyncSubtasksAllCompleted]: [parentTaskId: string]
+
+	// Merge Events
+	[RooCodeEventName.MergeStarted]: [parentTaskId: string]
+	[RooCodeEventName.MergeCompleted]: [parentTaskId: string, mergeSummary: string]
+	[RooCodeEventName.MergeFailed]: [parentTaskId: string, error: string]
+
 	[RooCodeEventName.TaskUserMessage]: [taskId: string]
 
 	[RooCodeEventName.TaskTokenUsageUpdated]: [taskId: string, tokenUsage: TokenUsage, toolUsage: ToolUsage]
@@ -89,7 +100,7 @@ export interface CreateTaskOptions {
 	experiments?: Record<string, boolean>
 	initialTodos?: TodoItem[]
 	/** Initial status for the task's history item (e.g., "active" for child tasks) */
-	initialStatus?: "active" | "delegated" | "completed"
+	initialStatus?: "active" | "delegated" | "completed" | "merging"
 	/** Whether to start the task loop immediately (default: true).
 	 *  When false, the caller must invoke `task.start()` manually. */
 	startTask?: boolean

@@ -28,6 +28,7 @@ import { askFollowupQuestionTool } from "../tools/AskFollowupQuestionTool"
 import { switchModeTool } from "../tools/SwitchModeTool"
 import { attemptCompletionTool, AttemptCompletionCallbacks } from "../tools/AttemptCompletionTool"
 import { newTaskTool } from "../tools/NewTaskTool"
+import { asyncTaskTool } from "../tools/AsyncTaskTool"
 import { updateTodoListTool } from "../tools/UpdateTodoListTool"
 import { runSlashCommandTool } from "../tools/RunSlashCommandTool"
 import { skillTool } from "../tools/SkillTool"
@@ -373,6 +374,10 @@ export async function presentAssistantMessage(cline: Task) {
 						const message = block.params.message ?? "(no message)"
 						const modeName = getModeBySlug(mode, customModes)?.name ?? mode
 						return `[${block.name} in ${modeName} mode: '${message}']`
+					}
+					case "async_task": {
+						const subtaskCount = block.params.subtasks?.length ?? 0
+						return `[${block.name} for ${subtaskCount} parallel subtask(s)]`
 					}
 					case "run_slash_command":
 						return `[${block.name} for '${block.params.command}'${block.params.args ? ` with args: ${block.params.args}` : ""}]`
@@ -741,6 +746,15 @@ export async function presentAssistantMessage(cline: Task) {
 				case "new_task":
 					await checkpointSaveAndMark(cline)
 					await newTaskTool.handle(cline, block as ToolUse<"new_task">, {
+						askApproval,
+						handleError,
+						pushToolResult,
+						toolCallId: block.id,
+					})
+					break
+				case "async_task":
+					await checkpointSaveAndMark(cline)
+					await asyncTaskTool.handle(cline, block as ToolUse<"async_task">, {
 						askApproval,
 						handleError,
 						pushToolResult,
