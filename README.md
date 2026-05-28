@@ -6,13 +6,13 @@
 
 ### SECURITY NOTICE This fork focuses on full automation by default so consider running it in isolated code-server or a graphical container
 
-TODO:
-- [x] allow full YOLO by default (KISS approach since AiRoo project will evolve to be kind of like local opensource RooMote customized to be used with [vi70x3/airi](https://github.com/vi70x3/airi); and you're not having trust issues with your cyber waifu aren't you?)
-- [ ] implement async subtasks execution (utilize existing worktrees support with orchestrator delegating auto-merging codetrees after all subtasks are complete using code merger Roo mode from roo marketplace) each subtask pops up in editor as a separate tab
-- [ ] optionally gate ability for agent to request switching modes behind master switch in settings (might break carefully designed automation)
-- [x] remove "roo is having trouble" (breaks automation)
-- [ ] each tab of roo will have separate mode and model, not shared between all
-- [ ] integrate with [vi70x3/airi](https://github.com/vi70x3/airi)
+## How Is This Fork Different:
+- [x] removes `Roo is having trouble` (this was really bad for any kind of automation)
+- [x] full YOLO by default (KISS approach since AiRoo project will evolve to be kind of like local opensource RooMote customized to be used with [vi70x3/airi](https://github.com/vi70x3/airi), and you're not having trust issues with your cyber waifu aren't you?)
+- [x] separates modes / models per instance (multiple AiRoo tabs in same window when you click `...` -> `Open in editor`)
+- [ ] plan to implement async subtasks execution (utilize existing worktrees support with orchestrator delegating auto-merging codetrees after all subtasks are complete using code merger Roo mode from roo marketplace) each subtask pops up in editor as a separate tab
+- [ ] plan to optionally gate ability for agent to request switching modes behind master switch in settings (might break carefully designed automation)
+- [ ] plan to integrate with [vi70x3/airi](https://github.com/vi70x3/airi)
 
 ---
 
