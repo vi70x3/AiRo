@@ -8,12 +8,13 @@
 ### SECURITY NOTICE This fork focuses on full automation by default so consider running it in isolated code-server or a graphical container
 
 ## How Is This Fork Different:
-- [x] implements async subtasks execution (utilize existing worktrees support with orchestrator delegating auto-merging codetrees after all subtasks are complete using code merger Roo mode from roo marketplace) each subtask pops up in editor as a separate tab
+- [x] (alpha) implements async subtasks execution (utilize existing worktrees support with orchestrator delegating auto-merging codetrees after all subtasks are complete using code merger Roo mode from roo marketplace) each subtask pops up in editor as a separate tab
 - [x] removes `Roo is having trouble` (this was really bad for any kind of automation)
+- [x] gates agent mode-switch requests behind a master toggle in settings (also bad for carefully designed automation)
 - [x] separates modes / models per instance (multiple AiRoo tabs in same window when you click `...` -> `Open in editor`)
-- [x] full YOLO by default (KISS approach since AiRoo project will evolve to be kind of like local opensource RooMote customized to be used with [vi70x3/airi](https://github.com/vi70x3/airi), and you're not having trust issues with your cyber waifu aren't you?)
-- [x] gate agent mode-switch requests behind a master switch in settings (implemented)
-- [ ] plan to integrate with [vi70x3/airi](https://github.com/vi70x3/airi)
+- [x] allows full YOLO by default (you're not having trust issues with your cyber waifu aren't you?)
+- [ ] [vi70x3/airi](https://github.com/vi70x3/airi) integration:
+  - [ ] add AiRoo context snapshot to each AIRI heartbeat
 
 ---
 
