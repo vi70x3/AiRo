@@ -1,6 +1,7 @@
-<!-- <p align="center">
-  <a href="https://marketplace.visualstudio.com/items?itemName=RooVeterinaryInc.roo-cline"><img src="https://img.shields.io/badge/VS_Code_Marketplace-007ACC?style=flat&logo=visualstudiocode&logoColor=white" alt="VS Code Marketplace"></a>  
-</p> -->
+<p align="center">
+  <a href="https://github.com/vi70x3/airoo/releases"><img src="https://img.shields.io/github/downloads/vi70x3/airoo/total?style=flat&logo=vscode
+" alt="Latest Nightly Release"></a>  
+</p>
 
 # AiRoo Code
 
