@@ -1,6 +1,6 @@
 import * as vscode from "vscode"
 
-import { TodoItem } from "@roo-code/types"
+import { RooCodeEventName, TodoItem } from "@roo-code/types"
 
 import { Task } from "../task/Task"
 import { getModeBySlug } from "../../shared/modes"
@@ -20,6 +20,9 @@ interface AsyncTaskSubtaskSpec {
 interface AsyncTaskParams {
 	subtasks: AsyncTaskSubtaskSpec[]
 }
+
+/** Merge-wait timeout: 5 minutes */
+const MERGE_TIMEOUT_MS = 300_000
 
 export class AsyncTaskTool extends BaseTool<"async_task"> {
 	readonly name = "async_task" as const
@@ -115,7 +118,7 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 						task.recordToolError("async_task")
 						task.didToolFailInCurrentTurn = true
 						pushToolResult(
-							formatResponse.toolError(`Subtask ${i + 1}: invalid todos format: must be a markdown checklist`),
+							formatResponse.toolError(`Subtask ${i + 1}: invalid format: must be a markdown checklist`),
 						)
 						return
 					}
@@ -168,15 +171,209 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 				subtasks: validatedSubtasks,
 			})
 
+			// Check if any subtasks actually started
+			const runningCount = result.filter((r: any) => r.status === "running").length
+			const failedCount = result.filter((r: any) => r.status === "failed").length
+
+			if (runningCount === 0) {
+				// All subtasks failed immediately — report errors
+				const errors = result
+					.filter((r: any) => r.error)
+					.map((r: any) => `Subtask ${r.subtaskIndex + 1}: ${r.error}`)
+					.join("\n")
+				pushToolResult(formatResponse.toolError(`All subtasks failed to start:\n${errors}`))
+				return
+			}
+
+			// Set up the completion callback — when all subtasks finish and merge is done,
+			// this will inject the results into the parent task and resume it.
+			this.setupCompletionCallback(task, provider, asyncManager)
+
+			// Abort the parent task loop — it will be resumed when subtasks complete.
+			task.abort = true
+			;(task as any).abortReason = "async_subtasks_running"
+
 			pushToolResult(
-				`Spawned ${result.length} async subtask(s) in parallel. ` +
-				`Each subtask is running in its own worktree and editor tab. ` +
-				`When all subtask(s) complete, their changes will be auto-merged.`,
+				`Spawned ${runningCount} async subtask(s) in parallel` +
+					(failedCount > 0 ? ` (${failedCount} failed to start)` : "") +
+					`. Each subtask is running in its own worktree and editor tab. ` +
+					`When all subtask(s) complete, their changes will be auto-merged and the results will be reported back.`,
 			)
 			return
 		} catch (error) {
 			await handleError("creating async tasks", error)
 			return
+		}
+	}
+
+	/**
+	 * Set up the callback that fires when all async subtasks complete.
+	 * This injects the merge results into the parent task's API history
+	 * and resumes the parent task loop.
+	 *
+	 * Uses `provider.once` to avoid leaking the event listener, and
+	 * wraps the merge-event wait in a timeout to prevent hanging forever.
+	 */
+	private setupCompletionCallback(task: Task, provider: any, asyncManager: any): void {
+		const onAllCompleted = async (parentTaskId: string) => {
+			if (parentTaskId !== task.taskId) return
+
+			// Wait for the merge phase to complete (with timeout).
+			const mergeSummary = await Promise.race([
+				new Promise<string>((resolve) => {
+					const onMergeCompleted = (pid: string, summary: string) => {
+						if (pid !== task.taskId) return
+						provider.off(RooCodeEventName.MergeCompleted, onMergeCompleted)
+						provider.off(RooCodeEventName.MergeFailed, onMergeFailed)
+						resolve(summary)
+					}
+					const onMergeFailed = (pid: string, error: string) => {
+						if (pid !== task.taskId) return
+						provider.off(RooCodeEventName.MergeCompleted, onMergeCompleted)
+						provider.off(RooCodeEventName.MergeFailed, onMergeFailed)
+						resolve(`Merge failed: ${error}`)
+					}
+					provider.on(RooCodeEventName.MergeCompleted, onMergeCompleted)
+					provider.on(RooCodeEventName.MergeFailed, onMergeFailed)
+				}),
+				new Promise<string>((_, reject) =>
+					setTimeout(() => reject(new Error("Merge timeout")), MERGE_TIMEOUT_MS),
+				),
+			]).catch((err) => `Merge failed: ${err.message}`)
+
+			// Build the result message for the orchestrator
+			const progress = asyncManager.getProgress()
+			const resultMessage = this.buildResultMessage(progress, mergeSummary)
+
+			// Resume the parent task with the results
+			await this.resumeParentWithResults(task, resultMessage)
+		}
+
+		// Use once() so the listener auto-removes after first fire — no leak.
+		provider.once(RooCodeEventName.AsyncSubtasksAllCompleted, onAllCompleted)
+	}
+
+	/**
+	 * Build a human-readable result message for the orchestrator LLM.
+	 */
+	private buildResultMessage(progress: any[], mergeSummary: string): string {
+		const lines: string[] = []
+		lines.push("All async subtasks have completed.\n")
+
+		for (const subtask of progress) {
+			const index = subtask.subtaskIndex + 1
+			if (subtask.status === "completed") {
+				lines.push(`- Subtask ${index}: COMPLETED (branch: ${subtask.branchName})`)
+			} else {
+				lines.push(`- Subtask ${index}: FAILED - ${subtask.error ?? "Unknown error"}`)
+			}
+		}
+
+		lines.push(`\nMerge Results:\n${mergeSummary}`)
+
+		return lines.join("\n")
+	}
+
+	/**
+	 * Resume the parent task by injecting the subtask results into its API history
+	 * and restarting the task loop.
+	 *
+	 * Creates new message/block objects instead of mutating the original history.
+	 */
+	private async resumeParentWithResults(task: Task, resultMessage: string): Promise<void> {
+		try {
+			// Find the tool_use_id from the last assistant message's async_task tool_use
+			const apiHistory = task.apiConversationHistory
+			let toolUseId: string | undefined
+			for (let i = apiHistory.length - 1; i >= 0; i--) {
+				const msg = apiHistory[i]
+				if (msg.role === "assistant" && Array.isArray(msg.content)) {
+					for (const block of msg.content) {
+						if (block.type === "tool_use" && block.name === "async_task") {
+							toolUseId = block.id
+							break
+						}
+					}
+					if (toolUseId) break
+				}
+			}
+
+			// Build new API history without mutating the original objects.
+			let newHistory: any[]
+
+			if (toolUseId) {
+				// Check if the last message already has a tool_result for this tool_use_id
+				const lastMsg = apiHistory[apiHistory.length - 1]
+				if (lastMsg?.role === "user" && Array.isArray(lastMsg.content)) {
+					// Deep-clone the last message and its content blocks
+					const newLastMsg = {
+						...lastMsg,
+						content: lastMsg.content.map((block: any) => {
+							if (block.type === "tool_result" && block.tool_use_id === toolUseId) {
+								// Replace this block with updated content
+								return { ...block, content: resultMessage }
+							}
+							return { ...block }
+						}),
+					}
+					// Check if we actually replaced anything
+					const wasUpdated = newLastMsg.content !== lastMsg.content
+					if (wasUpdated) {
+						newHistory = [...apiHistory.slice(0, -1), newLastMsg]
+					} else {
+						// No existing tool_result found — append a new user message
+						newHistory = [
+							...apiHistory,
+							{
+								role: "user",
+								content: [
+									{
+										type: "tool_result" as const,
+										tool_use_id: toolUseId,
+										content: resultMessage,
+									},
+								],
+							},
+						]
+					}
+				} else {
+					// Last message is not a user message with content — append new
+					newHistory = [
+						...apiHistory,
+						{
+							role: "user",
+							content: [
+								{
+									type: "tool_result" as const,
+									tool_use_id: toolUseId,
+									content: resultMessage,
+								},
+							],
+						},
+					]
+				}
+			} else {
+				// Fallback: inject as plain text
+				newHistory = [
+					...apiHistory,
+					{
+						role: "user",
+						content: [{ type: "text" as const, text: resultMessage }],
+					},
+				]
+			}
+
+			// Use the public overwriteApiConversationHistory method
+			await task.overwriteApiConversationHistory(newHistory)
+
+			// Reset abort state and resume the task loop
+			task.abort = false
+			;(task as any).abortReason = undefined
+
+			// Resume the task loop — the LLM will see the tool_result with all subtask results
+			await (task as any).initiateTaskLoop([])
+		} catch (error) {
+			console.error(`[AsyncTaskTool] Failed to resume parent task: ${error}`)
 		}
 	}
 
