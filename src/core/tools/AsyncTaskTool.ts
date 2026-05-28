@@ -157,7 +157,7 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 			}
 
 			// Delegate to AsyncSubtaskManager via provider
-			const asyncManager = (provider as any).getAsyncSubtaskManager?.()
+			const asyncManager = (provider as any).getAsyncSubtaskManager?.(task.taskId)
 			if (!asyncManager) {
 				pushToolResult(formatResponse.toolError("Async subtask manager not available"))
 				return

@@ -156,7 +156,7 @@ customModes:
       - Resolving merge conflicts intelligently using code semantics
       - Validating that merged code compiles and tests pass
       - Cleaning up worktree branches after successful merges
-    whenToUse: Use this mode when multiple parallel subtasks have completed and their worktree branches need to be merged back into the main branch.
+    whenToUse: This mode is typically entered automatically by the AsyncSubtaskManager when parallel async subtasks complete and their worktree branches need merging. It can also be used manually as a fallback for conflict resolution when automatic merging fails or produces errors.
     description: Merge multiple worktree branches into main.
     groups:
       - read
@@ -182,6 +182,9 @@ customModes:
          - Run any available tests
          - Verify no obvious regressions
 
-      5. Clean up by deleting the merged branches and their worktrees.
+      5. Clean up by deleting the merged branches and their worktrees:
+   - Remove worktrees: `git worktree remove <path>`
+   - Delete branches: `git branch -d <branch-name>`
+   - Prune stale entries: `git worktree prune`
 
       6. Provide a summary of what was merged, any conflicts resolved, and the final state.

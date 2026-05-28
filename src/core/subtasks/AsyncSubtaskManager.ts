@@ -68,6 +68,10 @@ export class AsyncSubtaskManager {
 	 * Spawn multiple subtasks in parallel, each in its own worktree and editor tab.
 	 */
 	async spawnSubtasks(params: SpawnSubtasksParams): Promise<AsyncSubtaskStatus[]> {
+		// Reset state for a new run
+		this.subtasks.clear()
+		this.mergeInProgress = false
+
 		const { subtasks: specs } = params
 		const results: AsyncSubtaskStatus[] = []
 
@@ -134,6 +138,12 @@ export class AsyncSubtaskManager {
 			} catch (error) {
 				status.status = "failed"
 				status.error = error instanceof Error ? error.message : String(error)
+				// Clean up worktree if it was created
+				try {
+					await worktreeService.deleteWorktree(this.parentProvider.cwd, worktreePath, true)
+				} catch {
+					// Best effort cleanup
+				}
 				this.subtasks.set(`${i}`, status)
 				results.push(status)
 			}

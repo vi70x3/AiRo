@@ -2976,10 +2976,18 @@ export class ClineProvider
 	 * Used by the async_task tool to spawn parallel subtasks.
 	 */
 	public getAsyncSubtaskManager(parentTaskId?: string): any {
-		if (!this._asyncSubtaskManager && parentTaskId) {
-			const { AsyncSubtaskManager } = require("../subtasks/AsyncSubtaskManager")
-			this._asyncSubtaskManager = new AsyncSubtaskManager(this, parentTaskId)
+		if (!parentTaskId) {
+			return this._asyncSubtaskManager || null
 		}
+		// Recreate manager if parentTaskId differs from existing manager
+		if (this._asyncSubtaskManager) {
+			const existingParentId = (this._asyncSubtaskManager as any).getParentTaskId?.()
+			if (existingParentId === parentTaskId) {
+				return this._asyncSubtaskManager
+			}
+		}
+		const { AsyncSubtaskManager } = require("../subtasks/AsyncSubtaskManager")
+		this._asyncSubtaskManager = new AsyncSubtaskManager(this, parentTaskId)
 		return this._asyncSubtaskManager
 	}
 	/**

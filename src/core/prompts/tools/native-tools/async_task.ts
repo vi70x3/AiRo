@@ -8,7 +8,7 @@ Each subtask will:
 - Execute independently and in parallel with other subtasks
 - Have its own conversation and file access scoped to the worktree
 
-When ALL subtasks complete, their worktree branches will be automatically merged back into the main branch by a Code Merger.
+When ALL subtasks complete, their worktree branches will be automatically merged back into the main branch by the system merge phase.
 
 CRITICAL: This tool MUST be called alone. Do NOT call this tool alongside other tools in the same message turn. All subtasks specified will be spawned simultaneously.`
 
@@ -48,10 +48,11 @@ export default {
 								description: TODOS_PARAMETER_DESCRIPTION,
 							},
 						},
-						required: ["mode", "message", "todos"],
+						required: ["mode", "message"],
 						additionalProperties: false,
 					},
 					minItems: 2,
+							maxItems: 5,
 				},
 			},
 			required: ["subtasks"],
