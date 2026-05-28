@@ -21,6 +21,9 @@ interface AsyncTaskParams {
 	subtasks: AsyncTaskSubtaskSpec[]
 }
 
+/** Merge-wait timeout: 5 minutes */
+const MERGE_TIMEOUT_MS = 300_000
+
 export class AsyncTaskTool extends BaseTool<"async_task"> {
 	readonly name = "async_task" as const
 
@@ -207,29 +210,36 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 	 * Set up the callback that fires when all async subtasks complete.
 	 * This injects the merge results into the parent task's API history
 	 * and resumes the parent task loop.
+	 *
+	 * Uses `provider.once` to avoid leaking the event listener, and
+	 * wraps the merge-event wait in a timeout to prevent hanging forever.
 	 */
 	private setupCompletionCallback(task: Task, provider: any, asyncManager: any): void {
 		const onAllCompleted = async (parentTaskId: string) => {
 			if (parentTaskId !== task.taskId) return
 
-			// Wait for the merge phase to complete.
-			// The AsyncSubtaskManager emits MergeCompleted or MergeFailed via the parent provider.
-			const mergeSummary = await new Promise<string>((resolve) => {
-				const onMergeCompleted = (pid: string, summary: string) => {
-					if (pid !== task.taskId) return
-					provider.off(RooCodeEventName.MergeCompleted, onMergeCompleted)
-					provider.off(RooCodeEventName.MergeFailed, onMergeFailed)
-					resolve(summary)
-				}
-				const onMergeFailed = (pid: string, error: string) => {
-					if (pid !== task.taskId) return
-					provider.off(RooCodeEventName.MergeCompleted, onMergeCompleted)
-					provider.off(RooCodeEventName.MergeFailed, onMergeFailed)
-					resolve(`Merge failed: ${error}`)
-				}
-				provider.on(RooCodeEventName.MergeCompleted, onMergeCompleted)
-				provider.on(RooCodeEventName.MergeFailed, onMergeFailed)
-			})
+			// Wait for the merge phase to complete (with timeout).
+			const mergeSummary = await Promise.race([
+				new Promise<string>((resolve) => {
+					const onMergeCompleted = (pid: string, summary: string) => {
+						if (pid !== task.taskId) return
+						provider.off(RooCodeEventName.MergeCompleted, onMergeCompleted)
+						provider.off(RooCodeEventName.MergeFailed, onMergeFailed)
+						resolve(summary)
+					}
+					const onMergeFailed = (pid: string, error: string) => {
+						if (pid !== task.taskId) return
+						provider.off(RooCodeEventName.MergeCompleted, onMergeCompleted)
+						provider.off(RooCodeEventName.MergeFailed, onMergeFailed)
+						resolve(`Merge failed: ${error}`)
+					}
+					provider.on(RooCodeEventName.MergeCompleted, onMergeCompleted)
+					provider.on(RooCodeEventName.MergeFailed, onMergeFailed)
+				}),
+				new Promise<string>((_, reject) =>
+					setTimeout(() => reject(new Error("Merge timeout")), MERGE_TIMEOUT_MS),
+				),
+			]).catch((err) => `Merge failed: ${err.message}`)
 
 			// Build the result message for the orchestrator
 			const progress = asyncManager.getProgress()
@@ -239,7 +249,8 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 			await this.resumeParentWithResults(task, resultMessage)
 		}
 
-		provider.on(RooCodeEventName.AsyncSubtasksAllCompleted, onAllCompleted)
+		// Use once() so the listener auto-removes after first fire — no leak.
+		provider.once(RooCodeEventName.AsyncSubtasksAllCompleted, onAllCompleted)
 	}
 
 	/**
@@ -266,6 +277,8 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 	/**
 	 * Resume the parent task by injecting the subtask results into its API history
 	 * and restarting the task loop.
+	 *
+	 * Creates new message/block objects instead of mutating the original history.
 	 */
 	private async resumeParentWithResults(task: Task, resultMessage: string): Promise<void> {
 		try {
@@ -285,40 +298,69 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 				}
 			}
 
-			// Build the new API history with the injected tool_result
-			let newHistory = [...apiHistory]
+			// Build new API history without mutating the original objects.
+			let newHistory: any[]
 
 			if (toolUseId) {
 				// Check if the last message already has a tool_result for this tool_use_id
-				const lastMsg = newHistory[newHistory.length - 1]
-				let alreadyHasResult = false
+				const lastMsg = apiHistory[apiHistory.length - 1]
 				if (lastMsg?.role === "user" && Array.isArray(lastMsg.content)) {
-					for (const block of lastMsg.content) {
-						if (block.type === "tool_result" && block.tool_use_id === toolUseId) {
-							block.content = resultMessage
-							alreadyHasResult = true
-							break
-						}
+					// Deep-clone the last message and its content blocks
+					const newLastMsg = {
+						...lastMsg,
+						content: lastMsg.content.map((block: any) => {
+							if (block.type === "tool_result" && block.tool_use_id === toolUseId) {
+								// Replace this block with updated content
+								return { ...block, content: resultMessage }
+							}
+							return { ...block }
+						}),
 					}
-				}
-				if (!alreadyHasResult) {
-					newHistory.push({
-						role: "user",
-						content: [
+					// Check if we actually replaced anything
+					const wasUpdated = newLastMsg.content !== lastMsg.content
+					if (wasUpdated) {
+						newHistory = [...apiHistory.slice(0, -1), newLastMsg]
+					} else {
+						// No existing tool_result found — append a new user message
+						newHistory = [
+							...apiHistory,
 							{
-								type: "tool_result" as const,
-								tool_use_id: toolUseId,
-								content: resultMessage,
+								role: "user",
+								content: [
+									{
+										type: "tool_result" as const,
+										tool_use_id: toolUseId,
+										content: resultMessage,
+									},
+								],
 							},
-						],
-					})
+						]
+					}
+				} else {
+					// Last message is not a user message with content — append new
+					newHistory = [
+						...apiHistory,
+						{
+							role: "user",
+							content: [
+								{
+									type: "tool_result" as const,
+									tool_use_id: toolUseId,
+									content: resultMessage,
+								},
+							],
+						},
+					]
 				}
 			} else {
 				// Fallback: inject as plain text
-				newHistory.push({
-					role: "user",
-					content: [{ type: "text" as const, text: resultMessage }],
-				})
+				newHistory = [
+					...apiHistory,
+					{
+						role: "user",
+						content: [{ type: "text" as const, text: resultMessage }],
+					},
+				]
 			}
 
 			// Use the public overwriteApiConversationHistory method
