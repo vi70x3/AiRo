@@ -27,6 +27,7 @@ import { addCacheBreakpoints as addAnthropicCacheBreakpoints } from "../transfor
 import { addCacheBreakpoints as addGeminiCacheBreakpoints } from "../transform/caching/gemini"
 import type { OpenRouterReasoningParams } from "../transform/reasoning"
 import { getModelParams } from "../transform/model-params"
+import { createFetchWithProxy } from "../../utils/fetchWithProxy"
 
 import { getModels } from "./fetchers/modelCache"
 import { getModelEndpoints } from "./fetchers/modelEndpointCache"
@@ -150,8 +151,9 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 		const baseURL = this.options.openRouterBaseUrl || "https://openrouter.ai/api/v1"
 		const apiKey = this.options.openRouterApiKey ?? "not-provided"
+		const httpProxy = (options as any).openRouterHttpProxy
 
-		this.client = new OpenAI({ baseURL, apiKey, defaultHeaders: DEFAULT_HEADERS })
+		this.client = new OpenAI({ baseURL, apiKey, defaultHeaders: DEFAULT_HEADERS, fetch: createFetchWithProxy(httpProxy) })
 
 		// Load models asynchronously to populate cache before getModel() is called
 		this.loadDynamicModels().catch((error) => {

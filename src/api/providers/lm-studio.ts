@@ -11,6 +11,7 @@ import { TagMatcher } from "../../utils/tag-matcher"
 
 import { convertToOpenAiMessages } from "../transform/openai-format"
 import { ApiStream } from "../transform/stream"
+import { createFetchWithProxy } from "../../utils/fetchWithProxy"
 
 import { BaseProvider } from "./base-provider"
 import type { SingleCompletionHandler, ApiHandlerCreateMessageMetadata } from "../index"
@@ -29,11 +30,13 @@ export class LmStudioHandler extends BaseProvider implements SingleCompletionHan
 
 		// LM Studio uses "noop" as a placeholder API key
 		const apiKey = "noop"
+		const httpProxy = (options as any).lmStudioHttpProxy
 
 		this.client = new OpenAI({
 			baseURL: (this.options.lmStudioBaseUrl || "http://localhost:1234") + "/v1",
 			apiKey: apiKey,
 			timeout: getApiRequestTimeout(),
+			fetch: createFetchWithProxy(httpProxy),
 		})
 	}
 

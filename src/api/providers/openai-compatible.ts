@@ -14,6 +14,7 @@ import type { ApiHandlerOptions } from "../../shared/api"
 
 import { convertToAiSdkMessages, convertToolsForAiSdk, processAiSdkStreamPart } from "../transform/ai-sdk"
 import { ApiStream, ApiStreamUsageChunk } from "../transform/stream"
+import { createFetchWithProxy } from "../../utils/fetchWithProxy"
 
 import { DEFAULT_HEADERS } from "./constants"
 import { BaseProvider } from "./base-provider"
@@ -57,6 +58,9 @@ export abstract class OpenAICompatibleHandler extends BaseProvider implements Si
 		this.options = options
 		this.config = config
 
+		// Get httpProxy from options (provider-specific)
+		const httpProxy = (options as any).moonshotHttpProxy
+
 		// Create the OpenAI-compatible provider using AI SDK
 		this.provider = createOpenAICompatible({
 			name: config.providerName,
@@ -66,6 +70,7 @@ export abstract class OpenAICompatibleHandler extends BaseProvider implements Si
 				...DEFAULT_HEADERS,
 				...(config.headers || {}),
 			},
+			fetch: createFetchWithProxy(httpProxy),
 		})
 	}
 

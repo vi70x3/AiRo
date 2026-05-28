@@ -7,6 +7,7 @@ import { type ApiHandlerOptions, getModelMaxOutputTokens } from "../../shared/ap
 import { TagMatcher } from "../../utils/tag-matcher"
 import { ApiStream, ApiStreamUsageChunk } from "../transform/stream"
 import { convertToOpenAiMessages } from "../transform/openai-format"
+import { createFetchWithProxy } from "../../utils/fetchWithProxy"
 
 import type { SingleCompletionHandler, ApiHandlerCreateMessageMetadata } from "../index"
 import { DEFAULT_HEADERS } from "./constants"
@@ -59,11 +60,14 @@ export abstract class BaseOpenAiCompatibleProvider<ModelName extends string>
 			throw new Error("API key is required")
 		}
 
+		const httpProxy = (this.options as any).moonshotHttpProxy || (this.options as any).fireworksHttpProxy
+
 		this.client = new OpenAI({
 			baseURL,
 			apiKey: this.options.apiKey,
 			defaultHeaders: DEFAULT_HEADERS,
 			timeout: getApiRequestTimeout(),
+			fetch: createFetchWithProxy(httpProxy),
 		})
 	}
 

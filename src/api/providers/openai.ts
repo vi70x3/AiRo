@@ -18,6 +18,7 @@ import { convertToOpenAiMessages } from "../transform/openai-format"
 import { convertToR1Format } from "../transform/r1-format"
 import { ApiStream, ApiStreamUsageChunk } from "../transform/stream"
 import { getModelParams } from "../transform/model-params"
+import { createFetchWithProxy } from "../../utils/fetchWithProxy"
 
 import { DEFAULT_HEADERS } from "./constants"
 import { BaseProvider } from "./base-provider"
@@ -49,6 +50,8 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 		}
 
 		const timeout = getApiRequestTimeout()
+		const httpProxy = (this.options as any).openAiHttpProxy
+		const fetchFn = createFetchWithProxy(httpProxy)
 
 		if (isAzureAiInference) {
 			// Azure AI Inference Service (e.g., for DeepSeek) uses a different path structure
@@ -58,6 +61,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 				defaultHeaders: headers,
 				defaultQuery: { "api-version": this.options.azureApiVersion || "2024-05-01-preview" },
 				timeout,
+				fetch: fetchFn,
 			})
 		} else if (isAzureOpenAi) {
 			// Azure API shape slightly differs from the core API shape:
@@ -68,6 +72,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 				apiVersion: this.options.azureApiVersion || azureOpenAiDefaultApiVersion,
 				defaultHeaders: headers,
 				timeout,
+				fetch: fetchFn,
 			})
 		} else {
 			this.client = new OpenAI({
@@ -75,6 +80,7 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 				apiKey,
 				defaultHeaders: headers,
 				timeout,
+				fetch: fetchFn,
 			})
 		}
 	}
