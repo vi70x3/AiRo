@@ -1323,7 +1323,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			if (suggestion.mode) {
 				// Only switch modes if it's a manual click (event exists) or auto-approval is allowed
 				const isManualClick = !!event
-				if (isManualClick || (alwaysAllowModeSwitch && modeSwitchingEnabled)) {
+				if (isManualClick || (alwaysAllowModeSwitch && modeSwitchingEnabled !== false)) {
 					// Switch mode without waiting
 					switchToMode(suggestion.mode)
 				}

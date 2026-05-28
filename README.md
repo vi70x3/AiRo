@@ -11,7 +11,7 @@
 - [x] removes `Roo is having trouble` (this was really bad for any kind of automation)
 - [x] separates modes / models per instance (multiple AiRoo tabs in same window when you click `...` -> `Open in editor`)
 - [x] full YOLO by default (KISS approach since AiRoo project will evolve to be kind of like local opensource RooMote customized to be used with [vi70x3/airi](https://github.com/vi70x3/airi), and you're not having trust issues with your cyber waifu aren't you?)
-- [ ] plan to optionally gate ability for agent to request switching modes behind master switch in settings (might break carefully designed automation)
+- [x] gate agent mode-switch requests behind a master switch in settings (implemented)
 - [ ] plan to integrate with [vi70x3/airi](https://github.com/vi70x3/airi)
 
 ---

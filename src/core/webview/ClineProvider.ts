@@ -83,6 +83,7 @@ function resolveAutoApprovalState(values: {
 	alwaysAllowModeSwitch?: boolean
 	alwaysAllowSubtasks?: boolean
 	alwaysAllowFollowupQuestions?: boolean
+	modeSwitchingEnabled?: boolean
 }) {
 	return {
 		alwaysAllowReadOnly: values.alwaysAllowReadOnly ?? true,

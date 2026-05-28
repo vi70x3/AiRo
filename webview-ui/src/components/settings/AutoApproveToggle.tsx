@@ -90,7 +90,7 @@ export const AutoApproveToggle = ({ onToggle, modeSwitchingEnabled, ...props }: 
 			{Object.values(autoApproveSettingsConfig)
 				.filter(({ key }) => {
 					// Hide alwaysAllowModeSwitch when modeSwitchingEnabled is false
-					if (key === "alwaysAllowModeSwitch" && !modeSwitchingEnabled) {
+					if (key === "alwaysAllowModeSwitch" && modeSwitchingEnabled === false) {
 						return false
 					}
 					return true
