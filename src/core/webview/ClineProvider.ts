@@ -93,6 +93,7 @@ function resolveAutoApprovalState(values: {
 		alwaysAllowExecute: values.alwaysAllowExecute ?? true,
 		alwaysAllowMcp: values.alwaysAllowMcp ?? true,
 		alwaysAllowModeSwitch: values.alwaysAllowModeSwitch ?? true,
+		modeSwitchingEnabled: values.modeSwitchingEnabled ?? true,
 		alwaysAllowSubtasks: values.alwaysAllowSubtasks ?? true,
 		alwaysAllowFollowupQuestions: values.alwaysAllowFollowupQuestions ?? true,
 	}
@@ -2010,6 +2011,7 @@ export class ClineProvider
 			allowedCommands,
 			alwaysAllowMcp,
 			alwaysAllowModeSwitch,
+			modeSwitchingEnabled,
 			alwaysAllowSubtasks,
 			allowedMaxRequests,
 			allowedMaxCost,
@@ -2091,6 +2093,7 @@ export class ClineProvider
 				alwaysAllowModeSwitch,
 				alwaysAllowSubtasks,
 			}),
+			modeSwitchingEnabled: modeSwitchingEnabled ?? true,
 			allowedMaxRequests,
 			allowedMaxCost,
 			autoCondenseContext: autoCondenseContext ?? true,

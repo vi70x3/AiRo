@@ -301,6 +301,11 @@ export function filterNativeToolsForMode(
 		}
 	}
 
+	// Remove switch_mode if mode switching is disabled via master switch
+	if (settings?.modeSwitchingEnabled === false) {
+		allowedToolNames.delete("switch_mode")
+	}
+
 	// Conditionally exclude access_mcp_resource if MCP is not enabled or there are no resources
 	if (!mcpHub || !hasAnyMcpResources(mcpHub)) {
 		allowedToolNames.delete("access_mcp_resource")
@@ -358,6 +363,11 @@ export function isToolAllowedInMode(
 	settings?: Record<string, any>,
 ): boolean {
 	const modeSlug = mode ?? defaultModeSlug
+
+	// Check if mode switching is disabled and this is the switch_mode tool
+	if (toolName === "switch_mode" && settings?.modeSwitchingEnabled === false) {
+		return false
+	}
 
 	// Check if it's an always-available tool
 	if (ALWAYS_AVAILABLE_TOOLS.includes(toolName)) {

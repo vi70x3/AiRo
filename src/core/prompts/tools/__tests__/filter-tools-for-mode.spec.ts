@@ -89,3 +89,45 @@ describe("filterNativeToolsForMode - disabledTools", () => {
 		expect(resultNames).not.toContain("edit")
 	})
 })
+
+describe("filterNativeToolsForMode - modeSwitchingEnabled", () => {
+	const nativeToolsWithSwitch: OpenAI.Chat.ChatCompletionTool[] = [
+		makeTool("execute_command"),
+		makeTool("read_file"),
+		makeTool("switch_mode"),
+		makeTool("write_to_file"),
+	]
+
+	it("removes switch_mode when modeSwitchingEnabled is false", () => {
+		const settings = {
+			modeSwitchingEnabled: false,
+		}
+
+		const result = filterNativeToolsForMode(nativeToolsWithSwitch, "code", undefined, undefined, undefined, settings)
+
+		const resultNames = result.map((t) => (t as any).function.name)
+		expect(resultNames).not.toContain("switch_mode")
+		expect(resultNames).toContain("execute_command")
+		expect(resultNames).toContain("read_file")
+	})
+
+	it("includes switch_mode when modeSwitchingEnabled is true", () => {
+		const settings = {
+			modeSwitchingEnabled: true,
+		}
+
+		const result = filterNativeToolsForMode(nativeToolsWithSwitch, "code", undefined, undefined, undefined, settings)
+
+		const resultNames = result.map((t) => (t as any).function.name)
+		expect(resultNames).toContain("switch_mode")
+	})
+
+	it("includes switch_mode when modeSwitchingEnabled is undefined (default behavior)", () => {
+		const settings = {}
+
+		const result = filterNativeToolsForMode(nativeToolsWithSwitch, "code", undefined, undefined, undefined, settings)
+
+		const resultNames = result.map((t) => (t as any).function.name)
+		expect(resultNames).toContain("switch_mode")
+	})
+})

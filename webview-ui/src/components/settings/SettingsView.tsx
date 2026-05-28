@@ -159,6 +159,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		alwaysAllowWrite,
 		alwaysAllowWriteOutsideWorkspace,
 		alwaysAllowWriteProtected,
+		modeSwitchingEnabled,
 		autoCondenseContext,
 		autoCondenseContextPercent,
 		enableCheckpoints,
@@ -358,6 +359,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					alwaysAllowExecute: alwaysAllowExecute ?? undefined,
 					alwaysAllowMcp,
 					alwaysAllowModeSwitch,
+				modeSwitchingEnabled,
 					allowedCommands: allowedCommands ?? [],
 					// Note that we use `null` instead of `undefined` since `JSON.stringify`
 					// will omit `undefined` when serializing the object and passing it to the
@@ -392,7 +394,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					includeDiagnosticMessages:
 						includeDiagnosticMessages !== undefined ? includeDiagnosticMessages : true,
 					maxDiagnosticMessages: maxDiagnosticMessages ?? 50,
-					alwaysAllowSubtasks,
+			alwaysAllowSubtasks,
 					alwaysAllowFollowupQuestions: alwaysAllowFollowupQuestions ?? false,
 					followupAutoApproveTimeoutMs,
 					includeTaskHistoryInEnhance: includeTaskHistoryInEnhance ?? true,
@@ -771,6 +773,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 								alwaysAllowWriteProtected={alwaysAllowWriteProtected}
 								alwaysAllowMcp={alwaysAllowMcp}
 								alwaysAllowModeSwitch={alwaysAllowModeSwitch}
+								modeSwitchingEnabled={modeSwitchingEnabled}
 								alwaysAllowSubtasks={alwaysAllowSubtasks}
 								alwaysAllowExecute={alwaysAllowExecute}
 								alwaysAllowFollowupQuestions={alwaysAllowFollowupQuestions}

@@ -78,6 +78,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		mode,
 		setMode,
 		alwaysAllowModeSwitch,
+		modeSwitchingEnabled,
 		customModes,
 		soundEnabled,
 		soundVolume,
@@ -1322,7 +1323,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			if (suggestion.mode) {
 				// Only switch modes if it's a manual click (event exists) or auto-approval is allowed
 				const isManualClick = !!event
-				if (isManualClick || alwaysAllowModeSwitch) {
+				if (isManualClick || (alwaysAllowModeSwitch && modeSwitchingEnabled)) {
 					// Switch mode without waiting
 					switchToMode(suggestion.mode)
 				}
@@ -1342,7 +1343,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				setInputValue(preservedInput)
 			}
 		},
-		[handleSendMessage, setInputValue, switchToMode, alwaysAllowModeSwitch, clineAsk, markFollowUpAsAnswered],
+		[handleSendMessage, setInputValue, switchToMode, alwaysAllowModeSwitch, modeSwitchingEnabled, clineAsk, markFollowUpAsAnswered],
 	)
 
 	const handleBatchFileResponse = useCallback((response: { [key: string]: boolean }) => {

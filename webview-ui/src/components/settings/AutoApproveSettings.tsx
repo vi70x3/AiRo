@@ -29,6 +29,7 @@ type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	alwaysAllowSubtasks?: boolean
 	alwaysAllowExecute?: boolean
 	alwaysAllowFollowupQuestions?: boolean
+	modeSwitchingEnabled?: boolean
 	followupAutoApproveTimeoutMs?: number
 	allowedCommands?: string[]
 	allowedMaxRequests?: number | undefined
@@ -44,6 +45,7 @@ type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
 		| "alwaysAllowSubtasks"
 		| "alwaysAllowExecute"
 		| "alwaysAllowFollowupQuestions"
+		| "modeSwitchingEnabled"
 		| "followupAutoApproveTimeoutMs"
 		| "allowedCommands"
 		| "allowedMaxRequests"
@@ -62,6 +64,7 @@ export const AutoApproveSettings = ({
 	alwaysAllowSubtasks,
 	alwaysAllowExecute,
 	alwaysAllowFollowupQuestions,
+	modeSwitchingEnabled,
 	followupAutoApproveTimeoutMs = 10000,
 	allowedCommands,
 	allowedMaxRequests,
@@ -134,6 +137,27 @@ export const AutoApproveSettings = ({
 						</div>
 					</SearchableSetting>
 
+					<SearchableSetting
+						settingId="mode-switching-enabled"
+						section="autoApprove"
+						label={t("settings:autoApprove.modeSwitchingEnabled.label")}>
+						<VSCodeCheckbox
+							checked={modeSwitchingEnabled ?? true}
+							onChange={(e: any) => {
+								const newValue = e.target.checked
+								setCachedStateField("modeSwitchingEnabled", newValue)
+								vscode.postMessage({ type: "modeSwitchingEnabled", bool: newValue })
+							}}
+							data-testid="mode-switching-enabled-checkbox">
+							<span className="font-medium">
+								{t("settings:autoApprove.modeSwitchingEnabled.label")}
+							</span>
+						</VSCodeCheckbox>
+						<div className="text-vscode-descriptionForeground text-sm mt-1">
+							{t("settings:autoApprove.modeSwitchingEnabled.description")}
+						</div>
+					</SearchableSetting>
+
 					<AutoApproveToggle
 						alwaysAllowReadOnly={alwaysAllowReadOnly}
 						alwaysAllowWrite={alwaysAllowWrite}
@@ -142,6 +166,7 @@ export const AutoApproveSettings = ({
 						alwaysAllowSubtasks={alwaysAllowSubtasks}
 						alwaysAllowExecute={alwaysAllowExecute}
 						alwaysAllowFollowupQuestions={alwaysAllowFollowupQuestions}
+						modeSwitchingEnabled={modeSwitchingEnabled}
 						onToggle={(key, value) => setCachedStateField(key, value)}
 					/>
 

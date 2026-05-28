@@ -24,6 +24,7 @@ describe("AutoApproveToggle", () => {
 		alwaysAllowSubtasks: false,
 		alwaysAllowExecute: true,
 		alwaysAllowFollowupQuestions: false,
+		modeSwitchingEnabled: true,
 		onToggle: mockOnToggle,
 	}
 
@@ -86,5 +87,22 @@ describe("AutoApproveToggle", () => {
 			"aria-pressed",
 			"true",
 		)
+	})
+
+	test("alwaysAllowModeSwitch toggle is hidden when modeSwitchingEnabled is false", () => {
+		render(
+			<TranslationProvider>
+				<AutoApproveToggle {...initialProps} modeSwitchingEnabled={false} />
+			</TranslationProvider>,
+		)
+
+		const modeSwitchButton = screen.queryByTestId(
+			autoApproveSettingsConfig.alwaysAllowModeSwitch.testId,
+		)
+		expect(modeSwitchButton).not.toBeInTheDocument()
+
+		// Other toggles should still be visible
+		const readOnlyButton = screen.getByTestId(autoApproveSettingsConfig.alwaysAllowReadOnly.testId)
+		expect(readOnlyButton).toBeInTheDocument()
 	})
 })

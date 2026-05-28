@@ -19,6 +19,19 @@ export class SwitchModeTool extends BaseTool<"switch_mode"> {
 		const { askApproval, handleError, pushToolResult } = callbacks
 
 		try {
+			// Check if mode switching is disabled via master switch
+			const state = await task.providerRef.deref()?.getState()
+			if (!state?.modeSwitchingEnabled) {
+				task.recordToolError("switch_mode")
+				task.didToolFailInCurrentTurn = true
+				pushToolResult(
+					formatResponse.toolError(
+						"Mode switching is disabled. Enable it in settings to allow mode switching requests.",
+					),
+				)
+				return
+			}
+
 			if (!mode_slug) {
 				task.consecutiveMistakeCount++
 				task.recordToolError("switch_mode")

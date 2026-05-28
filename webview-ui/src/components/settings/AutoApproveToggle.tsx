@@ -78,28 +78,37 @@ export const autoApproveSettingsConfig: Record<AutoApproveSetting, AutoApproveCo
 }
 
 type AutoApproveToggleProps = AutoApproveToggles & {
+	modeSwitchingEnabled?: boolean
 	onToggle: (key: AutoApproveSetting, value: boolean) => void
 }
 
-export const AutoApproveToggle = ({ onToggle, ...props }: AutoApproveToggleProps) => {
+export const AutoApproveToggle = ({ onToggle, modeSwitchingEnabled, ...props }: AutoApproveToggleProps) => {
 	const { t } = useAppTranslation()
 
 	return (
 		<div className={cn("flex flex-row flex-wrap gap-2 py-2")}>
-			{Object.values(autoApproveSettingsConfig).map(({ key, descriptionKey, labelKey, icon, testId }) => (
-				<StandardTooltip key={key} content={t(descriptionKey || "")}>
-					<Button
-						variant={props[key] ? "primary" : "secondary"}
-						onClick={() => onToggle(key, !props[key])}
-						aria-label={t(labelKey)}
-						aria-pressed={!!props[key]}
-						data-testid={testId}
-						className={cn("gap-1.5 text-xs whitespace-nowrap", !props[key] && "opacity-50")}>
-						<span className={`codicon codicon-${icon} text-sm`} />
-						<span>{t(labelKey)}</span>
-					</Button>
-				</StandardTooltip>
-			))}
+			{Object.values(autoApproveSettingsConfig)
+				.filter(({ key }) => {
+					// Hide alwaysAllowModeSwitch when modeSwitchingEnabled is false
+					if (key === "alwaysAllowModeSwitch" && !modeSwitchingEnabled) {
+						return false
+					}
+					return true
+				})
+				.map(({ key, descriptionKey, labelKey, icon, testId }) => (
+					<StandardTooltip key={key} content={t(descriptionKey || "")}>
+						<Button
+							variant={props[key] ? "primary" : "secondary"}
+							onClick={() => onToggle(key, !props[key])}
+							aria-label={t(labelKey)}
+							aria-pressed={!!props[key]}
+							data-testid={testId}
+							className={cn("gap-1.5 text-xs whitespace-nowrap", !props[key] && "opacity-50")}>
+							<span className={`codicon codicon-${icon} text-sm`} />
+							<span>{t(labelKey)}</span>
+						</Button>
+					</StandardTooltip>
+				))}
 		</div>
 	)
 }

@@ -36,11 +36,13 @@ export const AutoApproveDropdown = ({ disabled = false, triggerClassName = "" }:
 		setAlwaysAllowExecute,
 		setAlwaysAllowMcp,
 		setAlwaysAllowModeSwitch,
+		setModeSwitchingEnabled,
 		setAlwaysAllowSubtasks,
 		setAlwaysAllowFollowupQuestions,
 	} = useExtensionState()
 
 	const toggles = useAutoApprovalToggles()
+	const modeSwitchingEnabled = toggles.modeSwitchingEnabled
 
 	const onAutoApproveToggle = React.useCallback(
 		(key: AutoApproveSetting, value: boolean) => {

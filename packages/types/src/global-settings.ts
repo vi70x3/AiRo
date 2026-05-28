@@ -104,6 +104,7 @@ export const globalSettingsSchema = z.object({
 	requestDelaySeconds: z.number().optional(),
 	alwaysAllowMcp: z.boolean().optional(),
 	alwaysAllowModeSwitch: z.boolean().optional(),
+	modeSwitchingEnabled: z.boolean().optional(),
 	alwaysAllowSubtasks: z.boolean().optional(),
 	alwaysAllowExecute: z.boolean().optional(),
 	alwaysAllowFollowupQuestions: z.boolean().optional(),
