@@ -587,7 +587,7 @@ export async function presentAssistantMessage(cline: Task) {
 						) ?? {}
 
 					// Block switch_mode when mode switching is disabled via master switch
-					if (!modeSwitchingEnabled) {
+					if (modeSwitchingEnabled === false) {
 						toolRequirements = { ...toolRequirements, switch_mode: false }
 					}
 

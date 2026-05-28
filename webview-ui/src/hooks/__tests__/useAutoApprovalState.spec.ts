@@ -88,7 +88,7 @@ describe("useAutoApprovalState", () => {
 			expect(result.current.hasEnabledOptions).toBe(true)
 		})
 
-		it("should return true when modeSwitchingEnabled is true even if others are false", () => {
+		it("should return false when only modeSwitchingEnabled is true (not an auto-approval toggle)", () => {
 			const toggles = {
 				alwaysAllowReadOnly: false,
 				alwaysAllowWrite: false,
@@ -102,7 +102,7 @@ describe("useAutoApprovalState", () => {
 
 			const { result } = renderHook(() => useAutoApprovalState(toggles, true))
 
-			expect(result.current.hasEnabledOptions).toBe(true)
+			expect(result.current.hasEnabledOptions).toBe(false)
 		})
 	})
 

@@ -74,7 +74,7 @@ describe("SwitchModeTool", () => {
 			)
 		})
 
-		it("returns error when modeSwitchingEnabled is undefined (falsy)", async () => {
+		it("proceeds normally when modeSwitchingEnabled is undefined (defaults to true)", async () => {
 			const task = createMockTask({
 				providerRef: {
 					deref: vi.fn().mockReturnValue({
@@ -97,13 +97,7 @@ describe("SwitchModeTool", () => {
 				{ askApproval, handleError, pushToolResult },
 			)
 
-			expect(task.recordToolError).toHaveBeenCalledWith("switch_mode")
-			expect(task.didToolFailInCurrentTurn).toBe(true)
-			expect(pushToolResult).toHaveBeenCalledWith(
-				formatResponse.toolError(
-					"Mode switching is disabled. Enable it in settings to allow mode switching requests.",
-				),
-			)
+			expect(task.didToolFailInCurrentTurn).toBe(false)
 		})
 
 		it("proceeds normally when modeSwitchingEnabled is true", async () => {
