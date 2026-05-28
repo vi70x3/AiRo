@@ -8,6 +8,7 @@ import { formatResponse } from "../prompts/responses"
 import { t } from "../../i18n"
 import { parseMarkdownChecklist } from "./UpdateTodoListTool"
 import { Package } from "../../shared/package"
+import { EXPERIMENT_IDS, experiments } from "../../shared/experiments"
 import { BaseTool, ToolCallbacks } from "./BaseTool"
 import type { ToolUse } from "../../shared/tools"
 
@@ -73,11 +74,26 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 			}
 
 			const state = await provider.getState()
-
-			// Validate each subtask
-			const requireTodos = vscode.workspace
-				.getConfiguration(Package.name)
-				.get<boolean>("newTaskRequireTodos", false)
+	
+				// Check if the async subtasks experiment is enabled
+				const isAsyncSubtasksEnabled = experiments.isEnabled(
+					state?.experiments ?? {},
+					EXPERIMENT_IDS.ASYNC_SUBTASKS,
+				)
+	
+				if (!isAsyncSubtasksEnabled) {
+					pushToolResult(
+						formatResponse.toolError(
+							"Async subtasks is an experimental feature that must be enabled in settings. Please enable 'Async Subtasks' in the Experimental Settings section.",
+						),
+					)
+					return
+				}
+	
+				// Validate each subtask
+				const requireTodos = vscode.workspace
+					.getConfiguration(Package.name)
+					.get<boolean>("newTaskRequireTodos", false)
 
 			const validatedSubtasks: { mode: string; message: string; todos: TodoItem[] }[] = []
 

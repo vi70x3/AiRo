@@ -17,32 +17,35 @@ describe("experiments", () => {
 	describe("isEnabled", () => {
 		it("returns false when experiment is not enabled", () => {
 			const experiments: Record<ExperimentId, boolean> = {
-				preventFocusDisruption: false,
-				imageGeneration: false,
-				runSlashCommand: false,
-				customTools: false,
-			}
-			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION)).toBe(false)
-		})
-
-		it("returns true when experiment is enabled", () => {
-			const experiments: Record<ExperimentId, boolean> = {
-				preventFocusDisruption: true,
-				imageGeneration: false,
-				runSlashCommand: false,
-				customTools: false,
-			}
-			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION)).toBe(true)
-		})
-
-		it("returns false when experiment is not present", () => {
-			const experiments: Record<ExperimentId, boolean> = {
-				preventFocusDisruption: false,
-				imageGeneration: false,
-				runSlashCommand: false,
-				customTools: false,
-			}
-			expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION)).toBe(false)
-		})
+					preventFocusDisruption: false,
+					imageGeneration: false,
+					runSlashCommand: false,
+					customTools: false,
+					asyncSubtasks: false,
+				}
+				expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION)).toBe(false)
+			})
+	
+			it("returns true when experiment is enabled", () => {
+				const experiments: Record<ExperimentId, boolean> = {
+					preventFocusDisruption: true,
+					imageGeneration: false,
+					runSlashCommand: false,
+					customTools: false,
+					asyncSubtasks: false,
+				}
+				expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION)).toBe(true)
+			})
+	
+			it("returns false when experiment is not present", () => {
+				const experiments: Record<ExperimentId, boolean> = {
+					preventFocusDisruption: false,
+					imageGeneration: false,
+					runSlashCommand: false,
+					customTools: false,
+					asyncSubtasks: false,
+				}
+				expect(Experiments.isEnabled(experiments, EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION)).toBe(false)
+			})
 	})
 })
