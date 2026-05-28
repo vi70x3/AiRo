@@ -637,10 +637,18 @@ export class NativeToolCallParser {
 				}
 				break
 
+			case "async_task":
+				if (partialArgs.subtasks !== undefined) {
+					nativeArgs = {
+						subtasks: partialArgs.subtasks,
+					}
+				}
+				break
+
 			default:
 				break
 		}
-
+	
 		const result: ToolUse = {
 			type: "tool_use" as const,
 			name,
@@ -986,14 +994,22 @@ export class NativeToolCallParser {
 					}
 					break
 
+				case "async_task":
+					if (args.subtasks !== undefined) {
+						nativeArgs = {
+							subtasks: args.subtasks,
+						} as NativeArgsFor<TName>
+					}
+					break
+
 				default:
 					if (customToolRegistry.has(resolvedName)) {
 						nativeArgs = args as NativeArgsFor<TName>
 					}
-
+		
 					break
-			}
-
+				}
+	
 			// Native-only: core tools must always have typed nativeArgs.
 			// If we couldn't construct it, the model produced an invalid tool call payload.
 			if (!nativeArgs && !customToolRegistry.has(resolvedName)) {
