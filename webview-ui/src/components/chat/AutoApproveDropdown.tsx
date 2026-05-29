@@ -44,6 +44,17 @@ export const AutoApproveDropdown = ({ disabled = false, triggerClassName = "" }:
 	const toggles = useAutoApprovalToggles()
 	const modeSwitchingEnabled = toggles.modeSwitchingEnabled
 
+	const { effectiveAutoApprovalEnabled } = useAutoApprovalState(toggles, autoApprovalEnabled)
+
+	// Filter settings based on whether agent mode switching is enabled
+	const settingsArray = React.useMemo(() => {
+		const allSettings = Object.values(autoApproveSettingsConfig)
+		if (modeSwitchingEnabled === false) {
+			return allSettings.filter((setting) => setting.key !== "alwaysAllowModeSwitch")
+		}
+		return allSettings
+	}, [modeSwitchingEnabled])
+
 	const onAutoApproveToggle = React.useCallback(
 		(key: AutoApproveSetting, value: boolean) => {
 			vscode.postMessage({ type: "updateSettings", updatedSettings: { [key]: value } })
@@ -93,22 +104,22 @@ export const AutoApproveDropdown = ({ disabled = false, triggerClassName = "" }:
 
 	const handleSelectAll = React.useCallback(() => {
 		// Enable all options
-		Object.keys(autoApproveSettingsConfig).forEach((key) => {
-			onAutoApproveToggle(key as AutoApproveSetting, true)
+		settingsArray.forEach((setting) => {
+			onAutoApproveToggle(setting.key, true)
 		})
 		// Enable master auto-approval
 		if (!autoApprovalEnabled) {
 			setAutoApprovalEnabled(true)
 			vscode.postMessage({ type: "autoApprovalEnabled", bool: true })
 		}
-	}, [onAutoApproveToggle, autoApprovalEnabled, setAutoApprovalEnabled])
+	}, [onAutoApproveToggle, autoApprovalEnabled, setAutoApprovalEnabled, settingsArray])
 
 	const handleSelectNone = React.useCallback(() => {
 		// Disable all options
-		Object.keys(autoApproveSettingsConfig).forEach((key) => {
-			onAutoApproveToggle(key as AutoApproveSetting, false)
+		settingsArray.forEach((setting) => {
+			onAutoApproveToggle(setting.key, false)
 		})
-	}, [onAutoApproveToggle])
+	}, [onAutoApproveToggle, settingsArray])
 
 	const handleOpenSettings = React.useCallback(
 		() =>
@@ -123,18 +134,11 @@ export const AutoApproveDropdown = ({ disabled = false, triggerClassName = "" }:
 		vscode.postMessage({ type: "autoApprovalEnabled", bool: newValue })
 	}, [autoApprovalEnabled, setAutoApprovalEnabled])
 
-	// Calculate enabled and total counts as separate properties
-	const settingsArray = Object.values(autoApproveSettingsConfig)
-
 	const enabledCount = React.useMemo(() => {
-		return Object.values(toggles).filter((value) => !!value).length
-	}, [toggles])
+		return settingsArray.filter((setting) => !!toggles[setting.key]).length
+	}, [settingsArray, toggles])
 
-	const totalCount = React.useMemo(() => {
-		return Object.keys(toggles).length
-	}, [toggles])
-
-	const { effectiveAutoApprovalEnabled } = useAutoApprovalState(toggles, autoApprovalEnabled)
+	const totalCount = settingsArray.length
 
 	const tooltipText =
 		!effectiveAutoApprovalEnabled || enabledCount === 0

@@ -787,6 +787,9 @@ export const ChatRowContent = ({
 					</>
 				)
 			case "switchMode":
+				if (modeSwitchingEnabled === false) {
+					return null
+				}
 				return (
 					<>
 						<div style={headerStyle}>
@@ -818,6 +821,17 @@ export const ChatRowContent = ({
 											/>
 										) : (
 											<Trans
+												i18nKey="chat:modes.didSwitch"
+												components={{ code: <code className="font-medium">{tool.mode}</code> }}
+												values={{ mode: tool.mode }}
+											/>
+										)}
+									</>
+								)}
+							</span>
+						</div>
+					</>
+				)
 												i18nKey="chat:modes.didSwitch"
 												components={{ code: <code className="font-medium">{tool.mode}</code> }}
 												values={{ mode: tool.mode }}
