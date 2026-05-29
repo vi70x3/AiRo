@@ -46,7 +46,7 @@ export const AutoApproveDropdown = ({ disabled = false, triggerClassName = "" }:
 
 	const { effectiveAutoApprovalEnabled } = useAutoApprovalState(toggles, autoApprovalEnabled)
 
-	// Calculate enabled and total counts as separate properties
+	// Filter settings based on whether agent mode switching is enabled
 	const settingsArray = React.useMemo(() => {
 		const allSettings = Object.values(autoApproveSettingsConfig)
 		if (modeSwitchingEnabled === false) {
