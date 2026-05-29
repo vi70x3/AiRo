@@ -15,6 +15,17 @@ import { TOOL_GROUPS, ALWAYS_AVAILABLE_TOOLS } from "./tools"
 
 export type Mode = string
 
+// Slug aliases for backward compatibility with old mode slugs
+const SLUG_ALIASES: Record<string, string> = {
+	architect: "spec",
+	code: "vibe",
+}
+
+// Resolve a slug alias to its current slug
+export function resolveModeSlug(slug: string): string {
+	return SLUG_ALIASES[slug] || slug
+}
+
 // Helper to extract group name regardless of format
 export function getGroupName(group: GroupEntry): ToolGroup {
 	if (typeof group === "string") {
@@ -49,13 +60,16 @@ export const defaultModeSlug = modes[0].slug
 
 // Helper functions
 export function getModeBySlug(slug: string, customModes?: ModeConfig[]): ModeConfig | undefined {
-	// Check custom modes first
-	const customMode = customModes?.find((mode) => mode.slug === slug)
+	// Resolve slug aliases for backward compatibility
+	const resolvedSlug = resolveModeSlug(slug)
+
+	// Check custom modes first (try resolved slug, then original slug for backward compat)
+	const customMode = customModes?.find((mode) => mode.slug === resolvedSlug || mode.slug === slug)
 	if (customMode) {
 		return customMode
 	}
 	// Then check built-in modes
-	return modes.find((mode) => mode.slug === slug)
+	return modes.find((mode) => mode.slug === resolvedSlug)
 }
 
 export function getModeConfig(slug: string, customModes?: ModeConfig[]): ModeConfig {
@@ -109,8 +123,13 @@ export function findModeBySlug(slug: string, modes: readonly ModeConfig[] | unde
  * If neither is found, the default mode is used.
  */
 export function getModeSelection(mode: string, promptComponent?: PromptComponent, customModes?: ModeConfig[]) {
-	const customMode = findModeBySlug(mode, customModes)
-	const builtInMode = findModeBySlug(mode, modes)
+	// Resolve slug aliases for backward compatibility
+	const resolvedMode = resolveModeSlug(mode)
+
+	// Check custom modes: try original slug first (for custom modes defined with old slugs),
+	// then resolved slug (for custom modes defined with new slugs)
+	const customMode = customModes?.find((m) => m.slug === mode) || customModes?.find((m) => m.slug === resolvedMode)
+	const builtInMode = findModeBySlug(resolvedMode, modes)
 
 	// If we have a custom mode, use it entirely
 	if (customMode) {

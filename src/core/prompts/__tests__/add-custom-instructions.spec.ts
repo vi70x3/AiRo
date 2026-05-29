@@ -198,14 +198,14 @@ describe("addCustomInstructions", () => {
 		vi.clearAllMocks()
 	})
 
-	it("should generate correct prompt for architect mode", async () => {
+	it("should generate correct prompt for spec mode", async () => {
 		const prompt = await SYSTEM_PROMPT(
 			mockContext,
 			"/test/path",
 			false, // supportsImages
 			undefined, // mcpHub
 			undefined, // diffStrategy
-			"architect", // mode
+			"spec", // mode
 			undefined, // customModePrompts
 			undefined, // customModes
 			undefined, // globalCustomInstructions
@@ -215,7 +215,7 @@ describe("addCustomInstructions", () => {
 			undefined, // partialReadsEnabled
 		)
 
-		expect(prompt).toMatchFileSnapshot("./__snapshots__/add-custom-instructions/architect-mode-prompt.snap")
+		expect(prompt).toMatchFileSnapshot("./__snapshots__/add-custom-instructions/spec-mode-prompt.snap")
 	})
 
 	it("should generate correct prompt for ask mode", async () => {
@@ -261,9 +261,9 @@ describe("addCustomInstructions", () => {
 		expect(prompt).toMatchFileSnapshot("./__snapshots__/add-custom-instructions/mcp-server-creation-disabled.snap")
 	})
 
-	it("should prioritize mode-specific rules for code mode", async () => {
+	it("should prioritize mode-specific rules for spec mode", async () => {
 		const instructions = await addCustomInstructions("", "", "/test/path", defaultModeSlug)
-		expect(instructions).toMatchFileSnapshot("./__snapshots__/add-custom-instructions/code-mode-rules.snap")
+		expect(instructions).toMatchFileSnapshot("./__snapshots__/add-custom-instructions/spec-mode-rules.snap")
 	})
 
 	it("should prioritize mode-specific rules for ask mode", async () => {
@@ -271,9 +271,9 @@ describe("addCustomInstructions", () => {
 		expect(instructions).toMatchFileSnapshot("./__snapshots__/add-custom-instructions/ask-mode-rules.snap")
 	})
 
-	it("should prioritize mode-specific rules for architect mode", async () => {
+	it("should prioritize mode-specific rules for vibe mode", async () => {
 		const instructions = await addCustomInstructions("", "", "/test/path", modes[1].slug)
-		expect(instructions).toMatchFileSnapshot("./__snapshots__/add-custom-instructions/architect-mode-rules.snap")
+		expect(instructions).toMatchFileSnapshot("./__snapshots__/add-custom-instructions/vibe-mode-rules.snap")
 	})
 
 	it("should prioritize mode-specific rules for test engineer mode", async () => {

@@ -14,7 +14,7 @@ CRITICAL: This tool MUST be called alone. Do NOT call this tool alongside other 
 
 const SUBTASKS_PARAMETER_DESCRIPTION = `Array of subtask specifications. Each subtask will run in parallel in its own worktree and editor tab.`
 
-const MODE_PARAMETER_DESCRIPTION = `Slug of the mode for this subtask (e.g., code, debug, architect)`
+const MODE_PARAMETER_DESCRIPTION = `Slug of the mode for this subtask (e.g., vibe, debug, spec)`
 
 const MESSAGE_PARAMETER_DESCRIPTION = `Initial user instructions or context for this subtask`
 
@@ -52,7 +52,7 @@ export default {
 						additionalProperties: false,
 					},
 					minItems: 2,
-							maxItems: 5,
+						maxItems: 5,
 				},
 			},
 			required: ["subtasks"],

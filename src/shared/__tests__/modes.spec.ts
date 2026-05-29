@@ -107,7 +107,7 @@ describe("isToolAllowedForMode", () => {
 
 			// Should allow path-only for architect mode too
 			expect(
-				isToolAllowedForMode("write_to_file", "architect", [], undefined, {
+				isToolAllowedForMode("write_to_file", "spec", [], undefined, {
 					path: "test.js",
 				}),
 			).toBe(true)
@@ -208,7 +208,7 @@ describe("isToolAllowedForMode", () => {
 		it("allows architect mode to edit markdown files only", () => {
 			// Should allow editing markdown files
 			expect(
-				isToolAllowedForMode("write_to_file", "architect", [], undefined, {
+				isToolAllowedForMode("write_to_file", "spec", [], undefined, {
 					path: "test.md",
 					content: "# Test",
 				}),
@@ -216,7 +216,7 @@ describe("isToolAllowedForMode", () => {
 
 			// Should allow applying diffs to markdown files
 			expect(
-				isToolAllowedForMode("apply_diff", "architect", [], undefined, {
+				isToolAllowedForMode("apply_diff", "spec", [], undefined, {
 					path: "readme.md",
 					diff: "- old\n+ new",
 				}),
@@ -224,21 +224,21 @@ describe("isToolAllowedForMode", () => {
 
 			// Should reject non-markdown files
 			expect(() =>
-				isToolAllowedForMode("write_to_file", "architect", [], undefined, {
+				isToolAllowedForMode("write_to_file", "spec", [], undefined, {
 					path: "test.js",
 					content: "console.log('test')",
 				}),
 			).toThrow(FileRestrictionError)
 			expect(() =>
-				isToolAllowedForMode("write_to_file", "architect", [], undefined, {
+				isToolAllowedForMode("write_to_file", "spec", [], undefined, {
 					path: "test.js",
 					content: "console.log('test')",
 				}),
 			).toThrow(/Markdown files only/)
 
 			// Should maintain read capabilities
-			expect(isToolAllowedForMode("read_file", "architect", [])).toBe(true)
-			expect(isToolAllowedForMode("use_mcp_tool", "architect", [])).toBe(true)
+			expect(isToolAllowedForMode("read_file", "spec", [])).toBe(true)
+			expect(isToolAllowedForMode("use_mcp_tool", "spec", [])).toBe(true)
 		})
 
 		it("applies restrictions to apply_diff", () => {
@@ -246,7 +246,7 @@ describe("isToolAllowedForMode", () => {
 
 			// Should allow markdown files in architect mode
 			expect(
-				isToolAllowedForMode("apply_diff", "architect", [], undefined, {
+				isToolAllowedForMode("apply_diff", "spec", [], undefined, {
 					path: "test.md",
 					diff: "- old content\n+ new content",
 				}),
@@ -254,13 +254,13 @@ describe("isToolAllowedForMode", () => {
 
 			// Non-markdown file should throw
 			expect(() =>
-				isToolAllowedForMode("apply_diff", "architect", [], undefined, {
+				isToolAllowedForMode("apply_diff", "spec", [], undefined, {
 					path: "test.py",
 					diff: "- old content\n+ new content",
 				}),
 			).toThrow(FileRestrictionError)
 			expect(() =>
-				isToolAllowedForMode("apply_diff", "architect", [], undefined, {
+				isToolAllowedForMode("apply_diff", "spec", [], undefined, {
 					path: "test.py",
 					diff: "- old content\n+ new content",
 				}),
@@ -418,7 +418,7 @@ describe("isToolAllowedForMode", () => {
 			expect(
 				isToolAllowedForMode(
 					"apply_patch",
-					"architect",
+					"spec",
 					[],
 					undefined,
 					{
@@ -432,7 +432,7 @@ describe("isToolAllowedForMode", () => {
 			expect(() =>
 				isToolAllowedForMode(
 					"apply_patch",
-					"architect",
+					"spec",
 					[],
 					undefined,
 					{
@@ -447,7 +447,7 @@ describe("isToolAllowedForMode", () => {
 			expect(
 				isToolAllowedForMode(
 					"search_replace",
-					"architect",
+					"spec",
 					[],
 					undefined,
 					{
@@ -463,7 +463,7 @@ describe("isToolAllowedForMode", () => {
 			expect(() =>
 				isToolAllowedForMode(
 					"search_replace",
-					"architect",
+					"spec",
 					[],
 					undefined,
 					{
@@ -480,7 +480,7 @@ describe("isToolAllowedForMode", () => {
 			expect(
 				isToolAllowedForMode(
 					"edit_file",
-					"architect",
+					"spec",
 					[],
 					undefined,
 					{
@@ -496,7 +496,7 @@ describe("isToolAllowedForMode", () => {
 			expect(() =>
 				isToolAllowedForMode(
 					"edit_file",
-					"architect",
+					"spec",
 					[],
 					undefined,
 					{
