@@ -85,7 +85,9 @@ export function getModeConfig(slug: string, customModes?: ModeConfig[]): ModeCon
 	return mode
 }
 
-// Get all available modes, with custom modes overriding built-in modes
+// Get all available modes, with custom modes overriding built-in modes.
+// Uses bidirectional slug resolution so custom modes with legacy slugs
+// (e.g., "architect") correctly override built-in modes (e.g., "spec").
 export function getAllModes(customModes?: ModeConfig[]): ModeConfig[] {
 	if (!customModes?.length) {
 		return [...modes]
@@ -96,7 +98,8 @@ export function getAllModes(customModes?: ModeConfig[]): ModeConfig[] {
 
 	// Process custom modes
 	customModes.forEach((customMode) => {
-		const index = allModes.findIndex((mode) => mode.slug === customMode.slug)
+		const customResolved = resolveModeSlug(customMode.slug)
+		const index = allModes.findIndex((mode) => resolveModeSlug(mode.slug) === customResolved)
 		if (index !== -1) {
 			// Override existing mode
 			allModes[index] = customMode
@@ -109,9 +112,12 @@ export function getAllModes(customModes?: ModeConfig[]): ModeConfig[] {
 	return allModes
 }
 
-// Check if a mode is custom or an override
+// Check if a mode is custom or an override.
+// Uses bidirectional slug resolution so legacy slugs (e.g., "architect")
+// are recognized as custom when compared against built-in slugs (e.g., "spec").
 export function isCustomMode(slug: string, customModes?: ModeConfig[]): boolean {
-	return !!customModes?.some((mode) => mode.slug === slug)
+	const resolvedSlug = resolveModeSlug(slug)
+	return !!customModes?.some((mode) => resolveModeSlug(mode.slug) === resolvedSlug)
 }
 
 /**
@@ -182,19 +188,26 @@ export const defaultPrompts: Readonly<CustomModePrompts> = Object.freeze(
 	),
 )
 
-// Helper function to get all modes with their prompt overrides from extension state
+// Helper function to get all modes with their prompt overrides from extension state.
+// Uses bidirectional slug resolution so prompts stored under legacy slugs
+// (e.g., "architect") are applied to the correct built-in mode (e.g., "spec").
 export async function getAllModesWithPrompts(context: vscode.ExtensionContext): Promise<ModeConfig[]> {
 	const customModes = (await context.globalState.get<ModeConfig[]>("customModes")) || []
 	const customModePrompts = (await context.globalState.get<CustomModePrompts>("customModePrompts")) || {}
 
 	const allModes = getAllModes(customModes)
-	return allModes.map((mode) => ({
-		...mode,
-		roleDefinition: customModePrompts[mode.slug]?.roleDefinition ?? mode.roleDefinition,
-		whenToUse: customModePrompts[mode.slug]?.whenToUse ?? mode.whenToUse,
-		customInstructions: customModePrompts[mode.slug]?.customInstructions ?? mode.customInstructions,
-		// description is not overridable via customModePrompts, so we keep the original
-	}))
+	return allModes.map((mode) => {
+		const resolvedSlug = resolveModeSlug(mode.slug)
+		// Check prompts by resolved slug first, then by original slug for backward compat
+		const prompts = customModePrompts[resolvedSlug] || customModePrompts[mode.slug]
+		return {
+			...mode,
+			roleDefinition: prompts?.roleDefinition ?? mode.roleDefinition,
+			whenToUse: prompts?.whenToUse ?? mode.whenToUse,
+			customInstructions: prompts?.customInstructions ?? mode.customInstructions,
+			// description is not overridable via customModePrompts, so we keep the original
+		}
+	})
 }
 
 // Helper function to get complete mode details with all overrides
