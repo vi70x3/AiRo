@@ -43,7 +43,7 @@ Tools are organized into logical groups based on their functionality:
 Certain tools are accessible regardless of the current mode:
 
 - [ask_followup_question](/advanced-usage/available-tools/ask-followup-question): Gather additional information from users
-- [attempt_completion](/advanced-completion/available-tools/attempt-completion): Signal task completion
+- [attempt_completion](/advanced-usage/available-tools/attempt-completion): Signal task completion
 - [switch_mode](/advanced-usage/available-tools/switch-mode): Change operational modes
 - [new_task](/advanced-usage/available-tools/new-task): Create subtasks (Orchestrator and custom modes only)
 
