@@ -62,7 +62,17 @@ async function generatePrompt(
 
 	// Get the full mode config to ensure we have the role definition (used for groups, etc.)
 	const modeConfig = getModeBySlug(mode, customModeConfigs) || modes.find((m) => m.slug === mode) || modes[0]
-	const { roleDefinition, baseInstructions } = getModeSelection(mode, promptComponent, customModeConfigs)
+	let { roleDefinition, baseInstructions } = getModeSelection(mode, promptComponent, customModeConfigs)
+
+	// Dynamically remove async_task mentions from orchestrator mode if experiment is disabled
+	if (mode === "orchestrator" && !experiments?.asyncSubtasks) {
+		baseInstructions = baseInstructions
+			.replace(
+				/- Use `async_task` for independent subtasks that can run simultaneously \(e\.g\., implementing different features that don't touch the same files\)\. Each subtask runs in its own git worktree and editor tab\. When all subtasks complete, their changes are auto-merged by the system merge phase\.\n/g,
+				"",
+			)
+			.replace(/async_task/g, "new_task") // Replace any other stray mentions with new_task
+	}
 
 	// Check if MCP functionality should be included
 	const hasMcpGroup = modeConfig.groups.some((groupEntry) => getGroupName(groupEntry) === "mcp")

@@ -131,3 +131,43 @@ describe("filterNativeToolsForMode - modeSwitchingEnabled", () => {
 		expect(resultNames).toContain("switch_mode")
 	})
 })
+
+describe("filterNativeToolsForMode - asyncSubtasks experiment", () => {
+	const nativeTools: OpenAI.Chat.ChatCompletionTool[] = [
+		makeTool("async_task"),
+		makeTool("new_task"),
+		makeTool("read_file"),
+	]
+
+	it("removes async_task when asyncSubtasks experiment is disabled", () => {
+		const experiments = {
+			asyncSubtasks: false,
+		}
+
+		const result = filterNativeToolsForMode(nativeTools, "orchestrator", undefined, experiments, undefined, {})
+
+		const resultNames = result.map((t) => (t as any).function.name)
+		expect(resultNames).not.toContain("async_task")
+		expect(resultNames).toContain("new_task")
+	})
+
+	it("removes async_task when experiments are undefined", () => {
+		const result = filterNativeToolsForMode(nativeTools, "orchestrator", undefined, undefined, undefined, {})
+
+		const resultNames = result.map((t) => (t as any).function.name)
+		expect(resultNames).not.toContain("async_task")
+		expect(resultNames).toContain("new_task")
+	})
+
+	it("includes async_task when asyncSubtasks experiment is enabled", () => {
+		const experiments = {
+			asyncSubtasks: true,
+		}
+
+		const result = filterNativeToolsForMode(nativeTools, "orchestrator", undefined, experiments, undefined, {})
+
+		const resultNames = result.map((t) => (t as any).function.name)
+		expect(resultNames).toContain("async_task")
+		expect(resultNames).toContain("new_task")
+	})
+})
