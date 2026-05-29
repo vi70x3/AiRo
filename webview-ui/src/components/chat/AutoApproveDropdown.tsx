@@ -138,9 +138,7 @@ export const AutoApproveDropdown = ({ disabled = false, triggerClassName = "" }:
 		return settingsArray.filter((setting) => !!toggles[setting.key]).length
 	}, [settingsArray, toggles])
 
-	const totalCount = React.useMemo(() => {
-		return settingsArray.length
-	}, [settingsArray])
+	const totalCount = settingsArray.length
 
 	const tooltipText =
 		!effectiveAutoApprovalEnabled || enabledCount === 0
