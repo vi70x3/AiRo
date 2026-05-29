@@ -198,8 +198,11 @@ export async function getAllModesWithPrompts(context: vscode.ExtensionContext): 
 	const allModes = getAllModes(customModes)
 	return allModes.map((mode) => {
 		const resolvedSlug = resolveModeSlug(mode.slug)
-		// Check prompts by resolved slug first, then by original slug for backward compat
-		const prompts = customModePrompts[resolvedSlug] || customModePrompts[mode.slug]
+		// Check prompts by resolved slug, then original slug, then any legacy alias key
+		const prompts = customModePrompts[resolvedSlug] || customModePrompts[mode.slug] || (() => {
+			const legacyKey = Object.keys(customModePrompts).find(k => resolveModeSlug(k) === resolvedSlug)
+			return legacyKey ? customModePrompts[legacyKey] : undefined
+		})()
 		return {
 			...mode,
 			roleDefinition: prompts?.roleDefinition ?? mode.roleDefinition,
