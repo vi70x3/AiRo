@@ -15,6 +15,7 @@
 *   **Instance Separation:** Isolates modes and model configurations per instance, allowing you to run multiple independent AiRoo tabs side-by-side.
 *   **Asynchronous Subtasks (Alpha, enable in experimental settings):** Introduces the `async_task` toolset to run subtasks concurrently. Each subtask opens in a new editor tab, utilizing git worktrees and merging automatically upon completion.
     *   *Note:* `new_task` and `async_task` are restricted to the Orchestrator or custom modes (not available in standard Code, Architect, Ask, or Debug modes).
+    *   [ ] Integration with [superpowers](https://github.com/obra/superpowers)
 *   **Mode-Switch Control:** Adds a master toggle in settings to gate agent-initiated mode-switch requests (enabled by default; can be disabled for subtask-delegated workflows).
 *   **Permissive Defaults:** Enables automated task execution with fewer confirmation prompts by default.
 *   **Planned Integration:** 
