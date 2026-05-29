@@ -13,7 +13,7 @@ describe("skillInvocation", () => {
 
 	describe("resolveSkillContentForMode", () => {
 		it("returns null when skillsManager is undefined", async () => {
-			const result = await resolveSkillContentForMode(undefined, "test-skill", "code")
+			const result = await resolveSkillContentForMode(undefined, "test-skill", "vibe")
 			expect(result).toBeNull()
 		})
 
@@ -22,8 +22,8 @@ describe("skillInvocation", () => {
 				getSkillContent: vi.fn().mockResolvedValue(mockSkillContent),
 			}
 
-			const result = await resolveSkillContentForMode(skillsManager, "test-skill", "architect")
-			expect(skillsManager.getSkillContent).toHaveBeenCalledWith("test-skill", "architect")
+			const result = await resolveSkillContentForMode(skillsManager, "test-skill", "spec")
+			expect(skillsManager.getSkillContent).toHaveBeenCalledWith("test-skill", "spec")
 			expect(result).toBe(mockSkillContent)
 		})
 
@@ -32,7 +32,7 @@ describe("skillInvocation", () => {
 				getSkillContent: vi.fn().mockResolvedValue(null),
 			}
 
-			const result = await resolveSkillContentForMode(skillsManager, "nonexistent", "code")
+			const result = await resolveSkillContentForMode(skillsManager, "nonexistent", "vibe")
 			expect(result).toBeNull()
 		})
 	})
