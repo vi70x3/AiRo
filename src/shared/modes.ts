@@ -208,11 +208,14 @@ export async function getFullModeDetails(
 		language?: string
 	},
 ): Promise<ModeConfig> {
-	// First get the base mode config from custom modes or built-in modes
-	const baseMode = getModeBySlug(modeSlug, customModes) || modes.find((m) => m.slug === modeSlug) || modes[0]
+	// Resolve slug aliases for backward compatibility
+	const resolvedSlug = resolveModeSlug(modeSlug)
 
-	// Check for any prompt component overrides
-	const promptComponent = customModePrompts?.[modeSlug]
+	// First get the base mode config from custom modes or built-in modes
+	const baseMode = getModeBySlug(resolvedSlug, customModes) || modes.find((m) => m.slug === resolvedSlug) || modes[0]
+
+	// Check for any prompt component overrides using the resolved slug
+	const promptComponent = customModePrompts?.[resolvedSlug]
 
 	// Get the base custom instructions
 	const baseCustomInstructions = promptComponent?.customInstructions || baseMode.customInstructions || ""
@@ -226,7 +229,7 @@ export async function getFullModeDetails(
 			baseCustomInstructions,
 			options.globalCustomInstructions || "",
 			options.cwd,
-			modeSlug,
+			resolvedSlug,
 			{ language: options.language },
 		)
 	}

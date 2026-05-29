@@ -92,7 +92,7 @@ The integration targets the existing async_task feature (alpha) which uses git w
 2. THE Async_Task_Tool SHALL create isolated worktrees on new branches for each subtask
 3. WHEN a worktree is created, THE Async_Task_Tool SHALL run project setup and verify a clean test baseline
 4. WHEN all subtasks complete, THE Merge_Manager SHALL activate the finishing-a-development-branch skill
-5. THE Merge_Manager SHALL verify all tests pass before merging subtask branches
+5. THE Merge_Manager SHALL run automated tests at two levels before merging: (a) subtask worktree pre-merge verification on each subtask branch, and (b) parent-branch integrated verification immediately after merging each subtask. THE Merge_Manager SHALL block/abort the merge on any failed integrated verification and present manual resolution options to the user.
 
 ### Requirement 7: Parallel Subagent Coordination
 
@@ -138,9 +138,9 @@ The integration targets the existing async_task feature (alpha) which uses git w
 
 1. WHEN the Merge_Manager encounters conflicts, THE Merge_Manager SHALL activate conflict resolution workflows
 2. THE Merge_Manager SHALL analyze conflicts and categorize them by type (code, tests, documentation)
-3. THE Merge_Manager SHALL attempt automatic resolution for simple conflicts (whitespace, imports)
-4. IF automatic resolution fails, THEN THE Merge_Manager SHALL present conflicts to the user with resolution suggestions
-5. WHEN conflicts are resolved, THE Merge_Manager SHALL verify all tests pass before completing the merge
+3. THE Merge_Manager SHALL attempt automatic resolution only for allowlisted conflict types (e.g., whitespace, import ordering) and SHALL NOT auto-resolve other conflict categories.
+4. IF conflicts fall outside the allowlist or automatic resolution cannot be confidently applied, THEN THE Merge_Manager SHALL fall back to explicit manual resolution by presenting conflicts to the user with resolution suggestions.
+5. WHEN conflicts are resolved, THE Merge_Manager SHALL run mandatory post-resolution verification (full test suite and integrity checks) before completing any auto-merge. IF verification fails, THE Merge_Manager SHALL abort the auto-merge and present manual resolution options to the user.
 
 ### Requirement 11: Verification Before Subtask Completion
 
@@ -149,7 +149,7 @@ The integration targets the existing async_task feature (alpha) which uses git w
 #### Acceptance Criteria
 
 1. WHEN a subtask claims completion, THE Subtask_Agent SHALL activate the verification-before-completion skill
-2. THE Subtask_Agent SHALL run all relevant tests and verify they pass
+2. THE Subtask_Agent SHALL run all relevant tests at the subtask worktree level (subtask worktree pre-merge verification) and verify they pass before claiming completion.
 3. THE Subtask_Agent SHALL verify the subtask specification is fully satisfied
 4. THE Subtask_Agent SHALL check for common issues: missing error handling, incomplete edge cases, missing documentation
 5. IF verification fails, THEN THE Subtask_Agent SHALL continue working until verification passes
@@ -177,6 +177,7 @@ The integration targets the existing async_task feature (alpha) which uses git w
 3. THE Skill_Loader SHALL support per-skill enforcement levels: disabled, advisory, enforced
 4. THE Skill_Loader SHALL provide migration guidance when transitioning from advisory to enforced mode
 5. THE Skill_Loader SHALL default to advisory mode for new skill integrations
+6. THE Skill_Loader SHALL keep per-skill enforcement disabled (or advisory only) unless experiments.asyncSubtasks is enabled at runtime. THE Skill_Loader SHALL check experiments.asyncSubtasks before allowing any skill enforcement; when the flag is disabled, all skills SHALL remain in advisory mode regardless of per-skill enforcement level settings.
 
 ### Requirement 14: Subagent Context Isolation
 

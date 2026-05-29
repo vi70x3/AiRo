@@ -113,7 +113,8 @@ Mode-specific Instructions:
    - requirements-first + feature → requirements.md
    - requirements-first + bugfix → bugfix.md
    - design-first → design.md
-   - fast-task → requirements.md
+   - fast-task + feature → requirements.md
+   - fast-task + bugfix → bugfix.md
 
 7. After each document is created and approved by the user, create the next document in the workflow sequence.
 

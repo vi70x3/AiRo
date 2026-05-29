@@ -118,13 +118,13 @@ describe("SkillsManager", () => {
 
 	// Pre-computed paths for tests
 	const globalSkillsDir = p(GLOBAL_ROO_DIR, "skills")
-	const globalSkillsCodeDir = p(GLOBAL_ROO_DIR, "skills-vibe")
-	const globalSkillsArchitectDir = p(GLOBAL_ROO_DIR, "skills-spec")
+	const globalSkillsVibeDir = p(GLOBAL_ROO_DIR, "skills-vibe")
+	const globalSkillsSpecDir = p(GLOBAL_ROO_DIR, "skills-spec")
 	const projectRooDir = p(PROJECT_DIR, ".roo")
 	const projectSkillsDir = p(projectRooDir, "skills")
 	// .agents directory paths
 	const globalAgentsSkillsDir = p(GLOBAL_AGENTS_DIR, "skills")
-	const globalAgentsSkillsCodeDir = p(GLOBAL_AGENTS_DIR, "skills-vibe")
+	const globalAgentsSkillsVibeDir = p(GLOBAL_AGENTS_DIR, "skills-vibe")
 	const projectAgentsDir = p(PROJECT_DIR, ".agents")
 	const projectAgentsSkillsDir = p(projectAgentsDir, "skills")
 
@@ -251,17 +251,17 @@ Instructions here...`
 		})
 
 		it("should discover mode-specific skills", async () => {
-			const refactoringDir = p(globalSkillsCodeDir, "refactoring")
+			const refactoringDir = p(globalSkillsVibeDir, "refactoring")
 			const refactoringMd = p(refactoringDir, "SKILL.md")
 
 			mockDirectoryExists.mockImplementation(async (dir: string) => {
-				return dir === globalSkillsCodeDir
+				return dir === globalSkillsVibeDir
 			})
 
 			mockRealpath.mockImplementation(async (pathArg: string) => pathArg)
 
 			mockReaddir.mockImplementation(async (dir: string) => {
-				if (dir === globalSkillsCodeDir) {
+				if (dir === globalSkillsVibeDir) {
 					return ["refactoring"]
 				}
 				return []
@@ -777,17 +777,17 @@ description: Roo version (should take priority)
 		})
 
 		it("should discover mode-specific skills from .agents directory", async () => {
-			const agentCodeSkillDir = p(globalAgentsSkillsCodeDir, "agent-code-skill")
+			const agentCodeSkillDir = p(globalAgentsSkillsVibeDir, "agent-code-skill")
 			const agentCodeSkillMd = p(agentCodeSkillDir, "SKILL.md")
 
 			mockDirectoryExists.mockImplementation(async (dir: string) => {
-				return dir === globalAgentsSkillsCodeDir
+				return dir === globalAgentsSkillsVibeDir
 			})
 
 			mockRealpath.mockImplementation(async (pathArg: string) => pathArg)
 
 			mockReaddir.mockImplementation(async (dir: string) => {
-				if (dir === globalAgentsSkillsCodeDir) {
+				if (dir === globalAgentsSkillsVibeDir) {
 					return ["agent-code-skill"]
 				}
 				return []
@@ -830,11 +830,11 @@ Instructions here...`
 	describe("getSkillsForMode", () => {
 		it("should return skills filtered by mode", async () => {
 			const genericSkillDir = p(globalSkillsDir, "generic-skill")
-			const codeSkillDir = p(globalSkillsCodeDir, "code-skill")
+			const codeSkillDir = p(globalSkillsVibeDir, "code-skill")
 
 			// Setup skills for testing
 			mockDirectoryExists.mockImplementation(async (dir: string) => {
-				return [globalSkillsDir, globalSkillsCodeDir].includes(dir)
+				return [globalSkillsDir, globalSkillsVibeDir].includes(dir)
 			})
 
 			mockRealpath.mockImplementation(async (pathArg: string) => pathArg)
@@ -843,7 +843,7 @@ Instructions here...`
 				if (dir === globalSkillsDir) {
 					return ["generic-skill"]
 				}
-				if (dir === globalSkillsCodeDir) {
+				if (dir === globalSkillsVibeDir) {
 					return ["code-skill"]
 				}
 				return []
@@ -932,10 +932,10 @@ Instructions`)
 
 		it("should apply mode-specific > generic override", async () => {
 			const genericTestSkillDir = p(globalSkillsDir, "test-skill")
-			const codeTestSkillDir = p(globalSkillsCodeDir, "test-skill")
+			const codeTestSkillDir = p(globalSkillsVibeDir, "test-skill")
 
 			mockDirectoryExists.mockImplementation(async (dir: string) => {
-				return [globalSkillsDir, globalSkillsCodeDir].includes(dir)
+				return [globalSkillsDir, globalSkillsVibeDir].includes(dir)
 			})
 
 			mockRealpath.mockImplementation(async (pathArg: string) => pathArg)
@@ -944,7 +944,7 @@ Instructions`)
 				if (dir === globalSkillsDir) {
 					return ["test-skill"]
 				}
-				if (dir === globalSkillsCodeDir) {
+				if (dir === globalSkillsVibeDir) {
 					return ["test-skill"]
 				}
 				return []
@@ -975,16 +975,16 @@ Instructions`)
 		})
 
 		it("should not include mode-specific skills for other modes", async () => {
-			const architectOnlyDir = p(globalSkillsArchitectDir, "architect-only")
+			const architectOnlyDir = p(globalSkillsSpecDir, "architect-only")
 
 			mockDirectoryExists.mockImplementation(async (dir: string) => {
-				return dir === globalSkillsArchitectDir
+				return dir === globalSkillsSpecDir
 			})
 
 			mockRealpath.mockImplementation(async (pathArg: string) => pathArg)
 
 			mockReaddir.mockImplementation(async (dir: string) => {
-				if (dir === globalSkillsArchitectDir) {
+				if (dir === globalSkillsSpecDir) {
 					return ["architect-only"]
 				}
 				return []
