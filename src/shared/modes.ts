@@ -227,8 +227,8 @@ export async function getFullModeDetails(
 	// First get the base mode config from custom modes or built-in modes
 	const baseMode = getModeBySlug(resolvedSlug, customModes) || modes.find((m) => m.slug === resolvedSlug) || modes[0]
 
-	// Check for any prompt component overrides using the resolved slug
-	const promptComponent = customModePrompts?.[resolvedSlug]
+	// Check for any prompt component overrides using the resolved slug, then fall back to legacy aliases
+	const promptComponent = customModePrompts?.[resolvedSlug] || customModePrompts?.[modeSlug]
 
 	// Get the base custom instructions
 	const baseCustomInstructions = promptComponent?.customInstructions || baseMode.customInstructions || ""
