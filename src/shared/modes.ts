@@ -63,8 +63,13 @@ export function getModeBySlug(slug: string, customModes?: ModeConfig[]): ModeCon
 	// Resolve slug aliases for backward compatibility
 	const resolvedSlug = resolveModeSlug(slug)
 
-	// Check custom modes first (try resolved slug, then original slug for backward compat)
-	const customMode = customModes?.find((mode) => mode.slug === resolvedSlug || mode.slug === slug)
+	// Check custom modes first — resolve each custom mode's slug to handle
+	// bidirectional backward compat (e.g., custom mode with slug "architect"
+	// should be found when requesting "spec")
+	const customMode = customModes?.find((mode) => {
+		const customResolved = resolveModeSlug(mode.slug)
+		return customResolved === resolvedSlug
+	})
 	if (customMode) {
 		return customMode
 	}
@@ -126,9 +131,10 @@ export function getModeSelection(mode: string, promptComponent?: PromptComponent
 	// Resolve slug aliases for backward compatibility
 	const resolvedMode = resolveModeSlug(mode)
 
-	// Check custom modes: try original slug first (for custom modes defined with old slugs),
-	// then resolved slug (for custom modes defined with new slugs)
-	const customMode = customModes?.find((m) => m.slug === mode) || customModes?.find((m) => m.slug === resolvedMode)
+	// Check custom modes — resolve each custom mode's slug to handle
+	// bidirectional backward compat (e.g., custom mode with slug "architect"
+	// should be found when requesting "spec")
+	const customMode = customModes?.find((m) => resolveModeSlug(m.slug) === resolvedMode)
 	const builtInMode = findModeBySlug(resolvedMode, modes)
 
 	// If we have a custom mode, use it entirely
