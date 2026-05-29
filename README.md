@@ -1,47 +1,51 @@
 <p align="center">
-  <a href="https://github.com/vi70x3/airoo/releases"><img src="https://img.shields.io/github/downloads/vi70x3/airoo/total?style=flat&logo=vscode
-" alt="Latest Nightly Release"></a>  
+  <a href="https://github.com/vi70x3/airoo/releases">
+    <img src="https://img.shields.io/github/downloads/vi70x3/airoo/total?style=flat&logo=vscode" alt="Latest Nightly Release">
+  </a>  
 </p>
 
 # AiRoo Code
 
-### SECURITY NOTICE This fork focuses on full automation by default so consider running it in isolated code-server or a graphical container
-
-## How Is This Fork Different:
-- [+] (alpha) implements new `async_task` tols for asyncronyous subtasks execution with each subtask popping up in new editor tab (utilizes existing worktrees support with auto-merging after all subtasks are complete)
-- [+] `new_task` and `async_task` are only available to Orchestrator or custom modes, not Code, Architect, Ask and Debug
-- [x] removes `Roo is having trouble` (this was really bad for any kind of automation)
-- [x] gates agent mode-switch requests behind a master toggle in settings (also bad for carefully designed automation)
-- [x] separates modes / models per instance (multiple AiRoo tabs in same window when you click `...` -> `Open in editor`)
-- [x] allows full YOLO by default (you're not having trust issues with your cyber waifu aren't you?)
-- [ ] [vi70x3/airi](https://github.com/vi70x3/airi) integration:
-  - [ ] add AiRoo context snapshot to each AIRI heartbeat
+> **SECURITY NOTICE:** This fork is optimized for high automation. Because it reduces manual confirmation prompts, we recommend running it within an isolated environment, such as a dedicated `code-server` instance or a secure container.
 
 ---
 
-## What Can AiRoo Code Do For YOU?
+## Key Differences in This Fork
+*   **Streamlined Automation:** Removes the restrictive "Roo is having trouble" halts to prevent interrupted automation runs.
+*   **Instance Separation:** Isolates modes and model configurations per instance, allowing you to run multiple independent AiRoo tabs side-by-side.
+*   **Asynchronous Subtasks (Alpha, enable in experimental settings):** Introduces the `async_task` toolset to run subtasks concurrently. Each subtask opens in a new editor tab, utilizing git worktrees and merging automatically upon completion.
+    *   *Note:* `new_task` and `async_task` are restricted to the Orchestrator or custom modes (not available in standard Code, Architect, Ask, or Debug modes).
+*   **Mode-Switch Control:** Adds a master toggle in settings to gate agent-initiated mode-switch requests (enabled by default; can be disabled for subtask-delegated workflows).
+*   **Permissive Defaults:** Enables automated task execution with fewer confirmation prompts by default.
+*   **Planned Integration:** 
+    *   [ ] Integration with [vi70x3/airi](https://github.com/vi70x3/airi) to append AiRoo context snapshots to AIRI heartbeats.
 
-- Generate Code from natural language descriptions and specs
-- Adapt with Modes: Code, Architect, Ask, Debug, and Custom Modes
-- Refactor & Debug existing code
-- Write & Update documentation
-- Answer Questions about your codebase
-- Automate repetitive tasks
-- Utilize MCP Servers
+---
 
-## Modes
+## Core Capabilities
 
-AiRoo Code adapts to how you work:
+*   **Code Generation:** Write code from natural language prompts and specifications.
+*   **Context-Aware Modes:** Adapt the assistant's behavior using Code, Architect, Ask, Debug, or Custom modes.
+*   **Refactoring & Debugging:** Analyze existing codebases, isolate bugs, and apply fixes.
+*   **Documentation:** Generate and maintain inline comments, READMEs, and technical documents.
+*   **MCP Support:** Extend functionality using Model Context Protocol (MCP) servers.
 
-- Code Mode: everyday coding, edits, and file ops
-- Architect Mode: plan systems, specs, and migrations
-- Ask Mode: fast answers, explanations, and docs
-- Debug Mode: trace issues, add logs, isolate root causes
-- Custom Modes: build specialized modes for your team or workflow
+---
+
+## Included Modes
+
+AiRoo Code tailors its system prompts based on your current task:
+
+*   **Code Mode:** For standard development, editing, and file operations.
+*   **Architect Mode:** For system design, planning, and structural changes.
+*   **Ask Mode:** For querying the codebase, clarifying concepts, and documentation.
+*   **Debug Mode:** For tracing errors, examining logs, and diagnosing issues.
+*   **Custom Modes:** For defining specialized instructions tailored to your team's specific workflow.
 
 Learn more: [Using Modes](https://roocodeinc.github.io/Roo-Code/basic-usage/using-modes) • [Custom Modes](https://roocodeinc.github.io/Roo-Code/advanced-usage/custom-modes)
 
+---
+
 ## Resources
 
-- **[Documentation](https://roocodeinc.github.io/AiRoo-Code/):** The official guide to installing, configuring, and mastering AiRoo Code.
-
+*   **[Documentation](https://roocodeinc.github.io/AiRoo-Code/):** Guides for installation, configuration, and feature usage.
