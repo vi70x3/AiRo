@@ -66,12 +66,9 @@ async function generatePrompt(
 
 	// Dynamically remove async_task mentions from orchestrator mode if experiment is disabled
 	if (mode === "orchestrator" && !experiments?.asyncSubtasks) {
-		baseInstructions = baseInstructions
-			.replace(
-				/- Use `async_task` for independent subtasks that can run simultaneously \(e\.g\., implementing different features that don't touch the same files\)\. Each subtask runs in its own git worktree and editor tab\. When all subtasks complete, their changes are auto-merged by the system merge phase\.\n/g,
-				"",
-			)
-			.replace(/async_task/g, "new_task") // Replace any other stray mentions with new_task
+		// Remove the entire bullet point line containing async_task.
+		// Matches lines starting with "- " or similar, containing `async_task`, through to the end of the line.
+		baseInstructions = baseInstructions.replace(/^.*- Use `async_task`.*(?:\r?\n|$)/gm, "")
 	}
 
 	// Check if MCP functionality should be included
