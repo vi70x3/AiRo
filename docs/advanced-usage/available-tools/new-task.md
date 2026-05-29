@@ -16,6 +16,9 @@ keywords:
 
 The `new_task` tool creates subtasks with specialized modes while maintaining a parent-child relationship. It breaks down complex projects into manageable pieces, each operating in the mode best suited for specific work.
 
+> [!NOTE]
+> This tool is only available when using the **Orchestrator** mode or **custom modes**. It is not available in standard modes like Code, Architect, Ask, or Debug.
+
 ---
 
 ## Parameters

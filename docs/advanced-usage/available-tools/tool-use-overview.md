@@ -32,7 +32,9 @@ Tools are organized into logical groups based on their functionality:
 | **Image Group**    | AI image generation                 | [generate_image](/advanced-usage/available-tools/generate-image)                                                                                                                                                                                                                                                                                                                                 | Creating and editing images                                     |
 | **Command Group**  | System command execution            | [execute_command](/advanced-usage/available-tools/execute-command), [run_slash_command](/advanced-usage/available-tools/run-slash-command)\*                                                                                                                                                                                                                                                     | Running scripts, building projects, executing command templates |
 | **MCP Group**      | External tool integration           | [use_mcp_tool](/advanced-usage/available-tools/use-mcp-tool), [access_mcp_resource](/advanced-usage/available-tools/access-mcp-resource)                                                                                                                                                                                                                                                         | Specialized functionality through external servers              |
-| **Workflow Group** | Mode and task management            | [switch_mode](/advanced-usage/available-tools/switch-mode), [new_task](/advanced-usage/available-tools/new-task), [ask_followup_question](/advanced-usage/available-tools/ask-followup-question), [attempt_completion](/advanced-usage/available-tools/attempt-completion), [update_todo_list](/advanced-usage/available-tools/update-todo-list), [skill](/advanced-usage/available-tools/skill) | Context switching and task organization                         |
+| **Workflow Group** | Mode and task management            | [switch_mode](/advanced-usage/available-tools/switch-mode), [new_task](/advanced-usage/available-tools/new-task)\*, [ask_followup_question](/advanced-usage/available-tools/ask-followup-question), [attempt_completion](/advanced-usage/available-tools/attempt-completion), [update_todo_list](/advanced-usage/available-tools/update-todo-list), [skill](/advanced-usage/available-tools/skill) | Context switching and task organization                         |
+
+\*_Restricted feature - only available to Orchestrator or custom modes_
 
 \*_Experimental feature - requires explicit enablement in settings_
 
@@ -43,7 +45,7 @@ Certain tools are accessible regardless of the current mode:
 - [ask_followup_question](/advanced-usage/available-tools/ask-followup-question): Gather additional information from users
 - [attempt_completion](/advanced-usage/available-tools/attempt-completion): Signal task completion
 - [switch_mode](/advanced-usage/available-tools/switch-mode): Change operational modes
-- [new_task](/advanced-usage/available-tools/new-task): Create subtasks
+- [new_task](/advanced-usage/available-tools/new-task): Create subtasks (Orchestrator and custom modes only)
 
 ---
 

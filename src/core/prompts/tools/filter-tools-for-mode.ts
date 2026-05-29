@@ -395,7 +395,20 @@ export function isToolAllowedInMode(
 			return experiments?.runSlashCommand === true
 		}
 		if (toolName === "async_task") {
+			// Restrict async_task to orchestrator or custom modes
+			const isCustomMode = customModes?.some((m) => m.slug === modeSlug)
+			if (modeSlug !== "orchestrator" && !isCustomMode) {
+				return false
+			}
 			return experiments?.asyncSubtasks === true
+		}
+		if (toolName === "new_task") {
+			// Restrict new_task to orchestrator or custom modes
+			const isCustomMode = customModes?.some((m) => m.slug === modeSlug)
+			if (modeSlug !== "orchestrator" && !isCustomMode) {
+				return false
+			}
+			return true
 		}
 		return true
 	}

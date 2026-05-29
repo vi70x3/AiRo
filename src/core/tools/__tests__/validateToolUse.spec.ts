@@ -18,7 +18,12 @@ describe("mode-validator", () => {
 				// Code mode has all groups
 				Object.entries(TOOL_GROUPS).forEach(([_, config]) => {
 					config.tools.forEach((tool: string) => {
-						expect(isToolAllowedForMode(tool, codeMode, [])).toBe(true)
+						// new_task and async_task are now restricted even if their group is present
+						if (tool === "new_task" || tool === "async_task") {
+							expect(isToolAllowedForMode(tool, codeMode, [])).toBe(false)
+						} else {
+							expect(isToolAllowedForMode(tool, codeMode, [])).toBe(true)
+						}
 					})
 				})
 			})
@@ -167,6 +172,36 @@ describe("mode-validator", () => {
 				expect(isToolAllowedForMode("switch_mode", codeMode, [], requirements)).toBe(false)
 				expect(isToolAllowedForMode("new_task", codeMode, [], requirements)).toBe(false)
 				expect(isToolAllowedForMode("attempt_completion", codeMode, [], requirements)).toBe(false)
+			})
+		})
+
+		describe("new_task and async_task restrictions", () => {
+			it("disallows new_task and async_task in standard modes", () => {
+				const standardModes = ["code", "architect", "ask", "debug"]
+				standardModes.forEach((mode) => {
+					expect(isToolAllowedForMode("new_task", mode, [])).toBe(false)
+					expect(isToolAllowedForMode("async_task", mode, [])).toBe(false)
+				})
+			})
+
+			it("allows new_task and async_task in orchestrator mode", () => {
+				const experiments = { asyncSubtasks: true }
+				expect(isToolAllowedForMode("new_task", "orchestrator", [], undefined, undefined, experiments)).toBe(true)
+				expect(isToolAllowedForMode("async_task", "orchestrator", [], undefined, undefined, experiments)).toBe(true)
+			})
+
+			it("allows new_task and async_task in custom modes", () => {
+				const customModes: ModeConfig[] = [
+					{
+						slug: "custom-mode",
+						name: "Custom Mode",
+						roleDefinition: "Custom role",
+						groups: ["read"] as const,
+					},
+				]
+				const experiments = { asyncSubtasks: true }
+				expect(isToolAllowedForMode("new_task", "custom-mode", customModes, undefined, undefined, experiments)).toBe(true)
+				expect(isToolAllowedForMode("async_task", "custom-mode", customModes, undefined, undefined, experiments)).toBe(true)
 			})
 		})
 	})

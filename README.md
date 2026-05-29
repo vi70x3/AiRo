@@ -9,7 +9,7 @@
 
 ## How Is This Fork Different:
 - [+] (alpha) implements new `async_task` tols for asyncronyous subtasks execution with each subtask popping up in new editor tab (utilizes existing worktrees support with auto-merging after all subtasks are complete)
-- [ ] `new_task` and `async_task` are only available to Orchestrator or custom modes, not Code, Architect, Ask and Debug
+- [+] `new_task` and `async_task` are only available to Orchestrator or custom modes, not Code, Architect, Ask and Debug
 - [x] removes `Roo is having trouble` (this was really bad for any kind of automation)
 - [x] gates agent mode-switch requests behind a master toggle in settings (also bad for carefully designed automation)
 - [x] separates modes / models per instance (multiple AiRoo tabs in same window when you click `...` -> `Open in editor`)

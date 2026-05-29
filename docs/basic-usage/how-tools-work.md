@@ -101,7 +101,7 @@ This safety mechanism ensures you maintain control over which files are modified
 | `ask_followup_question` | Asks you a clarifying question                             | Workflow |
 | `attempt_completion`    | Indicates the task is complete                             | Workflow |
 | `switch_mode`           | Changes to a different operational mode                    | Workflow |
-| `new_task`              | Creates a new subtask with a specific starting mode        | Workflow |
+| `new_task`              | Creates a new subtask with a specific starting mode (Orchestrator and custom modes only) | Workflow |
 | `skill`                 | Loads and executes predefined skill instructions           | Workflow |
 
 ---
