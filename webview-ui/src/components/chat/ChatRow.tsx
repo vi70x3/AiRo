@@ -182,8 +182,16 @@ export const ChatRowContent = ({
 }: ChatRowContentProps) => {
 	const { t, i18n } = useTranslation()
 
-	const { mcpServers, alwaysAllowMcp, currentCheckpoint, mode, apiConfiguration, clineMessages, currentTaskItem } =
-		useExtensionState()
+	const {
+		mcpServers,
+		alwaysAllowMcp,
+		currentCheckpoint,
+		mode,
+		apiConfiguration,
+		clineMessages,
+		currentTaskItem,
+		modeSwitchingEnabled,
+	} = useExtensionState()
 	const { info: model } = useSelectedModel(apiConfiguration)
 	const [isEditing, setIsEditing] = useState(false)
 	const [editedContent, setEditedContent] = useState("")
@@ -821,17 +829,6 @@ export const ChatRowContent = ({
 											/>
 										) : (
 											<Trans
-												i18nKey="chat:modes.didSwitch"
-												components={{ code: <code className="font-medium">{tool.mode}</code> }}
-												values={{ mode: tool.mode }}
-											/>
-										)}
-									</>
-								)}
-							</span>
-						</div>
-					</>
-				)
 												i18nKey="chat:modes.didSwitch"
 												components={{ code: <code className="font-medium">{tool.mode}</code> }}
 												values={{ mode: tool.mode }}
