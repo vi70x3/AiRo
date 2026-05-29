@@ -109,8 +109,18 @@ export async function buildNativeToolsArrayWithRestrictions(options: BuildToolsO
 	const supportsImages = modelInfo?.supportsImages ?? false
 
 	// Build native tools with dynamic read_file tool based on settings.
-	const nativeTools = getNativeTools({
+	let nativeTools = getNativeTools({
 		supportsImages,
+	})
+
+	// Filter out experimental tools that are not enabled before building allTools
+	// This ensures they aren't even defined for models that support function call restrictions (like Gemini)
+	nativeTools = nativeTools.filter((tool) => {
+		const name = getToolName(tool)
+		if (name === "generate_image") return !!experiments?.imageGeneration
+		if (name === "run_slash_command") return !!experiments?.runSlashCommand
+		if (name === "async_task") return !!experiments?.asyncSubtasks
+		return true
 	})
 
 	// Filter native tools based on mode restrictions.

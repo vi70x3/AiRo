@@ -291,6 +291,11 @@ export function filterNativeToolsForMode(
 		allowedToolNames.delete("run_slash_command")
 	}
 
+	// Conditionally exclude async_task if experiment is not enabled
+	if (!experiments?.asyncSubtasks) {
+		allowedToolNames.delete("async_task")
+	}
+
 	// Remove tools that are explicitly disabled via the disabledTools setting
 	if (settings?.disabledTools?.length) {
 		for (const toolName of settings.disabledTools) {
@@ -388,6 +393,9 @@ export function isToolAllowedInMode(
 		}
 		if (toolName === "run_slash_command") {
 			return experiments?.runSlashCommand === true
+		}
+		if (toolName === "async_task") {
+			return experiments?.asyncSubtasks === true
 		}
 		return true
 	}

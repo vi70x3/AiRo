@@ -871,6 +871,10 @@
             "refreshSuccess": "Tools refreshed successfully",
             "refreshError": "Failed to refresh tools",
             "toolParameters": "Parameters"
+        },
+        "ASYNC_SUBTASKS": {
+            "name": "Enable async subtasks",
+            "description": "When enabled, Roo can create multiple subtasks that run in parallel using git worktrees. This is an advanced feature that requires git to be installed and working."
         }
     },
     "promptCaching": {
