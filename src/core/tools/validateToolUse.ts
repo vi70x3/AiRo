@@ -147,6 +147,13 @@ export function isToolAllowedForMode(
 
 	// Always allow these tools (unless explicitly disabled above)
 	if (ALWAYS_AVAILABLE_TOOLS.includes(tool as any)) {
+		// Restrict new_task and async_task to orchestrator or custom modes
+		if (tool === "new_task" || tool === "async_task") {
+			const restrictedModes = ["code", "architect", "ask", "debug"]
+			if (restrictedModes.includes(modeSlug)) {
+				return false
+			}
+		}
 		return true
 	}
 

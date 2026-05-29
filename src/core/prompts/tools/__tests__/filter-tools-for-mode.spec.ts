@@ -170,4 +170,37 @@ describe("filterNativeToolsForMode - asyncSubtasks experiment", () => {
 		expect(resultNames).toContain("async_task")
 		expect(resultNames).toContain("new_task")
 	})
+
+	it("removes new_task and async_task for standard modes", () => {
+		const experiments = {
+			asyncSubtasks: true,
+		}
+
+		const standardModes = ["code", "architect", "ask", "debug"]
+		standardModes.forEach((mode) => {
+			const result = filterNativeToolsForMode(nativeTools, mode, undefined, experiments, undefined, {})
+			const resultNames = result.map((t) => (t as any).function.name)
+			expect(resultNames).not.toContain("new_task")
+			expect(resultNames).not.toContain("async_task")
+		})
+	})
+
+	it("includes new_task and async_task for custom modes", () => {
+		const experiments = {
+			asyncSubtasks: true,
+		}
+		const customModes = [
+			{
+				slug: "custom-mode",
+				name: "Custom Mode",
+				roleDefinition: "Custom role",
+				groups: ["read"] as const,
+			},
+		]
+
+		const result = filterNativeToolsForMode(nativeTools, "custom-mode", customModes, experiments, undefined, {})
+		const resultNames = result.map((t) => (t as any).function.name)
+		expect(resultNames).toContain("new_task")
+		expect(resultNames).toContain("async_task")
+	})
 })
