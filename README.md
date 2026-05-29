@@ -1,10 +1,10 @@
 <p align="center">
-  <a href="https://github.com/vi70x3/airoo/releases">
-    <img src="https://img.shields.io/github/downloads/vi70x3/airoo/total?style=flat&logo=vscode" alt="Latest Nightly Release">
+  <a href="https://github.com/vi70x3/airo/releases">
+    <img src="https://img.shields.io/github/downloads/vi70x3/airo/total?style=flat&logo=vscode" alt="Latest Nightly Release">
   </a>  
 </p>
 
-# AiRoo Code
+# AiRo Code
 
 > **SECURITY NOTICE:** This fork is optimized for high automation. Because it reduces manual confirmation prompts, we recommend running it within an isolated environment, such as a dedicated `code-server` instance or a secure container.
 
@@ -12,14 +12,14 @@
 
 ## Key Differences in This Fork
 *   **Streamlined Automation:** Removes the restrictive "Roo is having trouble" halts to prevent interrupted automation runs.
-*   **Instance Separation:** Isolates modes and model configurations per instance, allowing you to run multiple independent AiRoo tabs side-by-side.
+*   **Instance Separation:** Isolates modes and model configurations per instance, allowing you to run multiple independent AiRo tabs side-by-side.
 *   **Asynchronous Subtasks (Alpha, enable in experimental settings):** Introduces the `async_task` toolset to run subtasks concurrently. Each subtask opens in a new editor tab, utilizing git worktrees and merging automatically upon completion.
     *   *Note:* `new_task` and `async_task` are restricted to the Orchestrator or custom modes (not available in standard Code, Architect, Ask, or Debug modes).
     *   [ ] Integration with [superpowers](https://github.com/obra/superpowers)
 *   **Mode-Switch Control:** Adds a master toggle in settings to gate agent-initiated mode-switch requests (enabled by default; can be disabled for subtask-delegated workflows).
 *   **Permissive Defaults:** Enables automated task execution with fewer confirmation prompts by default.
 *   **Planned Integration:** 
-    *   [ ] Integration with [vi70x3/airi](https://github.com/vi70x3/airi) to append AiRoo context snapshots to AIRI heartbeats.
+    *   [ ] Integration with [vi70x3/airi](https://github.com/vi70x3/airi) to append AiRo context snapshots to AIRI heartbeats.
 
 ---
 
@@ -35,7 +35,7 @@
 
 ## Included Modes
 
-AiRoo Code tailors its system prompts based on your current task:
+AiRo Code tailors its system prompts based on your current task:
 
 *   **Code Mode:** For standard development, editing, and file operations.
 *   **Architect Mode:** For system design, planning, and structural changes.
@@ -49,4 +49,4 @@ Learn more: [Using Modes](https://roocodeinc.github.io/Roo-Code/basic-usage/usin
 
 ## Resources
 
-*   **[Documentation](https://roocodeinc.github.io/AiRoo-Code/):** Guides for installation, configuration, and feature usage.
+*   **[Documentation](https://roocodeinc.github.io/AiRo-Code/):** Guides for installation, configuration, and feature usage.
