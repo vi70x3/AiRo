@@ -185,8 +185,9 @@ describe("mode-validator", () => {
 			})
 
 			it("allows new_task and async_task in orchestrator mode", () => {
-				expect(isToolAllowedForMode("new_task", "orchestrator", [])).toBe(true)
-				expect(isToolAllowedForMode("async_task", "orchestrator", [])).toBe(true)
+				const experiments = { asyncSubtasks: true }
+				expect(isToolAllowedForMode("new_task", "orchestrator", [], undefined, undefined, experiments)).toBe(true)
+				expect(isToolAllowedForMode("async_task", "orchestrator", [], undefined, undefined, experiments)).toBe(true)
 			})
 
 			it("allows new_task and async_task in custom modes", () => {
@@ -198,8 +199,9 @@ describe("mode-validator", () => {
 						groups: ["read"] as const,
 					},
 				]
-				expect(isToolAllowedForMode("new_task", "custom-mode", customModes)).toBe(true)
-				expect(isToolAllowedForMode("async_task", "custom-mode", customModes)).toBe(true)
+				const experiments = { asyncSubtasks: true }
+				expect(isToolAllowedForMode("new_task", "custom-mode", customModes, undefined, undefined, experiments)).toBe(true)
+				expect(isToolAllowedForMode("async_task", "custom-mode", customModes, undefined, undefined, experiments)).toBe(true)
 			})
 		})
 	})

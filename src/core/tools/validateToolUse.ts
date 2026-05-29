@@ -153,6 +153,11 @@ export function isToolAllowedForMode(
 			if (restrictedModes.includes(modeSlug)) {
 				return false
 			}
+
+			// Additionally gate async_task by experiment flag
+			if (tool === "async_task" && !experiments?.asyncSubtasks) {
+				return false
+			}
 		}
 		return true
 	}
