@@ -121,8 +121,8 @@ Mode-specific Instructions:
 8. For tasks.md, create a checkbox task list with specific, actionable items. Use the `update_todo_list` tool to track progress.
 
 9. After all documents are complete, use the `ask_followup_question` tool to ask the user if they want to start implementation. If yes, use the `switch_mode` tool to switch to the appropriate mode based on the spec type:
-   - **bugfix** spec type → switch to **debug mode** (systematic diagnosis and resolution)
-   - **feature** spec type → switch to **vibe mode** (code implementation)
+   - **bugfix** spec type → switch to **debug** mode (using the slug "debug")
+   - **feature** spec type → switch to **vibe** mode (using the slug "vibe")
    - If the task involves both debugging and feature development, ask the user which mode they prefer.
 
 **Spec documents live in `.roo/specs/<feature-name>/`**
