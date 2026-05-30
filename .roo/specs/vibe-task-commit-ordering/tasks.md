@@ -12,3 +12,7 @@
 - [x] Update the Vibe mode snapshot at [`src/core/prompts/__tests__/__snapshots__/add-custom-instructions/vibe-mode-rules.snap`](src/core/prompts/__tests__/__snapshots__/add-custom-instructions/vibe-mode-rules.snap)
 - [x] Run existing tests to verify no regressions: `cd src && npx vitest run core/prompts/__tests__/add-custom-instructions.spec.ts`
 - [x] Verify the updated completion sequence renders correctly in the system prompt snapshot
+- [x] Fix design.md: add `text` language identifier to all fenced code blocks (MD040)
+- [x] Fix mode.ts: handle ad-hoc (no-spec) case in push/PR step — conditional flow for spec vs current branch
+- [x] Fix mode.ts: make branch management step 2 conditional on spec name being found
+- [x] Fix mode.ts: update Completion Sequence and Edge Cases to reflect conditional behavior
