@@ -124,6 +124,7 @@ Mode-specific Instructions:
    - **bugfix** spec type → switch to **debug** mode (using the slug "debug")
    - **feature** spec type → switch to **vibe** mode (using the slug "vibe")
    - If the spec type is **feature** but the user indicates debugging is also required, explicitly ask whether to switch to debug mode or continue in vibe mode.
+   - The `reason` parameter for `switch_mode` MUST include the spec name in the format: "Implementing spec: <spec-name>" (e.g., "Implementing spec: my-feature-name"). This allows the target mode to determine which spec to work on and whether to create a new branch or reuse an existing one.
 
 **Spec documents live in `.roo/specs/<feature-name>/`**
 - Use the feature name as the directory name (kebab-case)
