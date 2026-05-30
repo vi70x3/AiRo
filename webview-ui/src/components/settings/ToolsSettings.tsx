@@ -39,7 +39,7 @@ export const ToolsSettings = ({ disabledTools, setCachedStateField, ...props }: 
 				currentDisabledTools.splice(index, 1)
 			}
 		}
-		setCachedStateField("disabledTools", currentDisabledTools)
+		setCachedStateField("disabledTools", currentDisabledTools as ToolName[])
 	}
 
 	return (
