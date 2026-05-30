@@ -58,7 +58,7 @@ export const ToolsSettings = ({ disabledTools = [], setCachedStateField, ...prop
 							</h4>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 								{group.tools.map((toolName) => {
-									const isEnabled = !disabledTools.includes(toolName)
+									const isEnabled = !safeDisabledTools.includes(toolName)
 									const isCritical = criticalToolNames.includes(toolName)
 
 									return (
