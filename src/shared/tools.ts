@@ -319,6 +319,9 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 		tools: ["switch_mode", "new_task", "async_task"],
 		alwaysAvailable: true,
 	},
+	custom: {
+		tools: ["custom_tool"],
+	},
 }
 
 // Tools that are always available to all modes.

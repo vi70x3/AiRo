@@ -369,6 +369,14 @@ export function isToolAllowedInMode(
 ): boolean {
 	const modeSlug = mode ?? defaultModeSlug
 
+	// Check if the tool is explicitly disabled via settings
+	if (settings?.disabledTools?.length) {
+		const resolvedToolName = resolveToolAlias(toolName)
+		if (settings.disabledTools.some((disabled: string) => resolveToolAlias(disabled) === resolvedToolName)) {
+			return false
+		}
+	}
+
 	// Check if mode switching is disabled and this is the switch_mode tool
 	if (toolName === "switch_mode" && settings?.modeSwitchingEnabled === false) {
 		return false

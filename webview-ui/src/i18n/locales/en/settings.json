@@ -28,6 +28,7 @@
     "sections": {
         "providers": "Providers",
         "modes": "Modes",
+        "tools": "Tools",
         "mcp": "MCP Servers",
         "worktrees": "Worktrees",
         "skills": "Skills",
@@ -42,6 +43,21 @@
         "experimental": "Experimental",
         "language": "Language",
         "about": "About Roo Code"
+    },
+    "tools": {
+        "description": "Enable or disable internal tools to control what capabilities Roo has access to.",
+        "group": {
+            "read": "Read",
+            "edit": "Edit",
+            "command": "Command",
+            "mcp": "MCP",
+            "modes": "Modes",
+            "custom": "Custom",
+            "alwaysAvailable": "Always Available"
+        },
+        "warning": {
+            "critical": "Disabling this tool may significantly reduce Roo's ability to function properly."
+        }
     },
     "about": {
         "bugReport": {
