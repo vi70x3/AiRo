@@ -1,111 +1,91 @@
-# Requirements: Disable Internal Tools
+# Requirements: Dynamic System Prompt Tool Instruction Removal
 
-## Overview
+## Feature Name
+`disable-internal-tools` — Extend the disabled-tools feature to dynamically strip tool-specific prompt instructions from the system prompt when tools are disabled.
 
-Add a new **Tools** section to the Settings window that gives users total control over which Roo internal tools are enabled. Users will see checkboxes for every Roo internal tool and can uncheck any tool to disable it globally. This leverages the existing `disabledTools` backend infrastructure while providing a first-ever UI for it.
+## Problem Statement
 
-## Background
+When a user disables tools via the `disabledTools` setting, [`filterNativeToolsForMode()`](src/core/prompts/tools/filter-tools-for-mode.ts:225) correctly removes the tool **definitions** from the API call — but the system prompt still contains references to those disabled tools across multiple sections. This creates two problems:
 
-The backend already fully supports disabling internal tools:
+1. **Token waste**: Every mention of a disabled tool in the system prompt consumes tokens that provide zero value since the model cannot use those tools.
+2. **Model confusion**: The model sees instructions describing tools it cannot actually invoke, which can lead to attempted calls that fail or suboptimal behavior where the model references unavailable capabilities in its reasoning.
 
-- The [`disabledTools`](../../packages/types/src/global-settings.ts:233) field is defined in the global settings schema as `z.array(toolNamesSchema).optional()`
-- Tool filtering in [`filter-tools-for-mode.ts`](../../src/core/prompts/tools/filter-tools-for-mode.ts:300) removes tools listed in `disabledTools` from the prompt
-- Execution-time validation in [`validateToolUse.ts`](../../src/core/tools/validateToolUse.ts:133) blocks disabled tools even if they bypass filtering
-- The [`ClineProvider`](../../src/core/webview/ClineProvider.ts:2050) already persists `disabledTools` state
+### Current Affected Prompt Sections
 
-However, **no UI exists** — users currently have no way to set `disabledTools` from the settings window. The webview has zero references to `disabledTools`.
+| Section | File | Tool References |
+|---------|------|-----------------|
+| CAPABILITIES | [`getCapabilitiesSection()`](src/core/prompts/sections/capabilities.ts:3) | Explicit mentions of `execute_command`, `list_files`; entire paragraphs dedicated to specific tools |
+| Tool Use Guidelines | [`getToolUseGuidelinesSection()`](src/core/prompts/sections/tool-use-guidelines.ts:1) | Example referencing `list_files` tool |
+| Shared Tool Use | [`getSharedToolUseSection()`](src/core/prompts/sections/tool-use.ts:1) | Generic — no specific tool names, but still relevant context |
+| Response Messages | [`formatResponse.noToolsUsed()`](src/core/prompts/responses.ts:42) | References `attempt_completion` and `ask_followup_question` tools |
+| Response Messages | [`formatResponse.missingToolParameterError()`](src/core/prompts/responses.ts:57) | Includes tool use reminder |
+| Mode baseInstructions | [`getModeSelection()`](src/shared/modes.ts:150) | May reference specific tools in mode-specific instructions |
+| Custom Instructions | [`addCustomInstructions()`](src/core/prompts/sections/custom-instructions.ts:382) | User-written instructions may reference tools |
 
-## Functional Requirements
+### Existing Precedent
 
-### FR-1: New Tools Section in Settings
+There is already a pattern for dynamic prompt content removal in [`generatePrompt()`](src/core/prompts/system.ts:68) — when the `asyncSubtasks` experiment is disabled, the `async_task` bullet point is stripped from orchestrator mode's `baseInstructions` via regex replacement. This proves the architecture supports dynamic prompt trimming.
 
-- Add a new section named `tools` to the settings sidebar tab list
-- Use a **wrench icon** (lucide `Wrench`) as the section icon
-- The section must appear in the [`sectionNames`](../../webview-ui/src/components/settings/SettingsView.tsx:98) array and the [`sections`](../../webview-ui/src/components/settings/SettingsView.tsx:496) icon array
-- Position the section logically — after `modes` and before `autoApprove` in the tab order
+## Requirements
 
-### FR-2: Tool Checkbox List
+### R1: Capabilities Section — Tool-Aware Paragraph Removal
+When a tool is disabled, the corresponding tool-specific paragraph in the CAPABILITIES section must be removed or replaced with a neutral alternative. Specifically:
 
-- Display all 24 Roo internal tools as checkboxes in a scrollable list
-- Each checkbox shows the tool's human-readable display name from [`TOOL_DISPLAY_NAMES`](../../src/shared/tools.ts:275)
-- Checked = tool is **enabled** (not in `disabledTools`); unchecked = tool is **disabled** (in `disabledTools`)
-- Group tools by their tool group (read, edit, command, mcp, modes) with group headers for visual organization
-- Always-available tools (ask_followup_question, attempt_completion, etc.) should appear in a separate "Always Available" group
+- **R1.1**: If `execute_command` is disabled, remove the entire paragraph starting with "You can use the execute_command tool..."
+- **R1.2**: If `list_files` is disabled, remove the `list_files` references from the workspace directory bullet point, replacing them with a generic "you can explore directories" phrasing
+- **R1.3**: The opening capabilities summary line ("tools that let you execute CLI commands, list files, view source code definitions, regex search, read and write files, and ask follow-up questions") must be dynamically composed to only list actually-available tool categories
 
-### FR-3: Tool Group Layout
+### R2: Tool Use Guidelines — Dynamic Example Selection
+- **R2.1**: The example in [`getToolUseGuidelinesSection()`](src/core/prompts/sections/tool-use-guidelines.ts:1) that references `list_files` must be replaced with an example that references an actually-available tool when `list_files` is disabled
+- **R2.2**: If no suitable alternative tool exists for the example, the example sentence should be removed entirely
 
-Organize tools into the following groups matching [`TOOL_GROUPS`](../../src/shared/tools.ts:304):
+### R3: Response Messages — Tool-Aware Next Steps
+- **R3.1**: [`formatResponse.noToolsUsed()`](src/core/prompts/responses.ts:42) currently says "If you have completed the user's task, use the `attempt_completion` tool" and "If you require additional information from the user, use the `ask_followup_question` tool". These references must be conditionally included based on whether those tools are available
+- **R3.2**: If both `attempt_completion` and `ask_followup_question` are disabled, the "Next Steps" section should provide a generic fallback instruction
 
-| Group | Tools |
-|-------|-------|
-| **Read** | read_file, search_files, list_files, codebase_search |
-| **Edit** | apply_diff, write_to_file, generate_image, edit, search_replace, edit_file, apply_patch |
-| **Command** | execute_command, read_command_output |
-| **MCP** | use_mcp_tool, access_mcp_resource |
-| **Modes** | switch_mode, new_task, async_task |
-| **Always Available** | ask_followup_question, attempt_completion, update_todo_list, run_slash_command, skill |
+### R4: Mode baseInstructions — Tool Reference Stripping
+- **R4.1**: Mode `baseInstructions` that reference disabled tools by name should have those references removed or replaced, following the same pattern as the existing `async_task` removal in [`generatePrompt()`](src/core/prompts/system.ts:68)
+- **R4.2**: This must work for all built-in modes and custom modes
 
-### FR-4: State Management
+### R5: Custom Instructions — No Automatic Modification
+- **R5.1**: User-written custom instructions must NOT be automatically modified. These are intentional user content and stripping tool references from them could remove important context
+- **R5.2**: Instead, if custom instructions reference disabled tools, a brief disclaimer should be appended noting that some referenced tools may be disabled in the current session
 
-- Bind checkbox state to `cachedState.disabledTools` following the existing Settings View pattern (inputs bind to `cachedState`, not live `useExtensionState()`)
-- When a checkbox is unchecked, add the tool name to the `disabledTools` array via `setCachedStateField`
-- When a checkbox is checked, remove the tool name from the `disabledTools` array via `setCachedStateField`
-- Changes must trigger the unsaved-changes detection mechanism (set `isChangeDetected`)
-- On Save, the `disabledTools` array is persisted through the existing save flow
+### R6: Shared Tool Use Section — Conditional Inclusion
+- **R6.1**: [`getSharedToolUseSection()`](src/core/prompts/sections/tool-use.ts:1) is generic and does not reference specific tools, so it should always be included regardless of which tools are disabled
+- **R6.2**: However, if ALL tools are disabled, the entire TOOL USE section becomes meaningless and should be replaced with a minimal statement
 
-### FR-5: Search Integration
+### R7: Settings Propagation
+- **R7.1**: The `disabledTools` setting must be propagated to all prompt section generators that need it, via the existing `settings` parameter in [`generatePrompt()`](src/core/prompts/system.ts:41)
+- **R7.2**: The `disabledTools` list must be resolved through [`resolveToolAlias()`](src/core/prompts/tools/filter-tools-for-mode.ts:96) so that disabling a legacy alias also triggers prompt instruction removal for the canonical tool
 
-- Each tool checkbox must be wrapped in a [`SearchableSetting`](../../webview-ui/src/components/settings/SearchableSetting.tsx) component so it appears in the settings search index
-- The search label for each tool should be its display name
+### R8: MCP Tool Prompt Instructions
+- **R8.1**: When MCP tools are disabled via `enabledForPrompt: false`, their descriptions should already be filtered by [`filterMcpToolsForMode()`](src/core/prompts/tools/filter-tools-for-mode.ts:476). No additional system prompt changes are needed for MCP tools since they don't have dedicated prompt sections
 
-### FR-6: Warning for Critical Tools
+### R9: Backward Compatibility
+- **R9.1**: When no tools are disabled, the system prompt must be identical to the current output — no behavioral change
+- **R9.2**: The feature must be purely additive: it only removes content when tools are disabled, never adds new content that wasn't there before
 
-- Show a visual warning indicator next to `attempt_completion` and `ask_followup_question` — disabling these may significantly degrade Roo's ability to function
-- The warning should be a small info text below these tools explaining the impact
-
-### FR-7: i18n Support
-
-- Add translation keys for the new section:
-  - `settings:sections.tools` — section tab label
-  - `settings:tools.description` — section description
-  - `settings:tools.group.read`, `settings:tools.group.edit`, etc. — group headers
-  - `settings:tools.group.alwaysAvailable` — always available group header
-  - `settings:tools.warning.critical` — warning text for critical tools
-  - Tool display names should reuse existing `TOOL_DISPLAY_NAMES` values or use i18n keys like `settings:tools.tool.read_file`
-
-## Non-Functional Requirements
-
-### NFR-1: Consistency
-
-- The new section must follow the exact same patterns as existing settings sections (e.g., [`TerminalSettings`](../../webview-ui/src/components/settings/TerminalSettings.tsx), [`NotificationSettings`](../../webview-ui/src/components/settings/NotificationSettings.tsx))
-- Use the same `SectionHeader`, `Section`, `SearchableSetting`, and `VSCodeCheckbox` components
-
-### NFR-2: Performance
-
-- The tool list is static (24 items) — no performance concerns
-- No unnecessary re-renders; use React.memo where appropriate
-
-### NFR-3: Accessibility
-
-- All checkboxes must have proper aria labels
-- Keyboard navigation must work within the section
-
-### NFR-4: Test Coverage
-
-- Unit tests for the new `ToolsSettings` component
-- Test that checking/unchecking tools correctly updates `disabledTools` in cached state
-- Test that the section renders all 24 tools
+### R10: Test Coverage
+- **R10.1**: Unit tests must cover each prompt section generator with various disabled tool combinations
+- **R10.2**: Integration tests must verify the full system prompt output with disabled tools matches expectations
+- **R10.3**: Edge cases must be tested: all tools disabled, critical tools disabled, alias-based disabling
 
 ## Out of Scope
 
-- Disabling MCP tools per-server (that already exists in the MCP section)
-- Per-mode tool disabling (that's handled by the Modes section)
-- Custom tool disabling (custom tools are experimental and managed separately)
-- Tool alias resolution in the UI (aliases like `write_file` → `write_to_file` are handled backend-side)
+- Modifying the tool definitions themselves — that is already handled by [`filterNativeToolsForMode()`](src/core/prompts/tools/filter-tools-for-mode.ts:225)
+- Modifying user-written custom instructions content — only a disclaimer may be appended
+- Changing the UI for tool disabling — the [`ToolsSettings`](webview-ui/src/components/settings/ToolsSettings.tsx:24) component remains unchanged
+- MCP tool prompt sections — these are already handled by the MCP filtering pipeline
 
 ## Dependencies
 
-- Existing `disabledTools` schema and backend logic (already in place)
-- [`toolNames`](../../packages/types/src/tool.ts:24) and [`TOOL_DISPLAY_NAMES`](../../src/shared/tools.ts:275) for the tool catalog
-- [`TOOL_GROUPS`](../../src/shared/tools.ts:304) and [`ALWAYS_AVAILABLE_TOOLS`](../../src/shared/tools.ts:325) for grouping
-- Settings View infrastructure (SectionHeader, Section, SearchableSetting, cachedState pattern)
+- Existing `disabledTools` setting in `SystemPromptSettings`
+- Existing [`resolveToolAlias()`](src/core/prompts/tools/filter-tools-for-mode.ts:96) for alias resolution
+- Existing `settings` parameter propagation through [`generatePrompt()`](src/core/prompts/system.ts:41) → section generators
+
+## Success Metrics
+
+- Token count reduction proportional to the number of disabled tools and their prompt instruction footprint
+- No model attempts to invoke disabled tools after the change
+- Zero behavioral change when no tools are disabled

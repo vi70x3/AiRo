@@ -1,52 +1,53 @@
-# Tasks: Disable Internal Tools
+# Tasks: Dynamic System Prompt Tool Instruction Removal
 
-## Task Breakdown
+## Phase 1: Core Infrastructure
 
-### Phase 1: Shared Types & Constants
+- [ ] **T1.1**: Create `src/core/prompts/tools/tool-availability-context.ts` — implement `ToolAvailabilityContext` class with `isToolAvailable()`, `isToolDisabled()`, `hasAnyAvailable()`, `areAllDisabled()`, and `getDisabledToolNames()` methods. Constructor accepts `string[]` of disabled tool names and resolves aliases via `resolveToolAlias()` from [`filter-tools-for-mode.ts`](src/core/prompts/tools/filter-tools-for-mode.ts:96). Import `ALL_NATIVE_TOOL_NAMES` or derive from existing tool definitions.
 
-- [ ] **T1.1**: Export `TOOL_DISPLAY_NAMES` from `@roo-code/types` — Move or re-export the [`TOOL_DISPLAY_NAMES`](../../src/shared/tools.ts:275) record to `packages/types/src/tool.ts` so the webview-ui can import it via `@roo-code/types`
-- [ ] **T1.2**: Export `TOOL_GROUPS` config from `@roo-code/types` — Move or re-export [`TOOL_GROUPS`](../../src/shared/tools.ts:304) to `packages/types/src/tool.ts` for webview-ui access
-- [ ] **T1.3**: Export `ALWAYS_AVAILABLE_TOOLS` from `@roo-code/types` — Move or re-export [`ALWAYS_AVAILABLE_TOOLS`](../../src/shared/tools.ts:325) to `packages/types/src/tool.ts`
-- [ ] **T1.4**: Create `TOOL_GROUP_CONFIG` UI constant — Add a new export in `packages/types/src/tool.ts` that maps each group to its tools and i18n label key, including the `alwaysAvailable` group with its `isAlwaysAvailable` flag
-- [ ] **T1.5**: Update `src/shared/tools.ts` imports — If constants were moved to the types package, update `src/shared/tools.ts` to import from `@roo-code/types` instead of defining them locally, maintaining backward compatibility for all existing consumers
-- [ ] **T1.6**: Verify types package build — Run `pnpm build` in `packages/types` to confirm the new exports compile correctly and are included in the package output
+- [ ] **T1.2**: Create `src/core/prompts/tools/__tests__/tool-availability-context.spec.ts` — unit tests covering: empty disabled list (all available), partial disabling, full disabling, alias resolution (e.g. `search_and_replace` → `edit`), `undefined`/`null` input handling, `isToolAvailable()`/`isToolDisabled()` consistency.
 
-### Phase 2: i18n Translation Keys
+- [ ] **T1.3**: Create `src/core/prompts/tools/strip-tool-references.ts` — implement `stripDisabledToolReferences(instructions, toolContext)` function with `TOOL_REFERENCE_PATTERNS` registry. Each entry maps a tool name to an array of regex patterns that match common reference formats in mode instructions (bullet-point patterns like `^-.*Use `tool_name`...`, conservative inline patterns). After all replacements, collapse excessive blank lines with `\n{3,}` → `\n\n` and trim.
 
-- [ ] **T2.1**: Add English translation keys — Add `settings.sections.tools`, `settings.tools.description`, `settings.tools.group.*` (read, edit, command, mcp, modes, alwaysAvailable), and `settings.tools.warning.critical` to the English locale file
-- [ ] **T2.2**: Add translation keys to i18n mock — Update the translation mock in [`webview-ui/src/i18n/__mocks__/TranslationContext.tsx`](../../webview-ui/src/i18n/__mocks__/TranslationContext.tsx) to include the new `settings.tools.*` keys so tests can render properly
-- [ ] **T2.3**: Verify other locale files — Check if other language locale files need placeholder entries or if the i18n system handles missing keys gracefully with fallbacks to English
+- [ ] **T1.4**: Create `src/core/prompts/tools/__tests__/strip-tool-references.spec.ts` — unit tests covering: no disabled tools (output identical to input), single tool disabled with bullet-point pattern, multiple tools disabled, alias-based disabling, patterns that don't match (no false removals), blank line cleanup after removals.
 
-### Phase 3: ToolsSettings Component
+## Phase 2: Section Generator Modifications
 
-- [ ] **T3.1**: Create `ToolsSettings.tsx` — Create [`webview-ui/src/components/settings/ToolsSettings.tsx`](../../webview-ui/src/components/settings/ToolsSettings.tsx) following the pattern of [`NotificationSettings`](../../webview-ui/src/components/settings/NotificationSettings.tsx) with `SectionHeader`, `Section`, and `SearchableSetting` components
-- [ ] **T3.2**: Implement tool group rendering — Render each tool group from `TOOL_GROUP_CONFIG` as a sub-section with a group header label, listing each tool as a `VSCodeCheckbox` inside a `SearchableSetting` wrapper
-- [ ] **T3.3**: Implement checkbox state binding — Bind each checkbox's checked state to `!disabledTools.includes(toolName)`, using `cachedState` pattern per AGENTS.md rules
-- [ ] **T3.4**: Implement toggle logic — Create the `toggleTool` handler that adds/removes tool names from the `disabledTools` array via `setCachedStateField("disabledTools", ...)`
-- [ ] **T3.5**: Add critical tool warnings — Add `AlertTriangle` icon and warning text below `attempt_completion` and `ask_followup_question` checkboxes using the `settings:tools.warning.critical` translation key
-- [ ] **T3.6**: Add always-available group styling — Style the "Always Available" group slightly differently (e.g., with a subtle border or different background) to visually distinguish tools that are normally always on
+- [ ] **T2.1**: Modify [`src/core/prompts/sections/capabilities.ts`](src/core/prompts/sections/capabilities.ts) — add optional `toolContext?: ToolAvailabilityContext` parameter to `getCapabilitiesSection()`. Define `CAPABILITY_PHASES` mapping (cli → execute_command, files → list_files, search → search_files/codebase_search, code → read_file, edit → write_to_file/apply_diff/etc, questions → ask_followup_question). Dynamically compose opening summary line by joining phrases for categories where at least one tool is available. Conditionally include/exclude the `execute_command` paragraph and `list_files` references. When `toolContext` is undefined, produce byte-identical output to current version.
 
-### Phase 4: SettingsView Integration
+- [ ] **T2.2**: Create `src/core/prompts/sections/__tests__/capabilities-tool-aware.spec.ts` — test all combinations: no disabled tools (identical output), `execute_command` disabled (paragraph removed), `list_files` disabled (references removed, generic phrasing), multiple tools disabled, all tools disabled (minimal fallback), `toolContext` undefined (identical to current).
 
-- [ ] **T4.1**: Add `tools` to `sectionNames` — Add `"tools"` to the [`sectionNames`](../../webview-ui/src/components/settings/SettingsView.tsx:98) array between `"modes"` and `"autoApprove"`
-- [ ] **T4.2**: Add `tools` section with Wrench icon — Add `{ id: "tools", icon: Wrench }` to the [`sections`](../../webview-ui/src/components/settings/SettingsView.tsx:496) array at the corresponding position, and import `Wrench` from `lucide-react`
-- [ ] **T4.3**: Destructure `disabledTools` from `cachedState` — Add `disabledTools` to the destructured fields from `cachedState` in [`SettingsView`](../../webview-ui/src/components/settings/SettingsView.tsx:149)
-- [ ] **T4.4**: Add ToolsSettings render block — Add `{renderTab === "tools" && <ToolsSettings disabledTools={disabledTools ?? []} setCachedStateField={setCachedStateField} />}` to the content area
-- [ ] **T4.5**: Add `disabledTools` to `handleSubmit` — Add `disabledTools: disabledTools ?? []` to the `updatedSettings` object in [`handleSubmit`](../../webview-ui/src/components/settings/SettingsView.tsx:349) so the setting is persisted on save
+- [ ] **T2.3**: Modify [`src/core/prompts/sections/tool-use-guidelines.ts`](src/core/prompts/sections/tool-use-guidelines.ts) — add optional `toolContext?: ToolAvailabilityContext` parameter. Define `EXAMPLE_TOOL_PRIORITY` array with `{ name, example }` entries for `list_files`, `read_file`, `search_files`, `execute_command`. Pick first available tool for the example sentence. If no example tool available, omit example sentence and shorten to 2-point list. When `toolContext` undefined, produce byte-identical output.
 
-### Phase 5: ExtensionState Context
+- [ ] **T2.4**: Create `src/core/prompts/sections/__tests__/tool-use-guidelines-tool-aware.spec.ts` — test: no disabled tools (identical output with `list_files` example), `list_files` disabled (falls back to `read_file` example), all example tools disabled (example omitted, 2-point list), `toolContext` undefined (identical to current).
 
-- [ ] **T5.1**: Verify `disabledTools` in state context — Confirm that [`ExtensionStateContextType`](../../webview-ui/src/context/ExtensionStateContext.tsx:32) already includes `disabledTools` from the `ExtensionState` type (it should since `ClineProvider` already sends it)
-- [ ] **T5.2**: Add `disabledTools` to state handler if missing — If `disabledTools` is not in the webview state reconciliation, add it to the message handler that syncs extension state to the webview
+- [ ] **T2.5**: Modify [`src/core/prompts/sections/tool-use.ts`](src/core/prompts/sections/tool-use.ts) — add optional `toolContext?: ToolAvailabilityContext` parameter. When `toolContext.areAllDisabled()` returns true, return minimal content: `"====\n\nTOOL USE\n\nNo tools are available in the current session. Respond directly to the user without attempting tool calls."`. Otherwise return current content unchanged. When `toolContext` undefined, produce byte-identical output.
 
-### Phase 6: Testing
+- [ ] **T2.6**: Modify [`src/core/prompts/sections/custom-instructions.ts`](src/core/prompts/sections/custom-instructions.ts) — at the end of `addCustomInstructions()`, after assembling all custom instruction content, check `options.settings?.disabledTools`. If present, create a `ToolAvailabilityContext`, scan the assembled instructions for references to disabled tools using word-boundary regex matches, and if any are found, append a disclaimer: `"Note: The following tools referenced in your instructions are currently disabled in this session: {tool_names}. Do not attempt to use them."`
 
-- [ ] **T6.1**: Create `ToolsSettings.spec.tsx` — Create [`webview-ui/src/components/settings/__tests__/ToolsSettings.spec.tsx`](../../webview-ui/src/components/settings/__tests__/ToolsSettings.spec.tsx) with unit tests
-- [ ] **T6.2**: Test tool checkbox rendering — Verify all 24 tools render as checkboxes with correct display names
-- [ ] **T6.3**: Test toggle logic — Verify checking a checkbox removes the tool from `disabledTools` and unchecking adds it
-- [ ] **T6.4**: Test critical tool warnings — Verify warning text appears for `attempt_completion` and `ask_followup_question`
-- [ ] **T6.5**: Test group headers — Verify all 6 group headers render with correct labels
-- [ ] **T6.6**: Test SearchableSetting integration — Verify each tool checkbox is wrapped in a `SearchableSetting` with correct `settingId` and `section` props
-- [ ] **T6.7**: Run existing SettingsView tests — Verify that existing tests in [`SettingsView.change-detection.spec.tsx`](../../webview-ui/src/components/settings/__tests__/SettingsView.change-detection.spec.tsx) and [`SettingsView.unsaved-changes.spec.tsx`](../../webview-ui/src/components/settings/__tests__/SettingsView.unsaved-changes.spec.tsx) still pass after the section addition
-- [ ] **T6.8**: Run filter-tools-for-mode tests — Verify existing [`filter-tools-for-mode.spec.ts`](../../src/core/prompts/tools/__tests__/filter-tools-for-mode.spec.ts) tests still pass (no backend logic changes needed)
-- [ ] **T6.9**: Run validateToolUse tests — Verify existing [`validateToolUse.spec.ts`](../../src/core/tools/__tests__/validateToolUse.spec.ts) tests still pass
+- [ ] **T2.7**: Add tests for custom instructions disclaimer in existing test file [`src/core/prompts/__tests__/add-custom-instructions.spec.ts`](src/core/prompts/__tests__/add-custom-instructions.spec.ts) — test: custom instructions referencing disabled tools (disclaimer appended), custom instructions not referencing disabled tools (no disclaimer), no disabled tools setting (no disclaimer), disclaimer format correctness.
+
+## Phase 3: System Prompt Orchestrator
+
+- [ ] **T3.1**: Modify [`src/core/prompts/system.ts`](src/core/prompts/system.ts) — in `generatePrompt()`, after retrieving `settings`, construct `ToolAvailabilityContext` from `settings?.disabledTools ?? []`. Pass `toolContext` to: `getCapabilitiesSection(cwd, mcpHub, toolContext)`, `getToolUseGuidelinesSection(toolContext)`, `getSharedToolUseSection(toolContext)`. Apply `stripDisabledToolReferences(baseInstructions, toolContext)` to `baseInstructions` after the existing `async_task` removal. Ensure `settings` continues to propagate to `addCustomInstructions()` for the disclaimer feature.
+
+- [ ] **T3.2**: Update [`src/core/prompts/sections/index.ts`](src/core/prompts/sections/index.ts) — update exports if function signatures changed (adding `toolContext` params).
+
+- [ ] **T3.3**: Add/update integration tests in [`src/core/prompts/__tests__/system-prompt.spec.ts`](src/core/prompts/__tests__/system-prompt.spec.ts) — test full system prompt generation with: no disabled tools (identical to current), `execute_command` disabled (no execute_command paragraph, no execute_command in capabilities summary), `list_files` disabled (no list_files references, alternative example in guidelines), multiple tools disabled, all tools disabled (minimal sections).
+
+## Phase 4: Response Message Modifications
+
+- [ ] **T4.1**: Modify [`src/core/prompts/responses.ts`](src/core/prompts/responses.ts) — add optional `disabledTools?: string[]` parameter to `noToolsUsed()` and `missingToolParameterError()`. In `noToolsUsed()`, construct `ToolAvailabilityContext` from the param, conditionally include "use the `attempt_completion` tool" and "use the `ask_followup_question` tool" lines based on availability. If neither is available, use generic fallback: "Otherwise, proceed with the next step of the task." When param undefined, produce byte-identical output.
+
+- [ ] **T4.2**: Modify [`src/core/task/Task.ts`](src/core/task/Task.ts) — find all call sites for `formatResponse.noToolsUsed()` and `formatResponse.missingToolParameterError()`. Pass `this.provider.getState().disabledTools` (or equivalent access path) as the new parameter. Verify the state access path is correct for the current codebase structure.
+
+- [ ] **T4.3**: Add tests for response message modifications — test `noToolsUsed()` with: no disabled tools (identical output), `attempt_completion` disabled (that line removed), `ask_followup_question` disabled (that line removed), both disabled (generic fallback), undefined param (identical to current). Similar for `missingToolParameterError()`.
+
+## Phase 5: Validation & Edge Cases
+
+- [ ] **T5.1**: Run existing test suite — ensure all current tests pass with no regressions. Specifically run: `cd src && npx vitest run core/prompts/`, `cd src && npx vitest run core/tools/`, `cd src && npx vitest run core/prompts/tools/__tests__/filter-tools-for-mode.spec.ts`.
+
+- [ ] **T5.2**: Manual verification — generate system prompt previews with various disabled tool combinations via the "Preview System Prompt" UI feature. Compare token counts between disabled and non-disabled scenarios to confirm reduction.
+
+- [ ] **T5.3**: Edge case testing — verify behavior for: alias-based disabling (`search_and_replace` disabling `edit` references), critical tool warnings still appearing in UI, MCP tools unaffected by this change, `update_todo_list`/`generate_image`/`async_task`/`run_slash_command` already excluded by other mechanisms coexisting with `disabledTools` exclusion.
+
+- [ ] **T5.4**: Backward compatibility audit — generate system prompts with `disabledTools` = `[]`, `undefined`, and not present in settings at all. All three must produce identical output to the current production behavior.
