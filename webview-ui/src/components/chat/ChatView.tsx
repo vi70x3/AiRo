@@ -617,18 +617,30 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						markFollowUpAsAnswered()
 					}
 
-					// Use clineAskRef.current
-					switch (
-						clineAskRef.current // Use clineAskRef.current
-					) {
-						case "followup":
+					switch (clineAskRef.current) {
 						case "tool":
-						case "command": // User can provide feedback to a tool or command use.
+						case "command":
 						case "use_mcp_server":
-						case "completion_result": // If this happens then the user has feedback for the completion result.
+							// User is approving the tool/command with additional feedback text
+							vscode.postMessage({
+								type: "askResponse",
+								askResponse: "yesButtonClicked",
+								text,
+								images,
+							})
+							break
+						case "followup":
+						case "completion_result":
 						case "resume_task":
 						case "resume_completed_task":
-						// There is no other case that a textfield should be enabled.
+							// User is responding to the question with a message
+							vscode.postMessage({
+								type: "askResponse",
+								askResponse: "messageResponse",
+								text,
+								images,
+							})
+							break
 					}
 				} else {
 					// This is a new message in an ongoing task.

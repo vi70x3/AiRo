@@ -1113,6 +1113,370 @@ describe("ChatView - Message Queueing Tests", () => {
 	})
 })
 
+describe("ChatView - Send Message During Active Ask Tests", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		vi.mocked(vscode.postMessage).mockClear()
+	})
+
+	it("sends messageResponse when sending during a followup ask", async () => {
+		const { getByTestId } = renderChatView()
+
+		// Hydrate state with a followup ask (complete, not partial)
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "followup",
+					ts: Date.now(),
+					text: "What would you like to do next?",
+					partial: false,
+				},
+			],
+		})
+
+		// Wait for state to be updated
+		await waitFor(() => {
+			expect(getByTestId("chat-textarea")).toBeInTheDocument()
+		})
+
+		// Allow React effects to complete (clineAsk -> clineAskRef sync)
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 50))
+		})
+
+		// Clear message calls before simulating user input
+		vi.mocked(vscode.postMessage).mockClear()
+
+		// Simulate user typing and sending a message during followup
+		const chatTextArea = getByTestId("chat-textarea")
+		const input = chatTextArea.querySelector("input")! as HTMLInputElement
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: "my followup response" } })
+			fireEvent.keyDown(input, { key: "Enter", code: "Enter" })
+		})
+
+		// Verify that the message was sent as askResponse messageResponse
+		await waitFor(() => {
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "askResponse",
+				askResponse: "messageResponse",
+				text: "my followup response",
+				images: [],
+			})
+		})
+
+		// Verify it was NOT queued
+		expect(vscode.postMessage).not.toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "queueMessage",
+			}),
+		)
+	})
+
+	it("sends yesButtonClicked when sending during a tool ask", async () => {
+		const { getByTestId } = renderChatView()
+
+		// Hydrate state with a tool ask (complete, not partial)
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "tool",
+					ts: Date.now(),
+					text: JSON.stringify({ tool: "readFile", path: "test.txt" }),
+					partial: false,
+				},
+			],
+		})
+
+		// Wait for state to be updated
+		await waitFor(() => {
+			expect(getByTestId("chat-textarea")).toBeInTheDocument()
+		})
+
+		// Allow React effects to complete (clineAsk -> clineAskRef sync)
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 50))
+		})
+
+		// Clear message calls before simulating user input
+		vi.mocked(vscode.postMessage).mockClear()
+
+		// Simulate user typing and sending a message during tool ask
+		const chatTextArea = getByTestId("chat-textarea")
+		const input = chatTextArea.querySelector("input")! as HTMLInputElement
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: "approve with comment" } })
+			fireEvent.keyDown(input, { key: "Enter", code: "Enter" })
+		})
+
+		// Verify that the message was sent as askResponse yesButtonClicked
+		await waitFor(() => {
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "askResponse",
+				askResponse: "yesButtonClicked",
+				text: "approve with comment",
+				images: [],
+			})
+		})
+
+		// Verify it was NOT queued
+		expect(vscode.postMessage).not.toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "queueMessage",
+			}),
+		)
+	})
+
+	it("sends yesButtonClicked when sending during a command ask", async () => {
+		const { getByTestId } = renderChatView()
+
+		// Hydrate state with a command ask (complete, not partial)
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "command",
+					ts: Date.now(),
+					text: "Run npm install?",
+					partial: false,
+				},
+			],
+		})
+
+		// Wait for state to be updated
+		await waitFor(() => {
+			expect(getByTestId("chat-textarea")).toBeInTheDocument()
+		})
+
+		// Allow React effects to complete (clineAsk -> clineAskRef sync)
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 50))
+		})
+
+		// Clear message calls before simulating user input
+		vi.mocked(vscode.postMessage).mockClear()
+
+		// Simulate user typing and sending a message during command ask
+		const chatTextArea = getByTestId("chat-textarea")
+		const input = chatTextArea.querySelector("input")! as HTMLInputElement
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: "yes run it" } })
+			fireEvent.keyDown(input, { key: "Enter", code: "Enter" })
+		})
+
+		// Verify that the message was sent as askResponse yesButtonClicked
+		await waitFor(() => {
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "askResponse",
+				askResponse: "yesButtonClicked",
+				text: "yes run it",
+				images: [],
+			})
+		})
+	})
+
+	it("sends yesButtonClicked when sending during a use_mcp_server ask", async () => {
+		const { getByTestId } = renderChatView()
+
+		// Hydrate state with a use_mcp_server ask (complete, not partial)
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "use_mcp_server",
+					ts: Date.now(),
+					text: JSON.stringify({ server: "test-server", tool: "test-tool" }),
+					partial: false,
+				},
+			],
+		})
+
+		// Wait for state to be updated
+		await waitFor(() => {
+			expect(getByTestId("chat-textarea")).toBeInTheDocument()
+		})
+
+		// Allow React effects to complete (clineAsk -> clineAskRef sync)
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 50))
+		})
+
+		// Clear message calls before simulating user input
+		vi.mocked(vscode.postMessage).mockClear()
+
+		// Simulate user typing and sending a message during use_mcp_server ask
+		const chatTextArea = getByTestId("chat-textarea")
+		const input = chatTextArea.querySelector("input")! as HTMLInputElement
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: "approve mcp tool" } })
+			fireEvent.keyDown(input, { key: "Enter", code: "Enter" })
+		})
+
+		// Verify that the message was sent as askResponse yesButtonClicked
+		await waitFor(() => {
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "askResponse",
+				askResponse: "yesButtonClicked",
+				text: "approve mcp tool",
+				images: [],
+			})
+		})
+	})
+
+	it("sends messageResponse when sending during a completion_result ask", async () => {
+		const { getByTestId } = renderChatView()
+
+		// Hydrate state with a completion_result ask (complete, not partial)
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "completion_result",
+					ts: Date.now(),
+					text: "Task completed successfully",
+					partial: false,
+				},
+			],
+		})
+
+		// Wait for state to be updated
+		await waitFor(() => {
+			expect(getByTestId("chat-textarea")).toBeInTheDocument()
+		})
+
+		// Allow React effects to complete (clineAsk -> clineAskRef sync)
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 50))
+		})
+
+		// Clear message calls before simulating user input
+		vi.mocked(vscode.postMessage).mockClear()
+
+		// Simulate user typing and sending a message during completion_result
+		const chatTextArea = getByTestId("chat-textarea")
+		const input = chatTextArea.querySelector("input")! as HTMLInputElement
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: "thanks for the help" } })
+			fireEvent.keyDown(input, { key: "Enter", code: "Enter" })
+		})
+
+		// Verify that the message was sent as askResponse messageResponse
+		await waitFor(() => {
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "askResponse",
+				askResponse: "messageResponse",
+				text: "thanks for the help",
+				images: [],
+			})
+		})
+
+		// Verify it was NOT queued
+		expect(vscode.postMessage).not.toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "queueMessage",
+			}),
+		)
+	})
+
+	it("still queues messages when sendingDisabled is true during an ask", async () => {
+		const { getByTestId } = renderChatView()
+
+		// Hydrate state with a partial tool ask (sendingDisabled = true)
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "tool",
+					ts: Date.now(),
+					text: JSON.stringify({ tool: "readFile", path: "test.txt" }),
+					partial: true, // Partial = sendingDisabled is true
+				},
+			],
+		})
+
+		// Wait for state to be updated
+		await waitFor(() => {
+			expect(getByTestId("chat-textarea")).toBeInTheDocument()
+		})
+
+		// Allow React effects to complete (clineAsk -> clineAskRef sync)
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 50))
+		})
+
+		// Clear message calls before simulating user input
+		vi.mocked(vscode.postMessage).mockClear()
+
+		// Simulate user typing and sending a message during partial tool ask
+		const chatTextArea = getByTestId("chat-textarea")
+		const input = chatTextArea.querySelector("input")! as HTMLInputElement
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: "message during partial ask" } })
+			fireEvent.keyDown(input, { key: "Enter", code: "Enter" })
+		})
+
+		// Verify that the message was queued (not sent directly)
+		await waitFor(() => {
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "queueMessage",
+				text: "message during partial ask",
+				images: [],
+			})
+		})
+
+		// Verify it was NOT sent as askResponse
+		expect(vscode.postMessage).not.toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: "askResponse",
+			}),
+		)
+	})
+})
+
 describe("ChatView - Context Condensing Indicator Tests", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
