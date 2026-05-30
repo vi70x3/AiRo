@@ -79,7 +79,7 @@ __setMockImplementation(
 		globalCustomInstructions: string,
 		cwd: string,
 		mode: string,
-		options?: { language?: string },
+		options?: { language?: string; settings?: { disabledTools?: string[] } },
 	) => {
 		const sections = []
 
@@ -112,8 +112,20 @@ __setMockImplementation(
 		}
 
 		const joinedSections = sections.join("\n\n")
+
+		// Generate disclaimer if custom instructions reference disabled tools
+		let disclaimer = ""
+		if (options?.settings?.disabledTools?.length) {
+			const referencedTools = options.settings.disabledTools.filter(
+				(tool: string) => joinedSections.includes(tool)
+			)
+			if (referencedTools.length > 0) {
+				disclaimer = `\n\nNote: The following tools referenced in your instructions are currently disabled in this session: ${referencedTools.join(", ")}. Do not attempt to use them.`
+			}
+		}
+
 		return joinedSections
-			? `\n====\n\nUSER'S CUSTOM INSTRUCTIONS\n\nThe following additional instructions are provided by the user, and should be followed to the best of your ability without interfering with the TOOL USE guidelines.\n\n${joinedSections}`
+			? `\n====\n\nUSER'S CUSTOM INSTRUCTIONS\n\nThe following additional instructions are provided by the user, and should be followed to the best of your ability without interfering with the TOOL USE guidelines.\n\n${joinedSections}${disclaimer}`
 			: ""
 	},
 )
@@ -374,5 +386,76 @@ describe("addCustomInstructions", () => {
 		expect(instructions).toMatchFileSnapshot(
 			"./__snapshots__/add-custom-instructions/prioritized-instructions-order.snap",
 		)
+	})
+})
+
+
+describe("addCustomInstructions - disabled tools disclaimer", () => {
+	it("appends disclaimer when custom instructions reference a disabled tool", async () => {
+		const result = await addCustomInstructions(
+			"Always use execute_command to run tests",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["execute_command"] },
+			},
+		)
+		expect(result).toContain("execute_command")
+		expect(result).toContain("currently disabled")
+		expect(result).toContain("Do not attempt to use them")
+	})
+
+	it("does not append disclaimer when custom instructions do not reference disabled tools", async () => {
+		const result = await addCustomInstructions(
+			"Always write clean code",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["execute_command"] },
+			},
+		)
+		expect(result).not.toContain("currently disabled")
+		expect(result).not.toContain("Do not attempt to use them")
+	})
+
+	it("does not append disclaimer when no tools are disabled", async () => {
+		const result = await addCustomInstructions(
+			"Always use execute_command to run tests",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: [] },
+			},
+		)
+		expect(result).not.toContain("currently disabled")
+	})
+
+	it("does not append disclaimer when settings is undefined", async () => {
+		const result = await addCustomInstructions(
+			"Always use execute_command to run tests",
+			"",
+			"/test/path",
+			"code",
+			{},
+		)
+		expect(result).not.toContain("currently disabled")
+	})
+
+	it("lists all disabled tools that are referenced", async () => {
+		const result = await addCustomInstructions(
+			"Use execute_command and list_files for exploration",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["execute_command", "list_files"] },
+			},
+		)
+		expect(result).toContain("execute_command")
+		expect(result).toContain("list_files")
+		expect(result).toContain("currently disabled")
 	})
 })

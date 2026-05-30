@@ -4,6 +4,8 @@ import * as os from "os"
 import { Dirent } from "fs"
 
 import { isLanguage } from "@roo-code/types"
+import { ToolAvailabilityContext } from "../tools/tool-availability-context"
+import { generateDisabledToolsDisclaimer } from "../tools/disabled-tools-disclaimer"
 
 import type { SystemPromptSettings } from "../types"
 
@@ -493,6 +495,16 @@ export async function addCustomInstructions(
 
 	const joinedSections = sections.join("\n\n")
 
+	// Append disclaimer if custom instructions reference disabled tools
+	let disclaimer = ""
+	if (options.settings?.disabledTools?.length) {
+		const toolContext = new ToolAvailabilityContext(options.settings.disabledTools)
+		const disclaimerText = generateDisabledToolsDisclaimer(joinedSections, toolContext)
+		if (disclaimerText) {
+			disclaimer = `\n\n${disclaimerText}`
+		}
+	}
+
 	return joinedSections
 		? `
 ====
@@ -501,7 +513,7 @@ USER'S CUSTOM INSTRUCTIONS
 
 The following additional instructions are provided by the user, and should be followed to the best of your ability.
 
-${joinedSections}
+${joinedSections}${disclaimer}
 `
 		: ""
 }

@@ -1,4 +1,16 @@
-export function getSharedToolUseSection(): string {
+import { ToolAvailabilityContext } from "../tools/tool-availability-context"
+
+export function getSharedToolUseSection(toolContext?: ToolAvailabilityContext): string {
+	// When all tools are disabled, return minimal content
+	if (toolContext && toolContext.areAllDisabled()) {
+		return `====
+
+TOOL USE
+
+No tools are available in the current session. Respond directly to the user without attempting tool calls.`
+	}
+
+	// Standard content (backward compatible when toolContext is undefined)
 	return `====
 
 TOOL USE

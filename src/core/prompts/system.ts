@@ -12,6 +12,8 @@ import { CodeIndexManager } from "../../services/code-index/manager"
 import { SkillsManager } from "../../services/skills/SkillsManager"
 
 import type { SystemPromptSettings } from "./types"
+import { ToolAvailabilityContext } from "./tools/tool-availability-context"
+import { stripDisabledToolReferences } from "./tools/strip-tool-references"
 import {
 	getRulesSection,
 	getSystemInfoSection,
@@ -60,6 +62,9 @@ async function generatePrompt(
 		throw new Error("Extension context is required for generating system prompt")
 	}
 
+	// Create tool availability context from disabled tools setting
+	const toolContext = new ToolAvailabilityContext(settings?.disabledTools)
+
 	// Get the full mode config to ensure we have the role definition (used for groups, etc.)
 	const modeConfig = getModeBySlug(mode, customModeConfigs) || modes.find((m) => m.slug === mode) || modes[0]
 	let { roleDefinition, baseInstructions } = getModeSelection(mode, promptComponent, customModeConfigs)
@@ -70,6 +75,9 @@ async function generatePrompt(
 		// Matches lines starting with "- " or similar, containing `async_task`, through to the end of the line.
 		baseInstructions = baseInstructions.replace(/^.*- Use `async_task`.*(?:\r?\n|$)/gm, "")
 	}
+
+	// Strip references to disabled tools from baseInstructions
+	baseInstructions = stripDisabledToolReferences(baseInstructions, toolContext)
 
 	// Check if MCP functionality should be included
 	const hasMcpGroup = modeConfig.groups.some((groupEntry) => getGroupName(groupEntry) === "mcp")
@@ -93,11 +101,11 @@ async function generatePrompt(
 
 ${markdownFormattingSection()}
 
-${getSharedToolUseSection()}${toolsCatalog}
+${getSharedToolUseSection(toolContext)}${toolsCatalog}
 
-	${getToolUseGuidelinesSection()}
+	${getToolUseGuidelinesSection(toolContext)}
 
-${getCapabilitiesSection(cwd, shouldIncludeMcp ? mcpHub : undefined)}
+${getCapabilitiesSection(cwd, shouldIncludeMcp ? mcpHub : undefined, toolContext)}
 
 ${modesSection}
 ${skillsSection ? `\n${skillsSection}` : ""}
