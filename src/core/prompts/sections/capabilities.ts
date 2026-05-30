@@ -10,7 +10,7 @@ const CAPABILITY_PHASES: { tools: string[]; phrase: string }[] = [
 	{ tools: ["list_files"], phrase: "list files" },
 	{ tools: ["read_file"], phrase: "view source code definitions" },
 	{ tools: ["search_files", "codebase_search"], phrase: "regex search" },
-	{ tools: ["write_to_file", "apply_diff", "edit_file", "search_replace", "apply_patch"], phrase: "read and write files" },
+	{ tools: ["write_to_file", "apply_diff", "edit_file", "edit", "apply_patch"], phrase: "read and write files" },
 	{ tools: ["ask_followup_question"], phrase: "ask follow-up questions" },
 ]
 
@@ -24,7 +24,7 @@ function buildCapabilitiesSummary(toolContext?: ToolAvailabilityContext): string
 	}
 
 	const availablePhrases = CAPABILITY_PHASES
-		.filter((category) => category.tools.some((tool) => toolContext.isToolAvailable(tool)))
+		.filter((category) => toolContext.isCategoryAvailable(category.tools))
 		.map((category) => category.phrase)
 
 	if (availablePhrases.length === 0) {

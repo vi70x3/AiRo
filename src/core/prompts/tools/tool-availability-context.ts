@@ -1,33 +1,25 @@
+import { getNativeTools } from "./native-tools"
+import { ALWAYS_AVAILABLE_TOOLS } from "../../../shared/tools"
 import { resolveToolAlias } from "./filter-tools-for-mode"
 
 /**
  * All native tool names that can appear in the system prompt.
- * Derived from the tool definitions in native-tools/index.ts and ALWAYS_AVAILABLE_TOOLS.
+ * Derived programmatically from getNativeTools() and ALWAYS_AVAILABLE_TOOLS
+ * to prevent drift from the canonical source.
  */
-const ALL_NATIVE_TOOL_NAMES: string[] = [
-	"access_mcp_resource",
-	"apply_diff",
-	"apply_patch",
-	"ask_followup_question",
-	"attempt_completion",
-	"async_task",
-	"codebase_search",
-	"execute_command",
-	"generate_image",
-	"list_files",
-	"new_task",
-	"read_command_output",
-	"read_file",
-	"run_slash_command",
-	"skill",
-	"search_replace",
-	"edit_file",
-	"edit",
-	"search_files",
-	"switch_mode",
-	"update_todo_list",
-	"write_to_file",
-]
+const ALL_NATIVE_TOOL_NAMES: string[] = Array.from(
+	new Set([
+		...getNativeTools().map((tool) => {
+			if ("function" in tool && tool.function) {
+				return tool.function.name
+			}
+			return ""
+		}).filter(Boolean),
+		...ALWAYS_AVAILABLE_TOOLS,
+	]),
+)
+
+export { ALL_NATIVE_TOOL_NAMES }
 
 /**
  * Lightweight context that encapsulates which tools are available in the current session.
@@ -76,6 +68,16 @@ export class ToolAvailabilityContext {
 	 */
 	areAllDisabled(): boolean {
 		return ALL_NATIVE_TOOL_NAMES.every((tool) => this.disabledTools.has(tool))
+	}
+
+	/**
+	 * Check if any tool in a category is available.
+	 * Resolves aliases on both the category tool names and the disabled set
+	 * so that disabling an alias (e.g. search_and_replace) correctly marks
+	 * the canonical tool (e.g. edit) and its aliases (e.g. search_replace) as unavailable.
+	 */
+	isCategoryAvailable(toolNames: string[]): boolean {
+		return toolNames.some((tool) => this.isToolAvailable(tool))
 	}
 
 	/**

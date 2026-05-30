@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { ToolAvailabilityContext } from "../tool-availability-context"
+import { ToolAvailabilityContext, ALL_NATIVE_TOOL_NAMES } from "../tool-availability-context"
 
 describe("ToolAvailabilityContext", () => {
 	describe("constructor", () => {
@@ -79,15 +79,7 @@ describe("ToolAvailabilityContext", () => {
 		})
 
 		it("areAllDisabled returns true when all known tools are disabled", () => {
-			const allTools = [
-				"access_mcp_resource", "apply_diff", "apply_patch", "ask_followup_question",
-				"attempt_completion", "async_task", "codebase_search", "execute_command",
-				"generate_image", "list_files", "new_task", "read_command_output",
-				"read_file", "run_slash_command", "skill", "search_replace",
-				"edit_file", "edit", "search_files", "switch_mode",
-				"update_todo_list", "write_to_file",
-			]
-			const ctx = new ToolAvailabilityContext(allTools)
+			const ctx = new ToolAvailabilityContext(ALL_NATIVE_TOOL_NAMES)
 			expect(ctx.areAllDisabled()).toBe(true)
 		})
 	})
@@ -125,29 +117,31 @@ describe("ToolAvailabilityContext", () => {
 		})
 
 		it("areAllDisabled returns true when all native tools are disabled plus non-native", () => {
-			const allNative = [
-				"access_mcp_resource", "apply_diff", "apply_patch", "ask_followup_question",
-				"attempt_completion", "async_task", "codebase_search", "execute_command",
-				"generate_image", "list_files", "new_task", "read_command_output",
-				"read_file", "run_slash_command", "skill", "search_replace",
-				"edit_file", "edit", "search_files", "switch_mode",
-				"update_todo_list", "write_to_file",
-			]
-			const ctx = new ToolAvailabilityContext([...allNative, "use_mcp_tool", "custom_tool"])
+			const ctx = new ToolAvailabilityContext([...ALL_NATIVE_TOOL_NAMES, "use_mcp_tool", "custom_tool"])
 			expect(ctx.areAllDisabled()).toBe(true)
 		})
 
 		it("hasAnyAvailable returns false when all native tools are disabled", () => {
-			const allNative = [
-				"access_mcp_resource", "apply_diff", "apply_patch", "ask_followup_question",
-				"attempt_completion", "async_task", "codebase_search", "execute_command",
-				"generate_image", "list_files", "new_task", "read_command_output",
-				"read_file", "run_slash_command", "skill", "search_replace",
-				"edit_file", "edit", "search_files", "switch_mode",
-				"update_todo_list", "write_to_file",
-			]
-			const ctx = new ToolAvailabilityContext(allNative)
+			const ctx = new ToolAvailabilityContext(ALL_NATIVE_TOOL_NAMES)
 			expect(ctx.hasAnyAvailable()).toBe(false)
+		})
+
+		it("ALL_NATIVE_TOOL_NAMES contains all getNativeTools names and ALWAYS_AVAILABLE_TOOLS", () => {
+			// Verify ALL_NATIVE_TOOL_NAMES is a superset of both sources
+			// by checking it contains the expected count and key tools
+			expect(ALL_NATIVE_TOOL_NAMES.length).toBeGreaterThanOrEqual(20)
+			// Spot-check key tools from getNativeTools
+			expect(ALL_NATIVE_TOOL_NAMES).toContain("execute_command")
+			expect(ALL_NATIVE_TOOL_NAMES).toContain("read_file")
+			expect(ALL_NATIVE_TOOL_NAMES).toContain("list_files")
+			expect(ALL_NATIVE_TOOL_NAMES).toContain("edit")
+			// Spot-check tools from ALWAYS_AVAILABLE_TOOLS
+			expect(ALL_NATIVE_TOOL_NAMES).toContain("ask_followup_question")
+			expect(ALL_NATIVE_TOOL_NAMES).toContain("attempt_completion")
+			expect(ALL_NATIVE_TOOL_NAMES).toContain("switch_mode")
+			expect(ALL_NATIVE_TOOL_NAMES).toContain("new_task")
+			// Verify no duplicates
+			expect(new Set(ALL_NATIVE_TOOL_NAMES).size).toBe(ALL_NATIVE_TOOL_NAMES.length)
 		})
 	})
 })

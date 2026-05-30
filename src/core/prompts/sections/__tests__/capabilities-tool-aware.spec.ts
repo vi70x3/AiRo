@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { getCapabilitiesSection } from "../capabilities"
-import { ToolAvailabilityContext } from "../../tools/tool-availability-context"
+import { ToolAvailabilityContext, ALL_NATIVE_TOOL_NAMES } from "../../tools/tool-availability-context"
 
 describe("getCapabilitiesSection - tool aware", () => {
 	const cwd = "/test/path"
@@ -46,12 +46,8 @@ describe("getCapabilitiesSection - tool aware", () => {
 	})
 
 	it("handles all tools disabled with minimal fallback", () => {
-		const allTools = [
-			"execute_command", "list_files", "search_files", "codebase_search",
-			"read_file", "write_to_file", "apply_diff", "edit_file", "search_replace",
-			"apply_patch", "ask_followup_question",
-		]
-		const ctx = new ToolAvailabilityContext(allTools)
+		// Disable ALL native tools to trigger the minimal fallback
+		const ctx = new ToolAvailabilityContext(ALL_NATIVE_TOOL_NAMES)
 		const result = getCapabilitiesSection(cwd, undefined, ctx)
 		expect(result).not.toContain("execute_command")
 		expect(result).not.toContain("list_files")
@@ -66,19 +62,22 @@ describe("getCapabilitiesSection - tool aware", () => {
 	})
 
 	it("resolves aliases (search_and_replace -> edit)", () => {
-		// Disabling search_and_replace should affect edit-related content
-		const ctx = new ToolAvailabilityContext(["search_and_replace"])
+		// Disable search_and_replace (alias for edit) plus all other tools in the
+		// "read and write files" category to verify alias resolution removes the category
+		const ctx = new ToolAvailabilityContext([
+			"search_and_replace", "write_to_file", "apply_diff", "edit_file", "apply_patch",
+		])
 		const result = getCapabilitiesSection(cwd, undefined, ctx)
-		// The "read and write files" category includes search_replace, but also
-		// write_to_file, apply_diff, etc. so it should still be present
-		expect(result).toContain("read and write files")
+		// With all "read and write files" tools disabled, the category should be absent
+		expect(result).not.toContain("read and write files")
 	})
 
 	it("uses 'and' without comma for exactly two capabilities", () => {
-		// Disable all but read_file and ask_followup_question
+		// Disable all tools in "edit" category to leave exactly 2 categories:
+		// "view source code definitions" (read_file) and "ask follow-up questions" (ask_followup_question)
 		const ctx = new ToolAvailabilityContext([
 			"execute_command", "list_files", "search_files", "codebase_search",
-			"write_to_file", "apply_diff", "edit_file", "search_replace", "apply_patch",
+			"write_to_file", "apply_diff", "edit_file", "edit", "apply_patch",
 		])
 		const result = getCapabilitiesSection("/test/path", undefined, ctx)
 		// Should be "view source code definitions and ask follow-up questions" (no comma)

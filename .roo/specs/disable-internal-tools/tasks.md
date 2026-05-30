@@ -6,7 +6,7 @@
 
 - [x] **T1.2**: Create `src/core/prompts/tools/__tests__/tool-availability-context.spec.ts` — unit tests covering: empty disabled list (all available), partial disabling, full disabling, alias resolution (e.g. `search_and_replace` → `edit`), `undefined`/`null` input handling, `isToolAvailable()`/`isToolDisabled()` consistency.
 
-- [x] **T1.3**: Create `src/core/prompts/tools/strip-tool-references.ts` — implement `stripDisabledToolReferences(instructions, toolContext)` function with `TOOL_REFERENCE_PATTERNS` registry. Each entry maps a tool name to an array of regex patterns that match common reference formats in mode instructions (bullet-point patterns like `^-.*Use `tool_name`...`, conservative inline patterns). After all replacements, collapse excessive blank lines with `\n{3,}` → `\n\n` and trim.
+- [x] **T1.3**: Create `src/core/prompts/tools/strip-tool-references.ts` — implement `stripDisabledToolReferences(instructions, toolContext)` function with `TOOL_REFERENCE_PATTERNS` registry. Each entry maps a tool name to an array of regex patterns that match common reference formats in mode instructions (bullet-point patterns like `^-.*Use \`tool_name\`...`, conservative inline patterns). After all replacements, collapse excessive blank lines with `\n{3,}` → `\n\n` and trim.
 
 - [x] **T1.4**: Create `src/core/prompts/tools/__tests__/strip-tool-references.spec.ts` — unit tests covering: no disabled tools (output identical to input), single tool disabled with bullet-point pattern, multiple tools disabled, alias-based disabling, patterns that don't match (no false removals), blank line cleanup after removals.
 
