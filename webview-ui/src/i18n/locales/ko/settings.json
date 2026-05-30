@@ -687,7 +687,8 @@
             "options": {
                 "small": "작게 (5KB)",
                 "medium": "보통 (10KB)",
-                "large": "크게 (20KB)"
+                "large": "크게 (20KB)",
+                "xlarge": "특대 (50KB)"
             }
         },
         "shellIntegrationTimeout": {

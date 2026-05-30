@@ -697,7 +697,8 @@
             "options": {
                 "small": "小 (5KB)",
                 "medium": "中 (10KB)",
-                "large": "大 (20KB)"
+                "large": "大 (20KB)",
+                "xlarge": "特大 (50KB)"
             }
         },
         "shellIntegrationTimeout": {

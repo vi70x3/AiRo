@@ -32,11 +32,12 @@ export const DEFAULT_WRITE_DELAY_MS = 0
  * - `small`: 5KB preview - Best for long-running commands with verbose output
  * - `medium`: 10KB preview - Balanced default for most use cases
  * - `large`: 20KB preview - Best when commands produce critical info early
+ * - `xlarge`: 50KB preview - Maximum immediate context for detailed output
  *
  * @see OutputInterceptor - Uses this setting to determine when to spill to disk
  * @see PersistedCommandOutput - Contains the resulting preview and artifact reference
  */
-export type TerminalOutputPreviewSize = "small" | "medium" | "large"
+export type TerminalOutputPreviewSize = "small" | "medium" | "large" | "xlarge"
 
 /**
  * Byte limits for each terminal output preview size.
@@ -49,14 +50,15 @@ export const TERMINAL_PREVIEW_BYTES: Record<TerminalOutputPreviewSize, number> =
 	small: 5 * 1024, // 5KB
 	medium: 10 * 1024, // 10KB
 	large: 20 * 1024, // 20KB
+	xlarge: 50 * 1024, // 50KB
 }
 
 /**
  * Default terminal output preview size.
- * The "medium" (10KB) setting provides a good balance between immediate
- * visibility and context window conservation for most use cases.
+ * The "xlarge" (50KB) setting provides maximum immediate context
+ * for detailed command output.
  */
-export const DEFAULT_TERMINAL_OUTPUT_PREVIEW_SIZE: TerminalOutputPreviewSize = "medium"
+export const DEFAULT_TERMINAL_OUTPUT_PREVIEW_SIZE: TerminalOutputPreviewSize = "xlarge"
 
 /**
  * Minimum checkpoint timeout in seconds.
@@ -166,7 +168,7 @@ export const globalSettingsSchema = z.object({
 	maxImageFileSize: z.number().optional(),
 	maxTotalImageSize: z.number().optional(),
 
-	terminalOutputPreviewSize: z.enum(["small", "medium", "large"]).optional(),
+	terminalOutputPreviewSize: z.enum(["small", "medium", "large", "xlarge"]).optional(),
 	terminalShellIntegrationTimeout: z.number().optional(),
 	terminalShellIntegrationDisabled: z.boolean().optional(),
 	terminalCommandDelay: z.number().optional(),

@@ -11,6 +11,7 @@ import {
 	type ExtensionMessage,
 	type ExtensionState,
 	type SkillMetadata,
+	type TerminalOutputPreviewSize,
 	type Command,
 	type McpServer,
 	RouterModels,
@@ -79,8 +80,8 @@ export interface ExtensionStateContextType extends ExtensionState {
 	checkpointTimeout: number
 	setCheckpointTimeout: (value: number) => void
 	setWriteDelayMs: (value: number) => void
-	terminalOutputPreviewSize?: "small" | "medium" | "large"
-	setTerminalOutputPreviewSize: (value: "small" | "medium" | "large") => void
+	terminalOutputPreviewSize?: TerminalOutputPreviewSize
+	setTerminalOutputPreviewSize: (value: TerminalOutputPreviewSize) => void
 	mcpEnabled: boolean
 	setMcpEnabled: (value: boolean) => void
 	setCurrentApiConfigName: (value: string) => void

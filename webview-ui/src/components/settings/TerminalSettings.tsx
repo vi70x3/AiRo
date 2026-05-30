@@ -101,7 +101,7 @@ export const TerminalSettings = ({
 								{t("settings:terminal.outputPreviewSize.label")}
 							</label>
 							<Select
-								value={terminalOutputPreviewSize || "medium"}
+								value={terminalOutputPreviewSize || "xlarge"}
 								onValueChange={(value) =>
 									setCachedStateField("terminalOutputPreviewSize", value as TerminalOutputPreviewSize)
 								}>
@@ -117,6 +117,9 @@ export const TerminalSettings = ({
 									</SelectItem>
 									<SelectItem value="large">
 										{t("settings:terminal.outputPreviewSize.options.large")}
+									</SelectItem>
+									<SelectItem value="xlarge">
+										{t("settings:terminal.outputPreviewSize.options.xlarge")}
 									</SelectItem>
 								</SelectContent>
 							</Select>

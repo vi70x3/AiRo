@@ -383,7 +383,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					terminalZshOhMy,
 					terminalZshP10k,
 					terminalZdotdir,
-					terminalOutputPreviewSize: terminalOutputPreviewSize ?? "medium",
+					terminalOutputPreviewSize: terminalOutputPreviewSize ?? "xlarge",
 					mcpEnabled,
 					maxOpenTabsContext: Math.min(Math.max(0, maxOpenTabsContext ?? 20), 500),
 					maxWorkspaceFiles: Math.min(Math.max(0, maxWorkspaceFiles ?? 200), 500),
