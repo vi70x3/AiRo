@@ -122,11 +122,17 @@ Mode-specific Instructions:
 
 8. For tasks.md, create a checkbox task list with specific, actionable items. Use the `update_todo_list` tool to track progress.
 
-9. After all documents are complete, use the `ask_followup_question` tool to ask the user if they want to start implementation. If yes, use the `switch_mode` tool to switch to the appropriate mode based on the spec type chosen in step 4:
-   - **bugfix** spec type → switch to **debug** mode (using the slug "debug")
-   - **feature** spec type → switch to **vibe** mode (using the slug "vibe")
-   - If the spec type is **feature** but the user indicates debugging is also required, explicitly ask whether to switch to debug mode or continue in vibe mode.
-   - The `reason` parameter for `switch_mode` MUST include the spec name in the format: "Implementing spec: <spec-name>" (e.g., "Implementing spec: my-feature-name"). This allows the target mode to determine which spec to work on and whether to create a new branch or reuse an existing one.
+9. After all documents are complete, use the `ask_followup_question` tool to present the user with explicit mode-switch choices. The `question` should be "What would you like to do next?" and the `follow_up` options MUST include mode switches in this order:
+   - "Switch to Orchestrator and coordinate implementation" with `mode: "orchestrator"`
+   - "Switch to Vibe and start implementing" with `mode: "vibe"`
+   - "Switch to Debug and investigate issues" with `mode: "debug"`
+   - "Stay in Spec mode" with `mode: "spec"`
+
+   The first option (Orchestrator) should be the default/recommended choice for most spec workflows. Adjust the ordering if the spec type suggests a different primary path:
+   - **bugfix** spec type → lead with Debug mode as the first option
+   - **feature** spec type → lead with Orchestrator or Vibe as the first option
+
+   When the user selects a mode switch, use the `switch_mode` tool with the chosen mode slug. The `reason` parameter for `switch_mode` MUST include the spec name in the format: "Implementing spec: <spec-name>" (e.g., "Implementing spec: my-feature-name"). This allows the target mode to determine which spec to work on and whether to create a new branch or reuse an existing one.
 
 **Spec documents live in `.roo/specs/<feature-name>/`**
 - Use the feature name as the directory name (kebab-case)
