@@ -443,7 +443,7 @@ describe("truncateOutput", () => {
 			})
 
 			it("handles character limit with multi-byte characters", () => {
-				const content = "🚀🎉🌟💻🌟🎨🎯🎪🎭🎬" // 10 emojis, each is multi-byte
+				const content = "🚀🎉✨💻🌟🎨🎯🎪🎭🎬" // 10 emojis, each is multi-byte
 				const result = truncateOutput(content, undefined, 10)
 
 				// Character limit works on string length, not byte count
