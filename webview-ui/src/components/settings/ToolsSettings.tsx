@@ -21,11 +21,12 @@ type ToolsSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	setCachedStateField: SetCachedStateField<"disabledTools">
 }
 
-export const ToolsSettings = ({ disabledTools = [], setCachedStateField, ...props }: ToolsSettingsProps) => {
+export const ToolsSettings = ({ disabledTools, setCachedStateField, ...props }: ToolsSettingsProps) => {
 	const { t } = useAppTranslation()
+	const safeDisabledTools = disabledTools ?? []
 
 	const handleToggleTool = (toolName: ToolName, checked: boolean) => {
-		const currentDisabledTools = [...disabledTools]
+		const currentDisabledTools = [...safeDisabledTools]
 		if (!checked) {
 			// Disable tool: add to disabledTools if not already there
 			if (!currentDisabledTools.includes(toolName)) {

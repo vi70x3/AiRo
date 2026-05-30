@@ -52,6 +52,7 @@
             "command": "Command",
             "mcp": "MCP",
             "modes": "Modes",
+            "custom": "Custom",
             "alwaysAvailable": "Always Available"
         },
         "warning": {

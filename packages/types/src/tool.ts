@@ -4,7 +4,7 @@ import { z } from "zod"
  * ToolGroup
  */
 
-export const toolGroups = ["read", "edit", "command", "mcp", "modes"] as const
+export const toolGroups = ["read", "edit", "command", "mcp", "modes", "custom"] as const
 
 export const toolGroupsSchema = z.enum(toolGroups)
 
@@ -28,7 +28,7 @@ export const toolNames = [
 	"write_to_file",
 	"apply_diff",
 	"edit",
-	"search_and_replace",
+	"search_and_replace", // Legacy alias for "edit"
 	"search_replace",
 	"edit_file",
 	"apply_patch",
@@ -103,7 +103,16 @@ export const toolGroupConfig: readonly {
 	{
 		groupKey: "edit",
 		labelKey: "settings:tools.group.edit",
-		tools: ["apply_diff", "write_to_file", "edit", "search_replace", "edit_file", "apply_patch", "generate_image"],
+		tools: [
+			"apply_diff",
+			"write_to_file",
+			"edit",
+			"search_replace",
+			"search_and_replace",
+			"edit_file",
+			"apply_patch",
+			"generate_image",
+		],
 	},
 	{
 		groupKey: "command",
@@ -119,6 +128,11 @@ export const toolGroupConfig: readonly {
 		groupKey: "modes",
 		labelKey: "settings:tools.group.modes",
 		tools: ["switch_mode", "new_task", "async_task"],
+	},
+	{
+		groupKey: "custom",
+		labelKey: "settings:tools.group.custom",
+		tools: ["custom_tool"], // Internal tool used for executing non-native tools
 	},
 	{
 		groupKey: "alwaysAvailable",

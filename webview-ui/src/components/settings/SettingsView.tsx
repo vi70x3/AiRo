@@ -99,8 +99,8 @@ export interface SettingsViewRef {
 
 export const sectionNames = [
 	"providers",
-	"autoApprove",
 	"tools",
+	"autoApprove",
 	"slashCommands",
 	"skills",
 	"checkpoints",
