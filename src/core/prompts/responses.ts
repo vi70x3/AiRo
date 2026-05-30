@@ -3,6 +3,7 @@ import * as path from "path"
 import * as diff from "diff"
 import { RooIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/RooIgnoreController"
 import { RooProtectedController } from "../protect/RooProtectedController"
+import { ToolAvailabilityContext } from "./tools/tool-availability-context"
 
 export const formatResponse = {
 	toolDenied: () =>
@@ -39,18 +40,28 @@ export const formatResponse = {
 			suggestion: "Try to continue without this file, or ask the user to update the .rooignore file",
 		}),
 
-	noToolsUsed: () => {
+	noToolsUsed: (disabledTools?: string[]) => {
 		const instructions = getToolInstructionsReminder()
+		const toolContext = new ToolAvailabilityContext(disabledTools)
+
+		let nextSteps = '# Next Steps\n\n'
+		if (toolContext.isToolAvailable('attempt_completion')) {
+			nextSteps += 'If you have completed the user\'s task, use the attempt_completion tool.\n'
+		}
+		if (toolContext.isToolAvailable('ask_followup_question')) {
+			nextSteps += 'If you require additional information from the user, use the ask_followup_question tool.\n'
+		}
+		if (!toolContext.isToolAvailable('attempt_completion') && !toolContext.isToolAvailable('ask_followup_question')) {
+			nextSteps += 'Proceed with the next step of the task.\n'
+		} else {
+			nextSteps += 'Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task.\n'
+		}
 
 		return `[ERROR] You did not use a tool in your previous response! Please retry with a tool use.
 
 ${instructions}
 
-# Next Steps
-
-If you have completed the user's task, use the attempt_completion tool.
-If you require additional information from the user, use the ask_followup_question tool.
-Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task.
+${nextSteps}
 (This is an automated message, so do not respond to it conversationally.)`
 	},
 

@@ -59,8 +59,10 @@ vi.mock("../sections/modes", () => ({
 	getModesSection: vi.fn().mockImplementation(async () => `====\n\nMODES\n\n- Test modes section`),
 }))
 
-// Mock the custom instructions
-vi.mock("../sections/custom-instructions", () => {
+// Mock the custom instructions — delegates disclaimer logic to the real
+// generateDisabledToolsDisclaimer and ToolAvailabilityContext so tests
+// exercise production behavior for alias resolution and word-boundary matching.
+vi.mock("../sections/custom-instructions", async () => {
 	const addCustomInstructions = vi.fn()
 	return {
 		addCustomInstructions,
@@ -70,7 +72,7 @@ vi.mock("../sections/custom-instructions", () => {
 	}
 })
 
-// Set up default mock implementation
+// Set up default mock implementation that uses real disclaimer logic
 const customInstructionsMock = vi.mocked(await import("../sections/custom-instructions"))
 const { __setMockImplementation } = customInstructionsMock as any
 __setMockImplementation(
@@ -79,7 +81,7 @@ __setMockImplementation(
 		globalCustomInstructions: string,
 		cwd: string,
 		mode: string,
-		options?: { language?: string },
+		options?: { language?: string; settings?: { disabledTools?: string[] } },
 	) => {
 		const sections = []
 
@@ -112,9 +114,22 @@ __setMockImplementation(
 		}
 
 		const joinedSections = sections.join("\n\n")
-		return joinedSections
-			? `\n====\n\nUSER'S CUSTOM INSTRUCTIONS\n\nThe following additional instructions are provided by the user, and should be followed to the best of your ability without interfering with the TOOL USE guidelines.\n\n${joinedSections}`
-			: ""
+
+		// Use real generateDisabledToolsDisclaimer + ToolAvailabilityContext
+		// for production-accurate alias resolution and word-boundary matching.
+		let disclaimer = ""
+		if (options?.settings?.disabledTools?.length) {
+			const { ToolAvailabilityContext } = await import("../tools/tool-availability-context")
+			const { generateDisabledToolsDisclaimer } = await import("../tools/disabled-tools-disclaimer")
+			const toolContext = new ToolAvailabilityContext(options.settings.disabledTools)
+			const disclaimerText = generateDisabledToolsDisclaimer(joinedSections, toolContext)
+			if (disclaimerText) {
+				disclaimer = `\n\n${disclaimerText}`
+			}
+		}
+
+		const prefix = "\n====\n\nUSER'S CUSTOM INSTRUCTIONS\n\nThe following additional instructions are provided by the user, and should be followed to the best of your ability without interfering with the TOOL USE guidelines.\n\n"
+		return joinedSections ? prefix + joinedSections + disclaimer : ""
 	},
 )
 
@@ -374,5 +389,136 @@ describe("addCustomInstructions", () => {
 		expect(instructions).toMatchFileSnapshot(
 			"./__snapshots__/add-custom-instructions/prioritized-instructions-order.snap",
 		)
+	})
+})
+
+
+describe("addCustomInstructions - disabled tools disclaimer", () => {
+	it("appends disclaimer when custom instructions reference a disabled tool", async () => {
+		const result = await addCustomInstructions(
+			"Always use execute_command to run tests",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["execute_command"] },
+			},
+		)
+		expect(result).toContain("execute_command")
+		expect(result).toContain("currently disabled")
+		expect(result).toContain("Do not attempt to use them")
+	})
+
+	it("does not append disclaimer when custom instructions do not reference disabled tools", async () => {
+		const result = await addCustomInstructions(
+			"Always write clean code",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["execute_command"] },
+			},
+		)
+		expect(result).not.toContain("currently disabled")
+		expect(result).not.toContain("Do not attempt to use them")
+	})
+
+	it("does not append disclaimer when no tools are disabled", async () => {
+		const result = await addCustomInstructions(
+			"Always use execute_command to run tests",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: [] },
+			},
+		)
+		expect(result).not.toContain("currently disabled")
+	})
+
+	it("does not append disclaimer when settings is undefined", async () => {
+		const result = await addCustomInstructions(
+			"Always use execute_command to run tests",
+			"",
+			"/test/path",
+			"code",
+			{},
+		)
+		expect(result).not.toContain("currently disabled")
+	})
+
+	it("lists all disabled tools that are referenced", async () => {
+		const result = await addCustomInstructions(
+			"Use execute_command and list_files for exploration",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["execute_command", "list_files"] },
+			},
+		)
+		expect(result).toContain("execute_command")
+		expect(result).toContain("list_files")
+		expect(result).toContain("currently disabled")
+	})
+
+	it("resolves aliases via ToolAvailabilityContext (search_and_replace -> edit)", async () => {
+		// Disabling search_and_replace (alias for edit) should trigger disclaimer
+		// when instructions mention "edit" (the canonical name)
+		const result = await addCustomInstructions(
+			"Use the edit tool for making changes",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["search_and_replace"] },
+			},
+		)
+		expect(result).toContain("currently disabled")
+		expect(result).toContain("edit")
+	})
+
+	it("does not false-positive on substring matches (edit vs editor)", async () => {
+		// "editor" contains "edit" but should not trigger the disclaimer
+		const result = await addCustomInstructions(
+			"Use the editor for making changes",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["edit"] },
+			},
+		)
+		expect(result).not.toContain("currently disabled")
+	})
+
+	it("matches backtick-wrapped tool names", async () => {
+		const result = await addCustomInstructions(
+			"Always use `execute_command` to run tests",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["execute_command"] },
+			},
+		)
+		expect(result).toContain("currently disabled")
+	})
+
+	it("handles multiple disabled tools with partial matches", async () => {
+		// Only execute_command is referenced; list_files is disabled but not mentioned
+		const result = await addCustomInstructions(
+			"Use execute_command for everything",
+			"",
+			"/test/path",
+			"code",
+			{
+				settings: { disabledTools: ["execute_command", "list_files"] },
+			},
+		)
+		expect(result).toContain("currently disabled")
+		expect(result).toContain("execute_command")
+		// list_files is disabled but not referenced, so it should not appear in disclaimer
+		expect(result).not.toContain("list_files")
 	})
 })

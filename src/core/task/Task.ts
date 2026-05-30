@@ -194,6 +194,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	 * @see {@link waitForModeInitialization} - To ensure initialization is complete
 	 */
 	private _taskMode: string | undefined
+	private _disabledTools: string[] | undefined
 
 	/**
 	 * Promise that resolves when the task mode has been initialized.
@@ -581,6 +582,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		try {
 			const state = await provider.getState()
 			this._taskMode = state?.mode || defaultModeSlug
+			this._disabledTools = state?.disabledTools
 		} catch (error) {
 			// If there's an error getting state, use the default mode
 			this._taskMode = defaultModeSlug
@@ -2444,7 +2446,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 				// the user hits max requests and denies resetting the count.
 				break
 			} else {
-				nextUserContent = [{ type: "text", text: formatResponse.noToolsUsed() }]
+				nextUserContent = [{ type: "text", text: formatResponse.noToolsUsed(this.getDisabledTools()) }]
 			}
 		}
 	}
@@ -3467,7 +3469,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						// Use the task's locked protocol for consistent behavior
 						this.userMessageContent.push({
 							type: "text",
-							text: formatResponse.noToolsUsed(),
+							text: formatResponse.noToolsUsed(this.getDisabledTools()),
 						})
 					} else {
 						// Reset counter when tools are used successfully
@@ -3601,6 +3603,14 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		return false
 	}
 
+	/**
+	 * Get the cached list of disabled tool names.
+	 * Updated during task initialization and when provider state changes.
+	 */
+	private getDisabledTools(): string[] | undefined {
+		return this._disabledTools
+	}
+
 	private async getSystemPrompt(): Promise<string> {
 		const { mcpEnabled } = (await this.providerRef.deref()?.getState()) ?? {}
 		let mcpHub: McpHub | undefined
@@ -3638,6 +3648,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			apiConfiguration,
 			enableSubfolderRules,
 		} = state ?? {}
+
+		// Refresh cached disabledTools from provider state.
+		// This ensures the cache is up-to-date for resumed tasks (where
+		// initializeTaskMode was not called) and for mid-session settings changes.
+		this._disabledTools = state?.disabledTools
 
 		return await (async () => {
 			const provider = this.providerRef.deref()
