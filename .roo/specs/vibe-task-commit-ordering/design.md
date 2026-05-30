@@ -8,7 +8,7 @@ This feature reorders the completion sequence in the Vibe mode `customInstructio
 
 The current completion sequence in the Vibe mode `customInstructions` is:
 
-```
+```text
 1. Commit changes         (git add -A + git commit)
 2. Push and suggest PR    (git push -u origin spec/<name>)
 3. Mark tasks completed   (update_todo_list → all [x])
@@ -21,7 +21,7 @@ This ordering means the spec's `tasks.md` file (which is part of the repo) gets 
 
 The revised completion sequence will be:
 
-```
+```text
 1. Update spec tasks.md   (mark all [x] in .roo/specs/<name>/tasks.md)
 2. Mark internal todos    (update_todo_list → all [x])
 3. Commit changes         (git add -A + git commit — now includes updated tasks.md)
@@ -37,7 +37,7 @@ The only change is to the `customInstructions` string on the Vibe mode config at
 
 #### Current ordering constraint (from the existing customInstructions):
 
-```
+```text
 The completion sequence MUST be:
 1. Commit changes (Requirement 3)
 2. Push branch (Requirement 4)
@@ -47,7 +47,7 @@ The completion sequence MUST be:
 
 #### Proposed ordering constraint:
 
-```
+```text
 The completion sequence MUST be:
 1. Update the spec's tasks.md file (mark all completed tasks as [x])
 2. Mark all internal todos as [x] via update_todo_list
