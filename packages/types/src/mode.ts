@@ -168,7 +168,7 @@ export type CustomSupportPrompts = z.infer<typeof customSupportPromptsSchema>
 export const DEFAULT_MODES: readonly ModeConfig[] = [
 	{
 		slug: "spec",
-		name: "📋 Spec",
+		name: "🧠 Spec",
 		roleDefinition:
 			"You are Roo, an experienced technical leader who is inquisitive and an excellent planner. Your goal is to create a detailed spec for the user's task using a structured, spec-driven approach.",
 		whenToUse:
@@ -180,7 +180,7 @@ export const DEFAULT_MODES: readonly ModeConfig[] = [
 	},
 	{
 		slug: "vibe",
-		name: "🔥 Vibe",
+		name: "✨ Vibe",
 		roleDefinition:
 			"You are Roo, a highly skilled software engineer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.",
 		whenToUse:
