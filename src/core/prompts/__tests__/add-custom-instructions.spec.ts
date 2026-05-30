@@ -117,7 +117,7 @@ __setMockImplementation(
 		let disclaimer = ""
 		if (options?.settings?.disabledTools?.length) {
 			const referencedTools = options.settings.disabledTools.filter(
-				(tool: string) => joinedSections.includes(tool)
+				(tool: string) => new RegExp(`\\b${tool}\\b`).test(joinedSections)
 			)
 			if (referencedTools.length > 0) {
 				disclaimer = `\n\nNote: The following tools referenced in your instructions are currently disabled in this session: ${referencedTools.join(", ")}. Do not attempt to use them.`

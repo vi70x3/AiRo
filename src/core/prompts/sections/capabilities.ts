@@ -35,7 +35,11 @@ function buildCapabilitiesSummary(toolContext?: ToolAvailabilityContext): string
 		return availablePhrases[0]
 	}
 
-	// Join with commas and "and" before the last item for proper English
+	if (availablePhrases.length === 2) {
+		return availablePhrases[0] + " and " + availablePhrases[1]
+	}
+
+	// Join with commas and "and" before the last item for proper English (3+ items)
 	const last = availablePhrases[availablePhrases.length - 1]
 	const rest = availablePhrases.slice(0, -1)
 	return rest.join(", ") + ", and " + last

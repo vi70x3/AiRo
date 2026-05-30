@@ -3649,6 +3649,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			enableSubfolderRules,
 		} = state ?? {}
 
+		// Refresh cached disabledTools from provider state.
+		// This ensures the cache is up-to-date for resumed tasks (where
+		// initializeTaskMode was not called) and for mid-session settings changes.
+		this._disabledTools = state?.disabledTools
+
 		return await (async () => {
 			const provider = this.providerRef.deref()
 

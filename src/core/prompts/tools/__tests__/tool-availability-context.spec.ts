@@ -111,4 +111,43 @@ describe("ToolAvailabilityContext", () => {
 			expect(names).toHaveLength(2)
 		})
 	})
+
+	describe("non-native tool names in disabledTools", () => {
+		it("hasAnyAvailable returns true when only non-native tools are disabled", () => {
+			// Disabling MCP/custom tools should not affect native tool availability
+			const ctx = new ToolAvailabilityContext(["use_mcp_tool", "access_mcp_resource", "custom_tool"])
+			expect(ctx.hasAnyAvailable()).toBe(true)
+		})
+
+		it("areAllDisabled returns false when only non-native tools are disabled", () => {
+			const ctx = new ToolAvailabilityContext(["use_mcp_tool", "custom_tool", "unknown_tool"])
+			expect(ctx.areAllDisabled()).toBe(false)
+		})
+
+		it("areAllDisabled returns true when all native tools are disabled plus non-native", () => {
+			const allNative = [
+				"access_mcp_resource", "apply_diff", "apply_patch", "ask_followup_question",
+				"attempt_completion", "async_task", "codebase_search", "execute_command",
+				"generate_image", "list_files", "new_task", "read_command_output",
+				"read_file", "run_slash_command", "skill", "search_replace",
+				"edit_file", "edit", "search_files", "switch_mode",
+				"update_todo_list", "write_to_file",
+			]
+			const ctx = new ToolAvailabilityContext([...allNative, "use_mcp_tool", "custom_tool"])
+			expect(ctx.areAllDisabled()).toBe(true)
+		})
+
+		it("hasAnyAvailable returns false when all native tools are disabled", () => {
+			const allNative = [
+				"access_mcp_resource", "apply_diff", "apply_patch", "ask_followup_question",
+				"attempt_completion", "async_task", "codebase_search", "execute_command",
+				"generate_image", "list_files", "new_task", "read_command_output",
+				"read_file", "run_slash_command", "skill", "search_replace",
+				"edit_file", "edit", "search_files", "switch_mode",
+				"update_todo_list", "write_to_file",
+			]
+			const ctx = new ToolAvailabilityContext(allNative)
+			expect(ctx.hasAnyAvailable()).toBe(false)
+		})
+	})
 })

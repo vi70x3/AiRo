@@ -2,19 +2,23 @@ import { ToolAvailabilityContext } from "./tool-availability-context"
 
 /**
  * Registry of regex patterns that match common tool references in mode instructions.
- * Each entry maps a canonical tool name to an array of patterns that match
- * reference formats found in baseInstructions text.
+ * Each entry maps a canonical tool name to an array of patterns.
  *
- * Patterns are ordered from most specific (bullet points) to least specific (inline mentions).
- * Only bullet-point patterns are applied by default to avoid over-stripping.
+ * Two pattern types:
+ * 1. Bullet-point lines: Remove the entire line if it's primarily about this tool
+ *    (e.g., "- Use `edit` to make changes"). Uses word-boundary check on the
+ *    backtick-wrapped name to avoid matching other tools on the same line.
+ * 2. Inline references: Remove just the backtick-wrapped tool name, preserving
+ *    the rest of the line content.
+ *
+ * Patterns are applied in order: bullet-point removal first, then inline cleanup.
  */
 const TOOL_REFERENCE_PATTERNS: Record<string, RegExp[]> = {
 	execute_command: [
-		// Bullet point lines that mention execute_command
+		// Bullet point lines primarily about execute_command
 		/^[^\n]*`execute_command`[^\n]*(?:\r?\n|$)/gm,
 	],
 	list_files: [
-		// Bullet point lines that mention list_files
 		/^[^\n]*`list_files`[^\n]*(?:\r?\n|$)/gm,
 	],
 	read_file: [
@@ -33,7 +37,8 @@ const TOOL_REFERENCE_PATTERNS: Record<string, RegExp[]> = {
 		/^[^\n]*`apply_diff`[^\n]*(?:\r?\n|$)/gm,
 	],
 	edit: [
-		/^[^\n]*`edit`[^\n]*(?:\r?\n|$)/gm,
+		// Match bullet points about `edit` but NOT `edit_file` — use negative lookahead
+		/^[^\n]*`edit`(?![_a-zA-Z])[^\n]*(?:\r?\n|$)/gm,
 	],
 	search_replace: [
 		/^[^\n]*`search_replace`[^\n]*(?:\r?\n|$)/gm,
@@ -77,8 +82,12 @@ const TOOL_REFERENCE_PATTERNS: Record<string, RegExp[]> = {
  * Strip references to disabled tools from mode baseInstructions.
  *
  * For each disabled tool, applies the corresponding regex patterns from
- * TOOL_REFERENCE_PATTERNS to remove lines/segments that reference the tool.
+ * TOOL_REFERENCE_PATTERNS to remove lines that primarily reference the tool.
  * After all removals, collapses excessive blank lines.
+ *
+ * The patterns use backtick-wrapped tool names (`` `tool_name` ``) to avoid
+ * false matches against plain text. The `edit` pattern uses a negative
+ * lookahead to avoid matching `edit_file` when processing the `edit` tool.
  *
  * @param instructions - The mode baseInstructions text to process
  * @param toolContext - The tool availability context

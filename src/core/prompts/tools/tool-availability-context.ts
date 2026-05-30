@@ -62,16 +62,20 @@ export class ToolAvailabilityContext {
 
 	/**
 	 * Check if at least one native tool is available.
+	 * Iterates over ALL_NATIVE_TOOL_NAMES to correctly handle cases where
+	 * disabledTools contains non-native tool names (MCP tools, custom tools, etc.).
 	 */
 	hasAnyAvailable(): boolean {
-		return this.disabledTools.size < ALL_NATIVE_TOOL_NAMES.length
+		return ALL_NATIVE_TOOL_NAMES.some((tool) => !this.disabledTools.has(tool))
 	}
 
 	/**
 	 * Check if all native tools are disabled.
+	 * Iterates over ALL_NATIVE_TOOL_NAMES to correctly handle cases where
+	 * disabledTools contains non-native tool names (MCP tools, custom tools, etc.).
 	 */
 	areAllDisabled(): boolean {
-		return this.disabledTools.size >= ALL_NATIVE_TOOL_NAMES.length
+		return ALL_NATIVE_TOOL_NAMES.every((tool) => this.disabledTools.has(tool))
 	}
 
 	/**

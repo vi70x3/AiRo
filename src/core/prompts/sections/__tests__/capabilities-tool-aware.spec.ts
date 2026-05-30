@@ -73,4 +73,24 @@ describe("getCapabilitiesSection - tool aware", () => {
 		// write_to_file, apply_diff, etc. so it should still be present
 		expect(result).toContain("read and write files")
 	})
+
+	it("uses 'and' without comma for exactly two capabilities", () => {
+		// Disable all but read_file and ask_followup_question
+		const ctx = new ToolAvailabilityContext([
+			"execute_command", "list_files", "search_files", "codebase_search",
+			"write_to_file", "apply_diff", "edit_file", "search_replace", "apply_patch",
+		])
+		const result = getCapabilitiesSection("/test/path", undefined, ctx)
+		// Should be "view source code definitions and ask follow-up questions" (no comma)
+		expect(result).toContain("view source code definitions and ask follow-up questions")
+		expect(result).not.toContain("view source code definitions, and ask follow-up questions")
+	})
+
+	it("uses serial comma for three or more capabilities", () => {
+		// Disable only execute_command — leaves 5 categories
+		const ctx = new ToolAvailabilityContext(["execute_command"])
+		const result = getCapabilitiesSection("/test/path", undefined, ctx)
+		// Should have ", and" before the last item
+		expect(result).toContain(", and ask follow-up questions")
+	})
 })
