@@ -125,11 +125,6 @@ export const toolGroupConfig: readonly {
 		tools: ["use_mcp_tool", "access_mcp_resource"],
 	},
 	{
-		groupKey: "modes",
-		labelKey: "settings:tools.group.modes",
-		tools: ["switch_mode", "new_task", "async_task"],
-	},
-	{
 		groupKey: "custom",
 		labelKey: "settings:tools.group.custom",
 		tools: ["custom_tool"], // Internal tool used for executing non-native tools
@@ -137,7 +132,16 @@ export const toolGroupConfig: readonly {
 	{
 		groupKey: "alwaysAvailable",
 		labelKey: "settings:tools.group.alwaysAvailable",
-		tools: ["ask_followup_question", "attempt_completion", "update_todo_list", "run_slash_command", "skill"],
+		tools: [
+			"ask_followup_question",
+			"attempt_completion",
+			"switch_mode",
+			"new_task",
+			"async_task",
+			"update_todo_list",
+			"run_slash_command",
+			"skill",
+		],
 		isAlwaysAvailable: true,
 	},
 ] as const
