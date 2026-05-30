@@ -9,11 +9,9 @@
 <details>
 <summary> <h4> ⚠️ Show Disclaimer </h4> </summary>
   
-**SECURITY NOTICE:** This fork is optimized for high automation. Because it bypasses all manual confirmation prompts, it is recommended to run it within an isolated environment, such as a dedicated `code-server` instance or a secure graphical container with VSCode.
+**SECURITY NOTICE:** This fork is optimized for complete automation. Because it bypasses all manual confirmation prompts, it is recommended to run it within an isolated environment, such as a dedicated `code-server` instance or a secure graphical container with VSCode.
 
 </details>
-
----
 
 ## Key Differences in This Fork
 *   **Spec-driven by default:** Replaces Architect mode with [Kiro](http://kiro.dev/)-style Spec mode and Code mode with Vibe mode with appropriate prompt engineering.
