@@ -29,6 +29,7 @@ import {
 	ArrowLeft,
 	GitCommitVertical,
 	GraduationCap,
+	Wrench,
 } from "lucide-react"
 
 import {
@@ -66,6 +67,7 @@ import { SectionHeader } from "./SectionHeader"
 import ApiConfigManager from "./ApiConfigManager"
 import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
+import { ToolsSettings } from "./ToolsSettings"
 import { CheckpointSettings } from "./CheckpointSettings"
 import { NotificationSettings } from "./NotificationSettings"
 import { ContextManagementSettings } from "./ContextManagementSettings"
@@ -97,6 +99,7 @@ export interface SettingsViewRef {
 
 export const sectionNames = [
 	"providers",
+	"tools",
 	"autoApprove",
 	"slashCommands",
 	"skills",
@@ -158,6 +161,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		alwaysAllowModeSwitch,
 		alwaysAllowSubtasks,
 		alwaysAllowWrite,
+		disabledTools,
 		alwaysAllowWriteOutsideWorkspace,
 		alwaysAllowWriteProtected,
 		modeSwitchingEnabled,
@@ -360,7 +364,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					alwaysAllowExecute: alwaysAllowExecute ?? undefined,
 					alwaysAllowMcp,
 					alwaysAllowModeSwitch,
-				modeSwitchingEnabled,
+					disabledTools: disabledTools ?? [],
+					modeSwitchingEnabled,
 					allowedCommands: allowedCommands ?? [],
 					// Note that we use `null` instead of `undefined` since `JSON.stringify`
 					// will omit `undefined` when serializing the object and passing it to the
@@ -499,6 +504,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "modes", icon: Users2 },
 			{ id: "skills", icon: GraduationCap },
 			{ id: "slashCommands", icon: SquareSlash },
+			{ id: "tools", icon: Wrench },
 			{ id: "autoApprove", icon: CheckCheck },
 			{ id: "mcp", icon: Server },
 			{ id: "checkpoints", icon: GitCommitVertical },
@@ -784,6 +790,11 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 								allowedMaxCost={allowedMaxCost ?? undefined}
 								setCachedStateField={setCachedStateField}
 							/>
+						)}
+
+						{/* Tools Section */}
+						{renderTab === "tools" && (
+							<ToolsSettings disabledTools={disabledTools} setCachedStateField={setCachedStateField} />
 						)}
 
 						{/* Slash Commands Section */}
