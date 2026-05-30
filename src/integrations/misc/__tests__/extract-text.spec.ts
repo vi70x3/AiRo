@@ -443,7 +443,7 @@ describe("truncateOutput", () => {
 			})
 
 			it("handles character limit with multi-byte characters", () => {
-				const content = "🚀🎉🔥💻🌟🎨🎯🎪🎭🎬" // 10 emojis, each is multi-byte
+				const content = "🚀🎉✨💻🌟🎨🎯🎪🎭🎬" // 10 emojis, each is multi-byte
 				const result = truncateOutput(content, undefined, 10)
 
 				// Character limit works on string length, not byte count
@@ -668,8 +668,8 @@ describe("processCarriageReturns", () => {
 		// Note: The expected result might look strange but it's consistent with how real
 		// terminals process such content - they only overwrite at character boundaries
 		// and don't attempt to interpret or normalize the resulting text.
-		const input = "Line with not a emoji\rLine with 🔥 emoji"
-		const expected = "Line with 🔥 emojioji"
+		const input = "Line with not a emoji\rLine with 🌟 emoji"
+		const expected = "Line with 🌟 emojioji"
 		expect(processCarriageReturns(input)).toBe(expected)
 	})
 
