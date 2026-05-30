@@ -6,7 +6,12 @@
 
 # AiRo Code
 
-> **SECURITY NOTICE:** This fork is optimized for high automation. Because it reduces manual confirmation prompts, we recommend running it within an isolated environment, such as a dedicated `code-server` instance or a secure container.
+<details>
+<summary> <h4> ⚠️ Show Disclaimer </h4> </summary>
+  
+**SECURITY NOTICE:** This fork is optimized for high automation. Because it bypasses all manual confirmation prompts, it is recommended to run it within an isolated environment, such as a dedicated `code-server` instance or a secure graphical container with VSCode.
+
+</details>
 
 ---
 
