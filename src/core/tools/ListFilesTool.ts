@@ -63,8 +63,8 @@ export class ListFilesTool extends BaseTool<"list_files"> {
 			}
 
 			pushToolResult(result)
-		} catch (error) {
-			await handleError("listing files", error)
+		} catch (error: unknown) {
+			await handleError("listing files", error instanceof Error ? error : new Error(String(error)))
 		}
 	}
 

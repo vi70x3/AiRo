@@ -130,9 +130,9 @@ export class TerminalProcess extends BaseTerminalProcess {
 
 		try {
 			stream = await streamAvailable
-		} catch (error) {
+		} catch (error: unknown) {
 			// Stream timeout or other error occurred
-			console.error("[Terminal Process] Stream error:", error.message)
+			console.error("[Terminal Process] Stream error:", error instanceof Error ? error.message : String(error))
 
 			// Emit completed event with error message
 			this.emit(

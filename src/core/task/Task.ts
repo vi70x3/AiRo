@@ -1315,8 +1315,6 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		if (approval.decision === "approve") {
 			this.approveAsk()
-		} else if (approval.decision === "deny") {
-			this.denyAsk()
 		} else if (approval.decision === "timeout") {
 			// Store the auto-approval timeout so it can be cancelled if user interacts
 			this.autoApprovalTimeoutRef = setTimeout(() => {
@@ -3115,7 +3113,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 					drainStreamInBackgroundToFindAllUsage(lastApiReqIndex).catch((error) => {
 						console.error("Background usage collection failed:", error)
 					})
-				} catch (error) {
+				} catch (error: unknown) {
 					// Abandoned happens when extension is no longer waiting for the
 					// Cline instance to finish aborting (error is thrown here when
 					// any function in the for loop throws due to this.abort).
@@ -3123,7 +3121,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 						// Determine cancellation reason
 						const cancelReason: ClineApiReqCancelReason = this.abort ? "user_cancelled" : "streaming_failed"
 
-						const rawErrorMessage = error.message ?? JSON.stringify(serializeError(error), null, 2)
+						const rawErrorMessage = error instanceof Error ? error.message : JSON.stringify(serializeError(error), null, 2)
 						const streamingFailedMessage = this.abort
 							? undefined
 							: `${t("common:interruption.streamTerminatedByProvider")}: ${rawErrorMessage}`
@@ -4203,7 +4201,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			// note that this api_req_failed ask is unique in that we only present this option if the api hasn't streamed any content yet (ie it fails on the first chunk due), as it would allow them to hit a retry button. However if the api failed mid-stream, it could be in any arbitrary state where some tools may have executed, so that error is handled differently and requires cancelling the task entirely.
 			if (autoApprovalEnabled) {
 				// Apply shared exponential backoff and countdown UX
-				await this.backoffAndAnnounce(retryAttempt, error)
+				await this.backoffAndAnnounce(retryAttempt, error instanceof Error ? error : new Error(String(error)))
 
 				// CRITICAL: Check if task was aborted during the backoff countdown
 				// This prevents infinite loops when users cancel during auto-retry
@@ -4222,7 +4220,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			} else {
 				const { response } = await this.ask(
 					"api_req_failed",
-					error.message ?? JSON.stringify(serializeError(error), null, 2),
+					error instanceof Error ? error.message : JSON.stringify(serializeError(error), null, 2),
 				)
 
 				if (response !== "yesButtonClicked") {

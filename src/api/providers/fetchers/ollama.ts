@@ -108,12 +108,13 @@ export async function getOllamaModels(
 		} else {
 			console.error(`Error parsing Ollama models response: ${JSON.stringify(parsedResponse.error, null, 2)}`)
 		}
-	} catch (error) {
-		if (error.code === "ECONNREFUSED") {
+	} catch (error: unknown) {
+		const err = error instanceof Error ? error : new Error(String(error))
+		if ((err as any).code === "ECONNREFUSED") {
 			console.warn(`Failed connecting to Ollama at ${baseUrl}`)
 		} else {
 			console.error(
-				`Error fetching Ollama models: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+				`Error fetching Ollama models: ${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}`,
 			)
 		}
 	}

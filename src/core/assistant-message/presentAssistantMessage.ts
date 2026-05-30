@@ -90,7 +90,7 @@ export async function presentAssistantMessage(cline: Task) {
 		// We only need to protect against the reference changing during streaming, not nested mutations.
 		// This provides 80-90% reduction in cloning overhead (5-100ms saved per block).
 		block = { ...cline.assistantMessageContent[cline.currentStreamingContentIndex] }
-	} catch (error) {
+	} catch (error: unknown) {
 		console.error(`ERROR cloning block:`, error)
 		console.error(
 			`Block content:`,
@@ -942,7 +942,7 @@ async function checkpointSaveAndMark(task: Task) {
 	try {
 		await task.checkpointSave(true)
 		task.currentStreamingDidCheckpoint = true
-	} catch (error) {
-		console.error(`[Task#presentAssistantMessage] Error saving checkpoint: ${error.message}`, error)
+	} catch (error: unknown) {
+		console.error(`[Task#presentAssistantMessage] Error saving checkpoint: ${error instanceof Error ? error.message : String(error)}`, error)
 	}
 }

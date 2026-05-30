@@ -216,8 +216,8 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 					`When all subtask(s) complete, their changes will be auto-merged and the results will be reported back.`,
 			)
 			return
-		} catch (error) {
-			await handleError("creating async tasks", error)
+		} catch (error: unknown) {
+			await handleError("creating async tasks", error instanceof Error ? error : new Error(String(error)))
 			return
 		}
 	}

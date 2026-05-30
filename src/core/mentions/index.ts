@@ -241,8 +241,8 @@ export async function parseMentions(
 			}
 			commandOutput += command.content
 			slashCommandHelp += `\n\n<command name="${commandName}">\n${commandOutput}\n</command>`
-		} catch (error) {
-			slashCommandHelp += `\n\n<command name="${commandName}">\nError loading command '${commandName}': ${error.message}\n</command>`
+		} catch (error: unknown) {
+			slashCommandHelp += `\n\n<command name="${commandName}">\nError loading command '${commandName}': ${error instanceof Error ? error.message : String(error)}\n</command>`
 		}
 	}
 

@@ -431,9 +431,9 @@ export class ClineProvider
 						cline.apiConfiguration.lmStudioModelId!,
 					)
 				}
-			} catch (error) {
+			} catch (error: unknown) {
 				this.log(`Failed to load full model details for LM Studio: ${error}`)
-				vscode.window.showErrorMessage(error.message)
+				vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error))
 			}
 		}
 	}
@@ -460,9 +460,9 @@ export class ClineProvider
 				// Abort the running task and set isAbandoned to true so
 				// all running promises will exit as well.
 				await task.abortTask(true)
-			} catch (e) {
+			} catch (e: unknown) {
 				this.log(
-					`[ClineProvider#removeClineFromStack] abortTask() failed ${task.taskId}.${task.instanceId}: ${e.message}`,
+					`[ClineProvider#removeClineFromStack] abortTask() failed ${task.taskId}.${task.instanceId}: ${e instanceof Error ? e.message : String(e)}`,
 				)
 			}
 
@@ -1036,9 +1036,9 @@ export class ClineProvider
 			// Abort the old task to stop running processes and mark as abandoned
 			try {
 				await oldTask.abortTask(true)
-			} catch (e) {
+			} catch (e: unknown) {
 				this.log(
-					`[createTaskWithHistoryItem] abortTask() failed for old task ${oldTask.taskId}.${oldTask.instanceId}: ${e.message}`,
+					`[createTaskWithHistoryItem] abortTask() failed for old task ${oldTask.taskId}.${oldTask.instanceId}: ${e instanceof Error ? e.message : String(e)}`,
 				)
 			}
 

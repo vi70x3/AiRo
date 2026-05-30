@@ -23,12 +23,13 @@ export const forceFullModelDetailsLoad = async (baseUrl: string, modelId: string
 
 		// Mark this model as having full details loaded.
 		modelsWithLoadedDetails.add(modelId)
-	} catch (error) {
-		if (error.code === "ECONNREFUSED") {
+	} catch (error: unknown) {
+		const err = error instanceof Error ? error : new Error(String(error))
+		if ((err as any).code === "ECONNREFUSED") {
 			console.warn(`Error connecting to LMStudio at ${baseUrl}`)
 		} else {
 			console.error(
-				`Error refreshing LMStudio model details: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+				`Error refreshing LMStudio model details: ${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}`,
 			)
 		}
 	}
@@ -115,12 +116,13 @@ export async function getLMStudioModels(baseUrl = "http://localhost:1234"): Prom
 			models[lmstudioModel.modelKey] = parseLMStudioModel(lmstudioModel)
 			modelsWithLoadedDetails.add(lmstudioModel.modelKey)
 		}
-	} catch (error) {
-		if (error.code === "ECONNREFUSED") {
+	} catch (error: unknown) {
+		const err = error instanceof Error ? error : new Error(String(error))
+		if ((err as any).code === "ECONNREFUSED") {
 			console.warn(`Error connecting to LMStudio at ${baseUrl}`)
 		} else {
 			console.error(
-				`Error fetching LMStudio models: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+				`Error fetching LMStudio models: ${JSON.stringify(err, Object.getOwnPropertyNames(err), 2)}`,
 			)
 		}
 	}

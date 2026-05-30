@@ -1391,13 +1391,13 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						setting,
 						value: vscode.workspace.getConfiguration().get(setting),
 					})
-				} catch (error) {
+				} catch (error: unknown) {
 					console.error(`Failed to get VSCode setting ${message.setting}:`, error)
 
 					await provider.postMessageToWebview({
 						type: "vsCodeSetting",
 						setting,
-						error: `Failed to get setting: ${error.message}`,
+						error: `Failed to get setting: ${error instanceof Error ? error.message : String(error)}`,
 						value: undefined,
 					})
 				}
@@ -2301,12 +2301,12 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						},
 					})
 				}
-			} catch (error) {
-				provider.log(`Error saving code index settings: ${error.message || error}`)
+			} catch (error: unknown) {
+				provider.log(`Error saving code index settings: ${error instanceof Error ? error.message : String(error)}`)
 				await provider.postMessageToWebview({
 					type: "codeIndexSettingsSaved",
 					success: false,
-					error: error.message || "Failed to save settings",
+					error: error instanceof Error ? error.message : "Failed to save settings",
 				})
 			}
 			break
