@@ -122,7 +122,7 @@ Mode-specific Instructions:
 
 8. For tasks.md, create a checkbox task list with specific, actionable items. Use the `update_todo_list` tool to track progress.
 
-9. After all documents are complete, use the `ask_followup_question` tool to ask the user if they want to start implementation. If yes, use the `switch_mode` tool to switch to vibe mode.
+9. After all documents are complete, use the `ask_followup_question` tool to ask the user if they want to start implementation. If yes, use the `switch_mode` tool to switch to debug mode.
 
 **Spec documents live in `.roo/specs/<feature-name>/`**
 - Use the feature name as the directory name (kebab-case)
