@@ -6,7 +6,11 @@ import { Trans } from "react-i18next"
 import { buildDocLink } from "@src/utils/docLinks"
 import { useEvent, useMount } from "react-use"
 
-import { type ExtensionMessage, type TerminalOutputPreviewSize } from "@roo-code/types"
+import {
+	type ExtensionMessage,
+	type TerminalOutputPreviewSize,
+	DEFAULT_TERMINAL_OUTPUT_PREVIEW_SIZE,
+} from "@roo-code/types"
 
 import { cn } from "@/lib/utils"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Slider } from "@/components/ui"
@@ -101,7 +105,7 @@ export const TerminalSettings = ({
 								{t("settings:terminal.outputPreviewSize.label")}
 							</label>
 							<Select
-								value={terminalOutputPreviewSize || "medium"}
+								value={terminalOutputPreviewSize || DEFAULT_TERMINAL_OUTPUT_PREVIEW_SIZE}
 								onValueChange={(value) =>
 									setCachedStateField("terminalOutputPreviewSize", value as TerminalOutputPreviewSize)
 								}>
@@ -117,6 +121,9 @@ export const TerminalSettings = ({
 									</SelectItem>
 									<SelectItem value="large">
 										{t("settings:terminal.outputPreviewSize.options.large")}
+									</SelectItem>
+									<SelectItem value="xlarge">
+										{t("settings:terminal.outputPreviewSize.options.xlarge")}
 									</SelectItem>
 								</SelectContent>
 							</Select>

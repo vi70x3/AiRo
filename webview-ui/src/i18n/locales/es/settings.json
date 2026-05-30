@@ -687,7 +687,8 @@
             "options": {
                 "small": "Pequeño (5KB)",
                 "medium": "Mediano (10KB)",
-                "large": "Grande (20KB)"
+                "large": "Grande (20KB)",
+                "xlarge": "Extra grande (50KB)"
             }
         },
         "shellIntegrationTimeout": {

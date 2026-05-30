@@ -35,6 +35,7 @@ import {
 	type ProviderSettings,
 	type ExperimentId,
 	DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
+	DEFAULT_TERMINAL_OUTPUT_PREVIEW_SIZE,
 	ImageGenerationProvider,
 } from "@roo-code/types"
 
@@ -383,7 +384,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					terminalZshOhMy,
 					terminalZshP10k,
 					terminalZdotdir,
-					terminalOutputPreviewSize: terminalOutputPreviewSize ?? "medium",
+					terminalOutputPreviewSize: terminalOutputPreviewSize ?? DEFAULT_TERMINAL_OUTPUT_PREVIEW_SIZE,
 					mcpEnabled,
 					maxOpenTabsContext: Math.min(Math.max(0, maxOpenTabsContext ?? 20), 500),
 					maxWorkspaceFiles: Math.min(Math.max(0, maxWorkspaceFiles ?? 200), 500),

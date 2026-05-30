@@ -687,7 +687,8 @@
             "options": {
                 "small": "छोटा (5KB)",
                 "medium": "मध्यम (10KB)",
-                "large": "बड़ा (20KB)"
+                "large": "बड़ा (20KB)",
+                "xlarge": "अतिरिक्त बड़ा (50KB)"
             }
         },
         "shellIntegrationTimeout": {
