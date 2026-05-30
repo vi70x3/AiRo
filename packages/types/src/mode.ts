@@ -233,15 +233,6 @@ export const DEFAULT_MODES: readonly ModeConfig[] = [
 export const BUILT_IN_MODE_SLUGS = DEFAULT_MODES.map((mode) => mode.slug)
 
 /**
- * getModeBySlug
- */
-
-export function getModeBySlug(slug: string, customModes: ModeConfig[]): ModeConfig | undefined {
-	const allModes = [...DEFAULT_MODES, ...customModes]
-	return allModes.find((mode) => mode.slug === slug)
-}
-
-/**
  * ModeSlug
  */
 
