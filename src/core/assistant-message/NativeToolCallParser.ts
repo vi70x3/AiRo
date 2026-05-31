@@ -638,8 +638,10 @@ export class NativeToolCallParser {
 				break
 
 			case "async_task":
-				nativeArgs = {
-					subtasks: partialArgs.subtasks,
+				if (partialArgs.subtasks !== undefined) {
+					nativeArgs = {
+						subtasks: partialArgs.subtasks,
+					}
 				}
 				break
 
@@ -993,9 +995,11 @@ export class NativeToolCallParser {
 					break
 
 				case "async_task":
-					nativeArgs = {
-						subtasks: args.subtasks,
-					} as NativeArgsFor<TName>
+					if (args.subtasks !== undefined) {
+						nativeArgs = {
+							subtasks: args.subtasks,
+						} as NativeArgsFor<TName>
+					}
 					break
 
 				default:

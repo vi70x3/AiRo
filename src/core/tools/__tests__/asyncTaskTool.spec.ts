@@ -737,7 +737,7 @@ describe("asyncTaskTool", () => {
 			expect(mockTask.initiateTaskLoop).toHaveBeenCalledWith([])
 		})
 
-		it("should replace last user message content when tool_use_id found but no matching tool_result in last msg", async () => {
+		it("should append new user message with tool_result when tool_use_id found but no matching tool_result in last msg", async () => {
 			const resumeParentWithResults = getResumeParentWithResults()
 			const apiHistory = [
 				{
@@ -754,17 +754,17 @@ describe("asyncTaskTool", () => {
 				},
 			]
 			mockTask.apiConversationHistory = apiHistory
-
+	
 			await resumeParentWithResults(mockTask, "All async subtasks have completed.")
-
+	
 			const newHistory = mockTask.overwriteApiConversationHistory.mock.calls[0][0]
-			// The last user message is replaced (content array is always a new reference from .map())
-			expect(newHistory.length).toBe(2)
-			const lastMsg = newHistory[newHistory.length - 1]
-			expect(lastMsg.role).toBe("user")
-			// The content is cloned from the original (no matching tool_result to replace)
-			expect(lastMsg.content[0].type).toBe("text")
-			expect(lastMsg.content[0].text).toBe("some other content")
+			// When no matching tool_result exists, a new user message is appended
+			expect(newHistory.length).toBe(3) // original 2 messages + new tool_result message
+			const newMsg = newHistory[newHistory.length - 1]
+			expect(newMsg.role).toBe("user")
+			expect(newMsg.content[0].type).toBe("tool_result")
+			expect(newMsg.content[0].tool_use_id).toBe("tool-use-789")
+			expect(newMsg.content[0].content).toBe("All async subtasks have completed.")
 		})
 	})
 
