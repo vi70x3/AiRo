@@ -1,6 +1,15 @@
 import { getNativeTools } from "./native-tools"
-import { ALWAYS_AVAILABLE_TOOLS } from "../../../shared/tools"
-import { resolveToolAlias } from "./filter-tools-for-mode"
+import { ALWAYS_AVAILABLE_TOOLS, TOOL_ALIASES } from "../../../shared/tools"
+
+/**
+ * Resolves a tool name to its canonical name.
+ * If the tool name is an alias, returns the canonical tool name.
+ * If it's already a canonical name or unknown, returns as-is.
+ */
+function resolveToolAlias(toolName: string): string {
+	const canonical = TOOL_ALIASES[toolName as keyof typeof TOOL_ALIASES]
+	return canonical ?? toolName
+}
 
 /**
  * All native tool names that can appear in the system prompt.
