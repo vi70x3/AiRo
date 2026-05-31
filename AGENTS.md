@@ -19,8 +19,7 @@ Rules:
 
 ## Code Exploration Policy
 
-Always use jCodemunch-MCP tools for code navigation. Never fall back to Read, Grep, Glob, or Bash for code exploration.
-**Exception:** Use `Read` when you need to edit a file — the agent harness requires a `Read` before `Edit`/`Write` will succeed. Use jCodemunch tools to *find and understand* code, then `Read` only the specific file you're about to modify.
+Always use jCodemunch-MCP tools for code navigation. Never fall back to Grep, Glob, or Bash for code exploration.
 
 **Start any session:**
 1. `resolve_repo { "path": "." }` — confirm the project is indexed. If not: `index_folder { "path": "." }`
@@ -68,13 +67,3 @@ Always use jCodemunch-MCP tools for code navigation. Never fall back to Read, Gr
   - DO report: "No existing implementation found for X. This would need to be created."
   - DO check `related_existing` files — they show what's nearby, not what exists
 - If `verdict: "low_confidence_matches"`: examine the matches critically before assuming they implement the feature
-
-**After editing files:**
-- If PostToolUse hooks are installed (Claude Code only), edited files are auto-reindexed
-- Otherwise, call `register_edit` with edited file paths to invalidate caches and keep the index fresh
-- For bulk edits (5+ files), always use `register_edit` with all paths to batch-invalidate
-
-**Token efficiency:**
-- If `_meta` contains `budget_warning`: stop exploring and work with what you have
-- If `auto_compacted: true` appears: results were automatically compressed due to turn budget
-- Use `get_session_context` to check what you've already read — avoid re-reading the same files
