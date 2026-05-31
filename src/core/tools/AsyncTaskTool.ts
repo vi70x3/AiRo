@@ -172,6 +172,8 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 			const didApprove = await askApproval("tool", toolMessage)
 
 			if (!didApprove) {
+				// Note: askApproval callback already pushes a toolDenied result when approval is denied.
+				// No additional pushToolResult needed here.
 				return
 			}
 
