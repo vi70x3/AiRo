@@ -172,6 +172,8 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 			const didApprove = await askApproval("tool", toolMessage)
 
 			if (!didApprove) {
+				// Note: askApproval callback already pushes a toolDenied result when approval is denied.
+				// No additional pushToolResult needed here.
 				return
 			}
 
@@ -332,8 +334,10 @@ export class AsyncTaskTool extends BaseTool<"async_task"> {
 							return { ...block }
 						}),
 					}
-					// Check if we actually replaced anything
-					const wasUpdated = newLastMsg.content !== lastMsg.content
+					// Check if we actually replaced a block (not just created a new array reference)
+					const wasUpdated = lastMsg.content.some(
+						(block: any) => block.type === "tool_result" && block.tool_use_id === toolUseId,
+					)
 					if (wasUpdated) {
 						newHistory = [...apiHistory.slice(0, -1), newLastMsg]
 					} else {
