@@ -1,6 +1,6 @@
-import { 
-  AgentMetadata, 
-  AgentType, 
+import {
+  AgentMetadata,
+  AgentType,
   AgentLifecycleState,
   Notification,
   NotificationType,
@@ -23,17 +23,29 @@ import { NotificationQueue } from './notification-queue'
 import { ChannelManager } from './channel-manager'
 import { ContextStore } from './context-store'
 import { PlanManager } from './plan-manager'
+import * as fs from 'fs'
+import * as path from 'path'
+import * as os from 'os'
+
+interface SnapshotMetadata {
+  snapshotId: string
+  timestamp: number
+  version: string
+}
 
 export class Daemon implements IDaemon {
-  public readonly agentRegistry: AgentRegistry
-  public readonly notificationQueue: NotificationQueue
-  public readonly channelManager: ChannelManager
-  public readonly contextStore: ContextStore
-  public readonly planManager: PlanManager
+  private agentRegistry: AgentRegistry
+  private notificationQueue: NotificationQueue
+  private channelManager: ChannelManager
+  private contextStore: ContextStore
+  private planManager: PlanManager
   
   private swarmId: string
   private coordinatorId: string | null
-  
+  private snapshotDir: string
+  private snapshotInterval: NodeJS.Timeout | null
+  private isRunning: boolean
+
   constructor(swarmId: string) {
     this.agentRegistry = new AgentRegistry()
     this.notificationQueue = new NotificationQueue()
@@ -43,6 +55,12 @@ export class Daemon implements IDaemon {
     
     this.swarmId = swarmId
     this.coordinatorId = null
+    this.snapshotDir = path.join(os.homedir(), '.kiro', 'swarm', 'snapshots', swarmId)
+    this.snapshotInterval = null
+    this.isRunning = false
+    
+    // Ensure snapshot directory exists
+    this.ensureSnapshotDir()
   }
   
   // IDaemon implementation — delegate to subsystems:
@@ -54,8 +72,9 @@ export class Daemon implements IDaemon {
     this.agentRegistry.unregisterAgent(agentId)
   }
   
-  getAgent(agentId: string): AgentMetadata | undefined {
-    return this.agentRegistry.getAgent(agentId)
+  getAgent(agentId: string): AgentMetadata | null {
+    const agent = this.agentRegistry.getAgent(agentId)
+    return agent || null
   }
   
   listAgents(): AgentMetadata[] {
@@ -98,8 +117,8 @@ export class Daemon implements IDaemon {
     }
   }
   
-  createChannel(name: string, topic?: string): ChannelInfo {
-    return this.channelManager.createChannel(name, topic)
+  createChannel(name: string, topic?: string): void {
+    this.channelManager.createChannel(name, topic)
   }
   
   joinChannel(agentId: string, name: string): void {
@@ -110,7 +129,7 @@ export class Daemon implements IDaemon {
     this.channelManager.leaveChannel(agentId, name)
   }
   
-  sendToChannel(message: ChannelMessage): string[] {
+  sendToChannel(message: ChannelMessage): void {
     const recipients = this.channelManager.sendToChannel(message)
     
     // Create notifications for each recipient
@@ -127,12 +146,10 @@ export class Daemon implements IDaemon {
       
       this.notificationQueue.enqueue(recipientId, notification)
     }
-    
-    return recipients
   }
   
-  listChannels(): ChannelInfo[] {
-    return this.channelManager.listChannels()
+  listChannels(): string[] {
+    return this.channelManager.listChannels().map(c => c.name)
   }
   
   getChannelMembers(name: string): string[] {
@@ -147,12 +164,15 @@ export class Daemon implements IDaemon {
     return this.contextStore.getKey(key)
   }
   
-  listContextKeys(): ContextKeyEntry[] {
-    return this.contextStore.listKeys()
+  listContextKeys(): string[] {
+    return this.contextStore.listKeys().map(k => k.key)
   }
   
-  subscribeToKey(agentId: string, key: string, callback: (n: ContextKeyNotification) => void): void {
-    this.contextStore.subscribeToKey(agentId, key, callback)
+  subscribeToKey(agentId: string, key: string, callback: (newValue: unknown, oldValue: unknown) => void): void {
+    // Wrap the callback to match ContextStore's expected signature
+    this.contextStore.subscribeToKey(agentId, key, (notification: ContextKeyNotification) => {
+      callback(notification.newValue, notification.oldValue)
+    })
   }
   
   getPendingNotifications(agentId: string): Notification[] {
@@ -255,17 +275,76 @@ export class Daemon implements IDaemon {
       coordinatorId: this.coordinatorId || ''
     }
     
+    // Persist snapshot to disk
+    this.persistSnapshot(snapshot)
+    
     return snapshot
   }
   
-  restoreFromSnapshot(snapshotId: string): boolean {
-    // Placeholder — full implementation in Wave 10
-    return false
+  restoreFromSnapshot(snapshotId: string): void {
+    try {
+      const snapshotPath = this.getSnapshotPath(snapshotId)
+      
+      if (!fs.existsSync(snapshotPath)) {
+        return
+      }
+      
+      const snapshotData = fs.readFileSync(snapshotPath, 'utf-8')
+      const snapshot: DaemonSnapshot = JSON.parse(snapshotData)
+      
+      // Restore agent registry
+      this.agentRegistry = new AgentRegistry()
+      for (const agent of snapshot.agents) {
+        this.agentRegistry.registerAgent(agent)
+      }
+      
+      // Restore notification queues
+      this.notificationQueue = new NotificationQueue()
+      for (const [agentId, notifications] of Object.entries(snapshot.notificationQueues)) {
+        const notificationList = notifications as Notification[]
+        for (const notification of notificationList) {
+          this.notificationQueue.enqueue(agentId, notification)
+        }
+      }
+      
+      // Restore channels
+      this.channelManager = new ChannelManager()
+      for (const channelName of snapshot.channels) {
+        this.channelManager.createChannel(channelName)
+      }
+      
+      // Restore context keys
+      this.contextStore = new ContextStore()
+      for (const [key, value] of Object.entries(snapshot.contextKeys)) {
+        // Restore context keys - we need an agentId, use coordinatorId or first agent
+        const agentId = snapshot.coordinatorId || snapshot.agents[0]?.agentId || 'system'
+        this.contextStore.setKey(agentId, key, value)
+      }
+      
+      // Restore plan
+      if (snapshot.plan) {
+        this.planManager.setPlan(snapshot.plan)
+      }
+      
+      // Restore coordinatorId
+      this.coordinatorId = snapshot.coordinatorId || null
+    } catch (error) {
+      console.error('Failed to restore snapshot:', error)
+    }
   }
   
   listSnapshots(): string[] {
-    // Placeholder — full implementation in Wave 10
-    return []
+    try {
+      if (!fs.existsSync(this.snapshotDir)) {
+        return []
+      }
+      
+      const files = fs.readdirSync(this.snapshotDir)
+      return files.filter(f => f.endsWith('.json')).sort()
+    } catch (error) {
+      console.error('Failed to list snapshots:', error)
+      return []
+    }
   }
   
   // Additional methods:
@@ -279,5 +358,82 @@ export class Daemon implements IDaemon {
   
   getSwarmId(): string {
     return this.swarmId
+  }
+  
+  // Snapshot persistence methods
+  private ensureSnapshotDir(): void {
+    if (!fs.existsSync(this.snapshotDir)) {
+      fs.mkdirSync(this.snapshotDir, { recursive: true })
+    }
+  }
+  
+  private getSnapshotPath(snapshotId: string): string {
+    return path.join(this.snapshotDir, `${snapshotId}.json`)
+  }
+  
+  private persistSnapshot(snapshot: DaemonSnapshot): void {
+    try {
+      this.ensureSnapshotDir()
+      const snapshotPath = this.getSnapshotPath(snapshot.snapshotId)
+      fs.writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2))
+      this.pruneOldSnapshots()
+    } catch (error) {
+      console.error('Failed to persist snapshot:', error)
+    }
+  }
+  
+  private pruneOldSnapshots(): void {
+    try {
+      if (!fs.existsSync(this.snapshotDir)) {
+        return
+      }
+      
+      const files = fs.readdirSync(this.snapshotDir)
+        .filter(f => f.endsWith('.json'))
+        .map(f => ({
+          name: f,
+          path: path.join(this.snapshotDir, f),
+          stat: fs.statSync(path.join(this.snapshotDir, f))
+        }))
+        .sort((a, b) => b.stat.mtimeMs - a.stat.mtimeMs)
+      
+      // Keep only the last 10 snapshots
+      if (files.length > 10) {
+        for (const file of files.slice(10)) {
+          fs.unlinkSync(file.path)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to prune old snapshots:', error)
+    }
+  }
+  
+  // Periodic snapshot scheduling
+  startPeriodicSnapshots(intervalMs: number = 30000): void {
+    if (this.snapshotInterval) {
+      clearInterval(this.snapshotInterval)
+    }
+    this.isRunning = true
+    this.snapshotInterval = setInterval(() => {
+      this.createSnapshot()
+    }, intervalMs)
+  }
+  
+  stopPeriodicSnapshots(): void {
+    if (this.snapshotInterval) {
+      clearInterval(this.snapshotInterval)
+      this.snapshotInterval = null
+    }
+    this.isRunning = false
+  }
+  
+  // Final snapshot on swarm completion
+  completeSwarm(): void {
+    this.stopPeriodicSnapshots()
+    this.createSnapshot()
+  }
+  
+  isPeriodicSnapshotRunning(): boolean {
+    return this.isRunning && this.snapshotInterval !== null
   }
 }

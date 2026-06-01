@@ -86,10 +86,10 @@ export interface IAgent {
 // IDaemon Interface
 export interface IDaemon {
 	// Agent Registry
-	registerAgent(agent: IAgent): void
+	registerAgent(agent: AgentMetadata): void
 	unregisterAgent(agentId: string): void
-	getAgent(agentId: string): IAgent | null
-	listAgents(): IAgent[]
+	getAgent(agentId: string): AgentMetadata | null
+	listAgents(): AgentMetadata[]
 
 	// Communication methods
 	sendDM(message: DirectMessage): void
