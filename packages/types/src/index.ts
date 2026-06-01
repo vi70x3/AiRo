@@ -29,5 +29,6 @@ export * from "./type-fu.js"
 export * from "./vscode-extension-host.js"
 export * from "./vscode.js"
 export * from "./worktree.js"
+export * from "./swarm.js"
 
 export * from "./providers/index.js"
