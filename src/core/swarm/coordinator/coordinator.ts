@@ -8,7 +8,7 @@ import {
   Task,
   Dependency,
   DependencyType,
-  TaskStatus,
+  SwarmTaskStatus,
   PlanUpdate,
   PlanUpdateDecision,
   PlanChangeType,
@@ -71,9 +71,28 @@ export class Coordinator extends Agent implements ICoordinator {
     return plan
   }
 
+  /**
+   * Review a plan update and apply it if approved.
+   *
+   * Plan update lifecycle:
+   *   1. pending  — update is proposed and stored in pendingPlanUpdates
+   *   2. reviewed — reviewPlanUpdate() validates, analyzes impact, and decides
+   *   3. approved — status set to 'approved', reviewedBy/reviewedAt stamped,
+   *                 changes applied to the plan, update pushed to history
+   *   4. rejected — status set to 'rejected', reviewedBy/reviewedAt stamped,
+   *                 update is NOT applied but IS recorded in history for audit
+   *
+   * @param update - The PlanUpdate to review (must be in 'pending' status)
+   * @returns PlanUpdateDecision with approval status and reason
+   */
   reviewPlanUpdate(update: PlanUpdate): PlanUpdateDecision {
     const currentPlan = this.daemon.getPlan()
     if (!currentPlan) {
+      // Stamp the update as rejected when no plan exists
+      update.status = 'rejected'
+      update.reviewedBy = this.agentId
+      update.reviewedAt = Date.now()
+      update.reviewNotes = 'No current plan exists'
       return {
         updateId: update.updateId,
         approved: false,
@@ -91,9 +110,21 @@ export class Coordinator extends Agent implements ICoordinator {
       modifiedChanges: reviewResult.approved ? update.changes : null,
     }
 
+    // Stamp the update with review metadata regardless of outcome
+    update.reviewedBy = this.agentId
+    update.reviewedAt = Date.now()
+    update.reviewNotes = reviewResult.reviewNotes
+
     if (decision.approved) {
+      update.status = 'approved'
       this.applyPlanUpdate(update)
+    } else {
+      update.status = 'rejected'
     }
+
+    // Persist the reviewed update in the plan's history for audit trail
+    currentPlan.updateHistory.push(update)
+    this.daemon.setPlan(currentPlan)
 
     this.pendingPlanUpdates.delete(update.updateId)
 
@@ -177,6 +208,17 @@ export class Coordinator extends Agent implements ICoordinator {
 
   // --- Helper Methods ---
 
+  /**
+   * Apply an approved plan update's changes to the current plan.
+   *
+   * Preconditions:
+   *   - update.status must be 'approved' (stamped by reviewPlanUpdate)
+   *   - update.reviewedBy and update.reviewedAt must be set
+   *
+   * This method mutates the plan in-memory (tasks, dependencies, version).
+   * The update is pushed to updateHistory by reviewPlanUpdate(), not here,
+   * to ensure rejected updates are also recorded for audit purposes.
+   */
   private applyPlanUpdate(update: PlanUpdate): void {
     const currentPlan = this.daemon.getPlan()
     if (!currentPlan) return
@@ -235,7 +277,6 @@ export class Coordinator extends Agent implements ICoordinator {
     }
 
     currentPlan.version++
-    currentPlan.updateHistory.push(update)
     this.daemon.setPlan(currentPlan)
   }
 
@@ -251,6 +292,14 @@ export class Coordinator extends Agent implements ICoordinator {
     return Array.from(this.completionReports.values())
   }
 
+  /**
+   * Register a plan update as pending review.
+   *
+   * This is the entry point of the plan update lifecycle:
+   *   update.status should be 'pending' when calling this method.
+   *   The update will be stamped with reviewedBy/reviewedAt and moved
+   *   to 'approved' or 'rejected' status when reviewPlanUpdate() is called.
+   */
   addPendingPlanUpdate(update: PlanUpdate): void {
     this.pendingPlanUpdates.set(update.updateId, update)
   }

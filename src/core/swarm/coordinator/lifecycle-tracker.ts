@@ -2,6 +2,7 @@ import {
 	AgentLifecycleState,
 	AgentMetadata,
 	CompletionReport,
+	SwarmTaskStatus,
 } from '@roo-code/types'
 import { IDaemon } from '../interfaces'
 
@@ -28,11 +29,9 @@ const TERMINAL_STATES = new Set<AgentLifecycleState>([
 	AgentLifecycleState.Crashed,
 ])
 
-// TaskStatus values from @roo-code/types swarm module.
-// We use string literals directly because the TaskStatus enum from task.ts
-// shadows the one from swarm.ts in the barrel export.
-const TASK_STATUS_IN_PROGRESS = 'in_progress' as const
-const TASK_STATUS_PENDING = 'pending' as const
+// SwarmTaskStatus values from @roo-code/types swarm module.
+const TASK_STATUS_IN_PROGRESS = SwarmTaskStatus.InProgress
+const TASK_STATUS_PENDING = SwarmTaskStatus.Pending
 
 export class LifecycleTracker {
 	private daemon: IDaemon

@@ -28,7 +28,7 @@ export class IntentDelivery {
     }
     
     // Get all registered agents except the declaring agent
-    const allAgentIds = this.daemon.agentRegistry.getAllAgentIds()
+    const allAgentIds = this.daemon.getAllAgentIds()
     const recipientIds = allAgentIds.filter(id => id !== declaringAgentId)
     
     // Deliver to all recipients

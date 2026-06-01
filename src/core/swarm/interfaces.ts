@@ -43,7 +43,7 @@ import {
 	DependencyEdge,
 	ChannelInfo,
 	ContextKeyEntry,
-	TaskStatus,
+	SwarmTaskStatus,
 	DependencyType,
 	CheckpointStatus,
 } from '@roo-code/types'
@@ -90,6 +90,7 @@ export interface IDaemon {
 	unregisterAgent(agentId: string): void
 	getAgent(agentId: string): AgentMetadata | null
 	listAgents(): AgentMetadata[]
+	updateAgentState(agentId: string, state: AgentLifecycleState): void
 
 	// Communication methods
 	sendDM(message: DirectMessage): void

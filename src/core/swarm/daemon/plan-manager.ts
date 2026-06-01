@@ -1,7 +1,7 @@
 import { 
   Plan, 
   Task, 
-  TaskStatus, 
+  SwarmTaskStatus, 
   PlanUpdate 
 } from '@roo-code/types'
 
@@ -24,7 +24,7 @@ export class PlanManager {
     return this.plan.tasks.find(task => task.taskId === taskId)
   }
   
-  updateTaskStatus(taskId: string, status: TaskStatus): void {
+  updateTaskStatus(taskId: string, status: SwarmTaskStatus): void {
     if (!this.plan) {
       throw new Error('No plan set')
     }

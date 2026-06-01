@@ -2,7 +2,7 @@ import {
   Plan,
   Task,
   Dependency,
-  TaskStatus,
+  SwarmTaskStatus,
   AgentMetadata,
   AgentLifecycleState,
   PlanUpdate,

@@ -60,7 +60,7 @@ export class SoftInterruptDelivery {
         acknowledged: false
       }
       notifications.push(notification)
-      this.daemon.notificationQueue.enqueue(recipientId, notification)
+      this.daemon.enqueueNotification(recipientId, notification)
     }
     
     return notifications
@@ -85,7 +85,7 @@ export class SoftInterruptDelivery {
       acknowledged: false
     }
     
-    this.daemon.notificationQueue.enqueue(recipientId, notification)
+    this.daemon.enqueueNotification(recipientId, notification)
     return notification
   }
   
@@ -94,7 +94,7 @@ export class SoftInterruptDelivery {
    * Marks notifications as delivered when retrieved
    */
   checkPending(agentId: string): Notification[] {
-    const pending = this.daemon.notificationQueue.getPending(agentId)
+    const pending = this.daemon.getPendingNotifications(agentId)
     // Mark notifications as delivered
     for (const notification of pending) {
       notification.delivered = true

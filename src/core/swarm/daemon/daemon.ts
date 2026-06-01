@@ -8,10 +8,12 @@ import {
   BroadcastMessage,
   ChannelMessage,
   ChannelInfo,
+  ChannelHistoryEntry,
   ContextKeyEntry,
   ContextKeyNotification,
-  Plan,
   DaemonSnapshot,
+  HistoryQueryOptions,
+  Plan,
   TouchNotification,
   IntentNotification,
   FileOperation
@@ -46,10 +48,10 @@ export class Daemon implements IDaemon {
   private snapshotInterval: NodeJS.Timeout | null
   private isRunning: boolean
 
-  constructor(swarmId: string) {
+  constructor(swarmId: string, maxHistorySize: number = 1000) {
     this.agentRegistry = new AgentRegistry()
     this.notificationQueue = new NotificationQueue()
-    this.channelManager = new ChannelManager()
+    this.channelManager = new ChannelManager(maxHistorySize)
     this.contextStore = new ContextStore()
     this.planManager = new PlanManager()
     
@@ -79,6 +81,22 @@ export class Daemon implements IDaemon {
   
   listAgents(): AgentMetadata[] {
     return this.agentRegistry.listAgents()
+  }
+  
+  updateAgentState(agentId: string, state: AgentLifecycleState): void {
+    this.agentRegistry.updateAgentState(agentId, state)
+  }
+  
+  getAllAgentIds(): string[] {
+    return this.agentRegistry.getAllAgentIds()
+  }
+  
+  enqueueNotification(agentId: string, notification: Notification): void {
+    this.notificationQueue.enqueue(agentId, notification)
+  }
+  
+  getChannelInfo(name: string): ChannelInfo | undefined {
+    return this.channelManager.getChannelInfo(name)
   }
   
   sendDM(message: DirectMessage): void {
@@ -155,7 +173,28 @@ export class Daemon implements IDaemon {
   getChannelMembers(name: string): string[] {
     return this.channelManager.getChannelMembers(name)
   }
-  
+
+  // Channel history methods
+  getChannelHistory(channelName: string, options?: HistoryQueryOptions): ChannelMessage[] {
+    return this.channelManager.getHistory(channelName, options)
+  }
+
+  getRecentChannelMessages(channelName: string, count: number): ChannelMessage[] {
+    return this.channelManager.getRecentMessages(channelName, count)
+  }
+
+  searchChannelBySender(channelName: string, senderId: string): ChannelMessage[] {
+    return this.channelManager.searchBySender(channelName, senderId)
+  }
+
+  searchChannelByTimeRange(channelName: string, fromTimestamp: number, toTimestamp: number): ChannelMessage[] {
+    return this.channelManager.searchByTimeRange(channelName, fromTimestamp, toTimestamp)
+  }
+
+  getChannelMessageCount(channelName: string): number {
+    return this.channelManager.getMessageCount(channelName)
+  }
+
   setContextKey(agentId: string, key: string, value: unknown): ContextKeyNotification {
     return this.contextStore.setKey(agentId, key, value)
   }
@@ -259,6 +298,8 @@ export class Daemon implements IDaemon {
       notificationQueues[agent.agentId] = this.notificationQueue.getPending(agent.agentId)
     }
     
+    const channelHistories = this.channelManager.getChannelHistories()
+
     const snapshot: DaemonSnapshot = {
       snapshotId: `snapshot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       timestamp: Date.now(),
@@ -266,6 +307,7 @@ export class Daemon implements IDaemon {
       agents,
       notificationQueues,
       channels: channels.map(c => c.name),
+      channelHistories,
       contextKeys: contextKeys.reduce((acc, entry) => {
         acc[entry.key] = entry.value
         return acc
@@ -312,7 +354,12 @@ export class Daemon implements IDaemon {
       for (const channelName of snapshot.channels) {
         this.channelManager.createChannel(channelName)
       }
-      
+
+      // Restore channel histories
+      if (snapshot.channelHistories) {
+        this.channelManager.restoreChannelHistories(snapshot.channelHistories)
+      }
+
       // Restore context keys
       this.contextStore = new ContextStore()
       for (const [key, value] of Object.entries(snapshot.contextKeys)) {

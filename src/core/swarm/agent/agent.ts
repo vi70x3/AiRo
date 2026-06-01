@@ -89,12 +89,12 @@ export class Agent implements IAgent {
     if (!validateTransition(this._state, newState)) {
       const trigger = getTransitionTrigger(this._state, newState)
       throw new Error(
-        `Invalid lifecycle transition from ${AgentLifecycleState[this._state]} to ${AgentLifecycleState[newState]}: ${trigger}`
+        `Invalid lifecycle transition from '${this._state}' to '${newState}': ${trigger}`
       )
     }
     this._state = newState
     this._lastHeartbeat = Date.now()
-    this.daemon.registerAgent(this.toMetadata())
+    this.daemon.updateAgentState(this.agentId, newState)
   }
 
   markReady(): void { this.transitionTo(AgentLifecycleState.Ready) }

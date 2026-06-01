@@ -28,7 +28,7 @@ export class TouchDelivery {
     }
     
     // Get all registered agents except the modifying agent
-    const allAgentIds = this.daemon.agentRegistry.getAllAgentIds()
+    const allAgentIds = this.daemon.getAllAgentIds()
     const recipientIds = allAgentIds.filter(id => id !== modifyingAgentId)
     
     // Deliver to all recipients

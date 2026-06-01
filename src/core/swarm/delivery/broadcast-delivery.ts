@@ -27,7 +27,7 @@ export class BroadcastDelivery {
     }
     
     // Get all registered agents except the sender
-    const allAgentIds = this.daemon.agentRegistry.getAllAgentIds()
+    const allAgentIds = this.daemon.getAllAgentIds()
     const recipientIds = allAgentIds.filter(id => id !== senderId)
     
     // Update recipients in the message

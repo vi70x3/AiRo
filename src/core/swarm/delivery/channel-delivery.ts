@@ -20,7 +20,7 @@ export class ChannelDelivery {
    */
   send(channelName: string, senderId: string, content: string): Notification[] {
     // Get channel members
-    const channelInfo = this.daemon.channelManager.getChannelInfo(channelName)
+    const channelInfo = this.daemon.getChannelInfo(channelName)
     if (!channelInfo) {
       throw new Error(`Channel ${channelName} does not exist`)
     }

@@ -106,7 +106,7 @@ export interface Notification {
 export type NotificationQueue = Array<Notification>;
 
 // Plan Management
-export enum TaskStatus {
+export enum SwarmTaskStatus {
   Pending = 'pending',
   InProgress = 'in_progress',
   Blocked = 'blocked',
@@ -139,7 +139,7 @@ export interface Task {
   description: string;
   owner: string; // agentId
   scope: string; // worktree path or similar
-  status: TaskStatus;
+  status: SwarmTaskStatus;
   dependsOn: string[]; // taskIds
   blockedBy: string[]; // taskIds
   checkpoints: Checkpoint[];
@@ -346,6 +346,7 @@ export interface DaemonSnapshot {
   agents: AgentMetadata[]; // simplified, could be more detailed
   notificationQueues: Record<string, NotificationQueue>; // agentId -> queue
   channels: string[]; // channel names
+  channelHistories: ChannelHistoryEntry[]; // channel message histories
   contextKeys: Record<string, unknown>; // key -> value
   plan: Plan | null;
   swarmId: string;
@@ -411,7 +412,7 @@ export interface TaskNode {
   description: string;
   owner: string; // agentId
   scope: string;
-  status: TaskStatus;
+  status: SwarmTaskStatus;
   dependsOn: string[]; // taskIds
   blockedBy: string[]; // taskIds
   priority: number;
@@ -432,10 +433,85 @@ export interface ChannelInfo {
   messageCount: number;
 }
 
+export interface HistoryQueryOptions {
+  limit?: number;
+  offset?: number;
+  senderId?: string;
+  fromTimestamp?: number;
+  toTimestamp?: number;
+  sortBy?: 'asc' | 'desc';
+}
+
+export interface ChannelHistoryEntry {
+  channelName: string;
+  messages: ChannelMessage[];
+}
+
 export interface ContextKeyEntry {
   key: string;
   value: unknown;
   setterAgentId: string;
   updatedAt: number;
   subscribers: string[];
+}
+
+// Crash Recovery Types
+export type CrashType = 'heartbeat_miss' | 'process_exit' | 'timeout'
+
+export interface CrashDetectedEvent {
+  agentId: string
+  crashType: CrashType
+  lastKnownState: AgentLifecycleState
+  timestamp: number
+  details: string
+}
+
+export interface ValidationResult {
+  valid: boolean
+  errors: string[]
+  warnings: string[]
+  recoverableIssues: string[]
+}
+
+export interface ResumeCheckpoint {
+  checkpointId: string
+  agentId: string
+  lastState: AgentLifecycleState
+  lastTaskId: string | null
+  progressMarker: {
+    completed: string[]
+    remaining: string[]
+  }
+  timestamp: number
+  worktreeScope: string | null
+}
+
+export interface CrashReport {
+  swarmId: string
+  timestamp: number
+  crashedAgents: CrashedAgentInfo[]
+  recoveryAttempted: boolean
+  recoveryResults: RecoveryResult[]
+}
+
+export interface CrashedAgentInfo {
+  agentId: string
+  crashType: CrashType
+  crashedAt: number
+  lastKnownState: AgentLifecycleState
+  lastTaskId: string | null
+}
+
+export interface RecoveryResult {
+  agentId: string
+  success: boolean
+  method: 'resume_checkpoint' | 'reassign_task' | 'failed'
+  details: string
+}
+
+export interface CrashDetectorConfig {
+  heartbeatIntervalMs: number
+  heartbeatMissThreshold: number
+  timeoutDurationMs: number
+  enabled: boolean
 }
