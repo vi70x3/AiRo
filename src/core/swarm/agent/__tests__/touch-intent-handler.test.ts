@@ -12,7 +12,7 @@ import {
 	FileOperation,
 	FileStatusType,
 } from '@roo-code/types'
-import { ConflictSeverity } from '../notification-handler'
+import { ConflictSeverity } from '../../worktree-manager/conflict-detector'
 
 // Helper to create a mock daemon
 const createMockDaemon = () => {

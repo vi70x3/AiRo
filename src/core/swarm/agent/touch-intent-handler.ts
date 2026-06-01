@@ -9,7 +9,8 @@ import {
 } from '@roo-code/types'
 import { IDaemon } from '../interfaces'
 import { WorkingSet, WorkingSetEntry } from './working-set'
-import { NotificationHandler, ConflictSeverity, NotificationHandlerResult } from './notification-handler'
+import { NotificationHandler, NotificationHandlerResult } from './notification-handler'
+import { ConflictSeverity } from '../worktree-manager/conflict-detector'
 
 export interface TouchHandlingResult {
 	notification: TouchNotification

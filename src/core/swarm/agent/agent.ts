@@ -16,7 +16,8 @@ import {
 import { validateTransition, getTransitionTrigger } from '../lifecycle'
 import { v4 as uuidv4 } from 'uuid'
 import { WorkingSet } from './working-set'
-import { NotificationHandler, ConflictSeverity, NotificationHandlerResult } from './notification-handler'
+import { NotificationHandler, NotificationHandlerResult } from './notification-handler'
+import { ConflictSeverity } from '../worktree-manager/conflict-detector'
 import { TouchIntentHandler } from './touch-intent-handler'
 import { ConflictStrategies, StrategyProposal } from './conflict-strategies'
 import {
@@ -114,12 +115,12 @@ export class Agent implements IAgent {
       agentId: this.agentId,
       agentType: this.agentType,
       state: this._state,
-      parentId: this.parentId ?? undefined,
-      worktreeScope: this.worktreeScope ?? undefined,
+      parentId: this.parentId,
+      worktreeScope: this.worktreeScope ?? '',
       spawnedAt: this.spawnedAt,
       lastHeartbeat: this._lastHeartbeat,
-      taskId: undefined,
-      mode: undefined,
+      taskId: null,
+      mode: '',
     }
   }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, test } from 'vitest'
 import { WorkingSet } from '../working-set'
-import { ConflictSeverity } from '../notification-handler'
+import { ConflictSeverity } from '../../worktree-manager/conflict-detector'
 import { FileStatusType, FileOperation } from '@roo-code/types'
 
 describe('WorkingSet', () => {

@@ -7,7 +7,7 @@ import {
 } from '@roo-code/types'
 import { IDaemon } from '../interfaces'
 import { WorkingSet } from './working-set'
-import { ConflictSeverity } from './notification-handler'
+import { ConflictSeverity } from '../worktree-manager/conflict-detector'
 import {
   TouchIntentHandler,
   TouchHandlingResult,

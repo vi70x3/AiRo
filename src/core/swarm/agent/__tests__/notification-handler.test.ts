@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, test, vi as viMock } from 'vitest'
-import { NotificationHandler, ConflictSeverity } from '../notification-handler'
+import { NotificationHandler } from '../notification-handler'
+import { ConflictSeverity } from '../../worktree-manager/conflict-detector'
 import { IDaemon } from '../../interfaces'
 import { Notification, NotificationType, FileOperation, FileStatusType } from '@roo-code/types'
 import { WorkingSet } from '../working-set'

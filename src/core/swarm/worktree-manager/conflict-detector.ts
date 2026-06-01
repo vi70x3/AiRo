@@ -31,6 +31,7 @@ export enum ConflictType {
  * - Low: Read-Write (one reading, another writing)
  */
 export enum ConflictSeverity {
+  None = 'none',
   Critical = 'critical',
   High = 'high',
   Medium = 'medium',

@@ -1,5 +1,5 @@
 import { FileStatusType, FileOperation, FileStatus } from '@roo-code/types'
-import { ConflictSeverity } from './notification-handler'
+import { ConflictSeverity } from '../worktree-manager/conflict-detector'
 
 // Extended FileStatus for working set that includes operation info
 export interface WorkingSetEntry extends FileStatus {

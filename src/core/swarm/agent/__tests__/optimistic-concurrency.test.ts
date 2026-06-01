@@ -3,7 +3,8 @@ import { OptimisticConcurrency, ConcurrencyDecision, ConcurrencyAction } from '.
 import { IDaemon } from '../../interfaces'
 import { WorkingSet } from '../working-set'
 import { TouchIntentHandler } from '../touch-intent-handler'
-import { ConflictSeverity, FileOperation, NotificationType, Notification, TouchNotification, IntentNotification } from '@roo-code/types'
+import { ConflictSeverity } from '../../worktree-manager/conflict-detector'
+import { FileOperation, NotificationType, Notification, TouchNotification, IntentNotification } from '@roo-code/types'
 
 const createMockDaemon = () => {
   const agents: Record<string, any> = {}

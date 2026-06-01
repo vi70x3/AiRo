@@ -9,13 +9,7 @@ import {
 } from '@roo-code/types'
 import { WorkingSet, WorkingSetEntry } from './working-set'
 import { IDaemon } from '../interfaces'
-
-export enum ConflictSeverity {
-  None = 'none',
-  Low = 'low',
-  Medium = 'medium',
-  High = 'high',
-}
+import { ConflictSeverity } from '../worktree-manager/conflict-detector'
 
 export interface TouchHandlingResult {
   notification: TouchNotification

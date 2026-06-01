@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ConflictStrategies, StrategyProposal, StrategyEvaluation, SequentialOrder, RebaseProposal, FilePartition } from '../conflict-strategies'
 import { IDaemon } from '../../interfaces'
-import { ConflictType, ConflictSeverity, ConflictResolutionStrategy, Plan, Task } from '@roo-code/types'
+import { ConflictType, ConflictSeverity } from '../../worktree-manager/conflict-detector'
+import { ConflictResolutionStrategy, Plan, Task } from '@roo-code/types'
 
 const createMockDaemon = () => {
   const agents: Record<string, any> = {}
