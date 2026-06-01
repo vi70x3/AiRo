@@ -38,6 +38,7 @@ const createMockDaemon = () => {
     setPlan: vi.fn(),
     getPlan: vi.fn(),
     listAgents: vi.fn(() => Object.values(agents)),
+    updateAgentState: vi.fn(),
   }
 }
 
