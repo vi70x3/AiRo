@@ -13,6 +13,7 @@ export interface LoopConfidenceState {
 	consecutiveSimilarTurns: number
 	lastCompressionAt: number // Timestamp of last loop-triggered compression
 	cooldownActive: boolean
+	lastSeenCompressionId: string | null // Tracks the last compression ID seen, making the calculator pure
 }
 
 export interface SemanticState {

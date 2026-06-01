@@ -10,6 +10,7 @@ const createState = (overrides: Partial<LoopConfidenceState> = {}): LoopConfiden
 	consecutiveSimilarTurns: 0,
 	lastCompressionAt: 0,
 	cooldownActive: false,
+	lastSeenCompressionId: null,
 	...overrides,
 })
 
@@ -172,13 +173,13 @@ describe("LoopConfidenceCalculator", () => {
 
 		it("should not trigger cooldown when cooldown is not active (turnsSinceLastCompression >= 3)", () => {
 			const calc = new LoopConfidenceCalculator()
-			// First call to establish lastCompressionId
-			const state1 = createState({ score: 0.5, consecutiveSimilarTurns: 2 })
+			// First call to establish lastSeenCompressionId in state
+			const state1 = createState({ score: 0.5, consecutiveSimilarTurns: 2, lastSeenCompressionId: null })
 			const recovery1 = createRecovery({ lastCompressionId: "compression-1", turnsSinceLastCompression: 3 })
 			const result1 = calc.calculate(state1, 0.8, 0.1, recovery1)
 			
-			// Second call with same compression ID, turnsSinceLastCompression >= 3
-			const state2 = createState({ score: 0.5, consecutiveSimilarTurns: 2 })
+			// Second call with same compression ID carried through state, turnsSinceLastCompression >= 3
+			const state2 = createState({ score: 0.5, consecutiveSimilarTurns: 2, lastSeenCompressionId: result1.lastSeenCompressionId })
 			const recovery2 = createRecovery({ lastCompressionId: "compression-1", turnsSinceLastCompression: 3 })
 			const result2 = calc.calculate(state2, 0.8, 0.1, recovery2)
 			
@@ -259,17 +260,18 @@ describe("LoopConfidenceCalculator", () => {
 
 		it("should use custom cooldownTurns when provided", () => {
 			const calc = new LoopConfidenceCalculator({ cooldownTurns: 5 })
-			const state = createState({ score: 0.5, consecutiveSimilarTurns: 0 })
 			
-			// turnsSinceLastCompression = 4 < 5, should trigger cooldown
+			// First call: new compression, turnsSinceLastCompression = 4 < 5, should trigger cooldown
+			const state1 = createState({ score: 0.5, consecutiveSimilarTurns: 0, lastSeenCompressionId: null })
 			const recovery1 = createRecovery({ lastCompressionId: "compression-1", turnsSinceLastCompression: 4 })
-			const result1 = calc.calculate(state, 0.8, 0.1, recovery1)
+			const result1 = calc.calculate(state1, 0.8, 0.1, recovery1)
 			expect(result1.score).toBeCloseTo(0.40, 5)
 			expect(result1.cooldownActive).toBe(true)
 			
-			// turnsSinceLastCompression = 5 >= 5, should not trigger cooldown
+			// Second call: same compression (carried through state), turnsSinceLastCompression = 5 >= 5, should not trigger cooldown
+			const state2 = createState({ score: 0.5, consecutiveSimilarTurns: 0, lastSeenCompressionId: result1.lastSeenCompressionId })
 			const recovery2 = createRecovery({ lastCompressionId: "compression-1", turnsSinceLastCompression: 5 })
-			const result2 = calc.calculate(state, 0.8, 0.1, recovery2)
+			const result2 = calc.calculate(state2, 0.8, 0.1, recovery2)
 			expect(result2.score).toBeCloseTo(0.60, 5)
 			expect(result2.cooldownActive).toBe(false)
 		})

@@ -62,7 +62,6 @@ const DEFAULT_CONFIG: LoopCalculatorConfig = {
  */
 export default class LoopConfidenceCalculator {
 	private readonly config: LoopCalculatorConfig
-	private lastCompressionId: string | null = null
 
 	constructor(config?: Partial<LoopCalculatorConfig>) {
 		this.config = { ...DEFAULT_CONFIG, ...config }
@@ -86,13 +85,10 @@ export default class LoopConfidenceCalculator {
 		const isSimilar = similarityScore >= this.config.similarityThreshold
 		const cooldownActive = this.isCooldownActive(compressionRecovery)
 
-		// Detect new compression event by checking if lastCompressionId changed
+		// Detect new compression event by comparing against the previously seen ID in state
 		const newCompression =
 			compressionRecovery.lastCompressionId !== null &&
-			compressionRecovery.lastCompressionId !== this.lastCompressionId
-
-		// Update tracked compression ID
-		this.lastCompressionId = compressionRecovery.lastCompressionId
+			compressionRecovery.lastCompressionId !== currentState.lastSeenCompressionId
 
 		let score: number
 		let consecutiveSimilarTurns: number
@@ -124,6 +120,7 @@ export default class LoopConfidenceCalculator {
 				? Date.now()
 				: currentState.lastCompressionAt,
 			cooldownActive,
+			lastSeenCompressionId: compressionRecovery.lastCompressionId,
 		}
 	}
 
