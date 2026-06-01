@@ -64,7 +64,7 @@ describe('PlanDistributor', () => {
     expect(result.broadcastSent).toBe(true)
     expect((daemon as any).sendDM).toHaveBeenCalledTimes(2)
     const calls = (daemon as any).sendDM.mock.calls
-    const recipients = calls.map((c: any[]) => c[0])
+    const recipients = calls.map((c: any[]) => c[0].recipientId)
     expect(recipients).toContain('a1')
     expect(recipients).toContain('b2')
   })
@@ -74,7 +74,8 @@ describe('PlanDistributor', () => {
     distributor.distributePlan(plan)
     expect((daemon as any).broadcast).toHaveBeenCalledTimes(1)
     const msg = (daemon as any).broadcast.mock.calls[0][0]
-    expect(msg.content).toContain('plan')
+    expect(msg.content.planId).toBe('p')
+    expect(msg.content.description).toBe('test')
   })
 
   it('excludes crashed/stopped/failed agents from distribution', () => {

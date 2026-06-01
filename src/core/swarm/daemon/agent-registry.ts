@@ -52,4 +52,7 @@ export class AgentRegistry {
     }
     agent.lastHeartbeat = Date.now()
   }
+  getAllAgentIds(): string[] {
+    return Array.from(this.agents.keys())
+  }
 }

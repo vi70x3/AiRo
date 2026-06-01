@@ -254,7 +254,11 @@ export interface MergePreparation {
   readyForMerge: boolean;
   unresolvedConflicts: string[]; // conflictIds
   testResults: unknown; // Could be more specific
-  validationChecks: unknown; // Could be more specific
+  validationChecks: ValidationResult[]; // Could be more specific
+  validationResults: ValidationResult[];
+  preparedAt: number; // timestamp
+  completionReports: CompletionReport[];
+  blockers: string[];
 }
 
 // Completion Reporting
