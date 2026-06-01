@@ -14,10 +14,10 @@
 *   [x] Add unit tests for all components with mock turns.
 
 ## Phase 3: Core Service and Configuration
-*   [ ] Create the main `SemanticLoopDetector` coordinator.
+*   [x] Create the main `SemanticLoopDetector` coordinator.
 *   [ ] Add `loopDetection` settings to `RooConfig`.
 *   [ ] Add telemetry for loop detection and recovery events.
-*   [ ] Add comprehensive tests for the coordinator.
+*   [x] Add comprehensive tests for the coordinator.
 
 ## Phase 4: Integration with Task Execution
 *   [ ] Integrate into `Task.ts` (`recursivelyMakeClineRequests`).
