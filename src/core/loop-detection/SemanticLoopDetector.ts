@@ -22,6 +22,17 @@ export interface SemanticLoopDetectorConfig {
 	similarityThreshold?: number
 	/** Partial configuration for the internal LoopConfidenceCalculator. */
 	calculatorConfig?: Partial<LoopCalculatorConfig>
+	/** Optional telemetry callback invoked when a loop is detected. */
+	onLoopDetected?: (event: {
+		confidenceScore: number
+		similarityScore: number
+		progressScore: number
+		consecutiveSimilarTurns: number
+	}) => void
+	/** Optional telemetry callback invoked when compression is triggered. */
+	onCompressionTriggered?: (event: { compressionId: string; confidenceScore: number; reason: string }) => void
+	/** Optional telemetry callback invoked when recovery after compression is detected. */
+	onRecoveryDetected?: (event: { compressionId: string; turnsToRecover: number }) => void
 }
 
 /**
@@ -57,6 +68,10 @@ export default class SemanticLoopDetector {
 	private readonly similarityScorer: SimilarityScorer
 	private readonly progressDetector: ProgressDetector
 	private readonly confidenceCalculator: LoopConfidenceCalculator
+	private readonly similarityThreshold: number
+	private readonly onLoopDetected?: SemanticLoopDetectorConfig["onLoopDetected"]
+	private readonly onCompressionTriggered?: SemanticLoopDetectorConfig["onCompressionTriggered"]
+	private readonly onRecoveryDetected?: SemanticLoopDetectorConfig["onRecoveryDetected"]
 
 	private loopConfidenceState: LoopConfidenceState
 	private compressionRecoveryState: CompressionRecoveryState
@@ -66,6 +81,10 @@ export default class SemanticLoopDetector {
 		this.similarityScorer = new SimilarityScorer()
 		this.progressDetector = new ProgressDetector()
 		this.confidenceCalculator = new LoopConfidenceCalculator(config?.calculatorConfig)
+		this.similarityThreshold = config?.similarityThreshold ?? 0.6
+		this.onLoopDetected = config?.onLoopDetected
+		this.onCompressionTriggered = config?.onCompressionTriggered
+		this.onRecoveryDetected = config?.onRecoveryDetected
 
 		// Note: lastCompressionAt is typed as `number` (not nullable) in the
 		// existing type definition, so we use 0 to represent "no compression yet".
@@ -144,6 +163,41 @@ export default class SemanticLoopDetector {
 			this.compressionRecoveryState,
 		)
 
+		// Step 6: Emit telemetry and logging for loop detection.
+		// A loop is detected when similarity is high (>= threshold) and progress is low (< 0.3).
+		if (similarityScore >= this.similarityThreshold && progressScore < 0.3) {
+			console.log(
+				`[loop-detection] Loop detected: confidence=${this.loopConfidenceState.score}, similarity=${similarityScore}, progress=${progressScore}`,
+			)
+			this.onLoopDetected?.({
+				confidenceScore: this.loopConfidenceState.score,
+				similarityScore,
+				progressScore,
+				consecutiveSimilarTurns: this.loopConfidenceState.consecutiveSimilarTurns,
+			})
+		}
+
+		// Step 7: Emit telemetry and logging for recovery detection.
+		// Recovery is detected when there was a compression, recovery was not yet marked,
+		// and the current turn shows strong progress (>= 0.3).
+		if (
+			this.compressionRecoveryState.lastCompressionId !== null &&
+			!this.compressionRecoveryState.isRecovered &&
+			progressScore >= 0.3
+		) {
+			const turnsToRecover = this.compressionRecoveryState.turnsSinceLastCompression
+			console.log(`[loop-detection] Recovery detected after ${turnsToRecover} turns`)
+			this.onRecoveryDetected?.({
+				compressionId: this.compressionRecoveryState.lastCompressionId,
+				turnsToRecover,
+			})
+			// Mark recovery so we don't fire the callback on subsequent turns.
+			this.compressionRecoveryState = {
+				...this.compressionRecoveryState,
+				isRecovered: true,
+			}
+		}
+
 		return {
 			loopConfidence: this.loopConfidenceState,
 			similarityScore,
@@ -194,6 +248,14 @@ export default class SemanticLoopDetector {
 			timestamp,
 			turnsAtCompression,
 		}
+
+		// Emit telemetry and logging for compression.
+		console.log(`[loop-detection] Compression triggered: id=${id}, reason=${reason}`)
+		this.onCompressionTriggered?.({
+			compressionId: id,
+			confidenceScore: this.loopConfidenceState.score,
+			reason,
+		})
 
 		// Update loop confidence state: mark compression timestamp and activate cooldown.
 		this.loopConfidenceState = {

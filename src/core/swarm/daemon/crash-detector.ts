@@ -21,6 +21,7 @@ export class CrashDetector {
   private monitoringInterval: ReturnType<typeof setInterval> | null = null
   private crashListeners: Array<(event: CrashDetectedEvent) => void> = []
   private agentStates: Map<string, AgentLifecycleState> = new Map()
+  private crashedAgents: Set<string> = new Set()
 
   constructor(config?: Partial<CrashDetectorConfig>) {
     this.config = { ...DEFAULT_CRASH_DETECTOR_CONFIG, ...config }
@@ -43,6 +44,7 @@ export class CrashDetector {
     this.heartbeatMissCounts.delete(agentId)
     this.processAlive.delete(agentId)
     this.agentStates.delete(agentId)
+    this.crashedAgents.delete(agentId)
   }
 
   recordHeartbeat(agentId: string): void {
@@ -102,6 +104,11 @@ export class CrashDetector {
     const agentIds = Array.from(this.heartbeatTimestamps.keys())
 
     for (const agentId of agentIds) {
+      // Skip agents already detected as crashed
+      if (this.crashedAgents.has(agentId)) {
+        continue
+      }
+
       // Check heartbeat misses
       const lastHeartbeat = this.heartbeatTimestamps.get(agentId) || 0
       const timeSinceHeartbeat = now - lastHeartbeat
@@ -136,6 +143,7 @@ export class CrashDetector {
   }
 
   private emitCrashEvent(agentId: string, crashType: CrashType, details: string): void {
+    this.crashedAgents.add(agentId)
     const event: CrashDetectedEvent = {
       agentId,
       crashType,

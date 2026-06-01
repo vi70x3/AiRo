@@ -46,6 +46,7 @@ import {
 	SwarmTaskStatus,
 	DependencyType,
 	CheckpointStatus,
+	CrashReport,
 } from '@roo-code/types'
 
 // IAgent Interface
@@ -127,6 +128,10 @@ export interface IDaemon {
 	createSnapshot(): DaemonSnapshot
 	restoreFromSnapshot(snapshotId: string): void
 	listSnapshots(): string[]
+
+	// Crash Recovery
+	getCrashReport(swarmId: string): CrashReport
+	forceRecoverAgent(agentId: string): AgentMetadata | null
 }
 
 // IWorktreeManager Interface

@@ -181,6 +181,19 @@ export const globalSettingsSchema = z.object({
 
 	diagnosticsEnabled: z.boolean().optional(),
 
+	loopDetection: z
+		.object({
+			enabled: z.boolean().optional().default(false),
+			windowSize: z.number().int().min(5).max(100).optional().default(20),
+			threshold: z.number().min(0.5).max(0.95).optional().default(0.7),
+			increment: z.number().min(0.01).max(0.5).optional().default(0.1),
+			decrement: z.number().min(0.01).max(0.5).optional().default(0.15),
+			cooldownTurns: z.number().int().min(1).max(10).optional().default(3),
+			cooldownDecay: z.number().min(0.01).max(0.5).optional().default(0.1),
+		})
+		.optional()
+		.default({}),
+
 	rateLimitSeconds: z.number().optional(),
 	experiments: experimentsSchema.optional(),
 
@@ -234,6 +247,8 @@ export const globalSettingsSchema = z.object({
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>
+
+export type LoopDetectionConfig = z.infer<typeof globalSettingsSchema>["loopDetection"]
 
 export const GLOBAL_SETTINGS_KEYS = globalSettingsSchema.keyof().options
 

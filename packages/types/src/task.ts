@@ -168,4 +168,9 @@ export type TaskEvents = {
 	// Task Analytics
 	[RooCodeEventName.TaskToolFailed]: [taskId: string, tool: ToolName, error: string]
 	[RooCodeEventName.TaskTokenUsageUpdated]: [taskId: string, tokenUsage: TokenUsage, toolUsage: ToolUsage]
+
+	// Loop Detection
+	[RooCodeEventName.LoopDetected]: [{ taskId: string; confidenceScore: number; similarityScore: number; progressScore: number; consecutiveSimilarTurns: number }]
+	[RooCodeEventName.LoopCompressionTriggered]: [{ taskId: string; compressionId: string; confidenceScore: number; reason: string }]
+	[RooCodeEventName.LoopRecoveryDetected]: [{ taskId: string; compressionId: string; turnsToRecover: number }]
 }

@@ -61,6 +61,11 @@ export enum RooCodeEventName {
 	CommandsResponse = "commandsResponse",
 	ModesResponse = "modesResponse",
 	ModelsResponse = "modelsResponse",
+
+	// Loop Detection
+	LoopDetected = "loopDetected",
+	LoopCompressionTriggered = "loopCompressionTriggered",
+	LoopRecoveryDetected = "loopRecoveryDetected",
 }
 
 /**
@@ -169,6 +174,32 @@ export const rooCodeEventsSchema = z.object({
 	]),
 	[RooCodeEventName.ModesResponse]: z.tuple([z.array(z.object({ slug: z.string(), name: z.string() }))]),
 	[RooCodeEventName.ModelsResponse]: z.tuple([z.record(z.string(), modelInfoSchema)]),
+
+	// Loop Detection
+	[RooCodeEventName.LoopDetected]: z.tuple([
+		z.object({
+			taskId: z.string(),
+			confidenceScore: z.number(),
+			similarityScore: z.number(),
+			progressScore: z.number(),
+			consecutiveSimilarTurns: z.number(),
+		}),
+	]),
+	[RooCodeEventName.LoopCompressionTriggered]: z.tuple([
+		z.object({
+			taskId: z.string(),
+			compressionId: z.string(),
+			confidenceScore: z.number(),
+			reason: z.string(),
+		}),
+	]),
+	[RooCodeEventName.LoopRecoveryDetected]: z.tuple([
+		z.object({
+			taskId: z.string(),
+			compressionId: z.string(),
+			turnsToRecover: z.number(),
+		}),
+	]),
 })
 
 export type RooCodeEvents = z.infer<typeof rooCodeEventsSchema>
@@ -351,6 +382,23 @@ export const taskEventSchema = z.discriminatedUnion("eventName", [
 	z.object({
 		eventName: z.literal(RooCodeEventName.ModelsResponse),
 		payload: rooCodeEventsSchema.shape[RooCodeEventName.ModelsResponse],
+		taskId: z.number().optional(),
+	}),
+
+	// Loop Detection
+	z.object({
+		eventName: z.literal(RooCodeEventName.LoopDetected),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.LoopDetected],
+		taskId: z.number().optional(),
+	}),
+	z.object({
+		eventName: z.literal(RooCodeEventName.LoopCompressionTriggered),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.LoopCompressionTriggered],
+		taskId: z.number().optional(),
+	}),
+	z.object({
+		eventName: z.literal(RooCodeEventName.LoopRecoveryDetected),
+		payload: rooCodeEventsSchema.shape[RooCodeEventName.LoopRecoveryDetected],
 		taskId: z.number().optional(),
 	}),
 ])

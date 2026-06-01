@@ -1,0 +1,150 @@
+import {
+  AgentLifecycleState,
+  AgentMetadata,
+  ResumeCheckpoint,
+} from '@roo-code/types'
+import * as fs from 'fs'
+import * as path from 'path'
+import * as os from 'os'
+
+export class ResumeCheckpointManager {
+  private checkpointDir: string
+  private swarmId: string
+
+  constructor(swarmId: string) {
+    this.swarmId = swarmId
+    this.checkpointDir = path.join(os.homedir(), '.kiro', 'swarm', 'checkpoints', swarmId)
+    this.ensureCheckpointDir()
+  }
+
+  private ensureCheckpointDir(): void {
+    if (!fs.existsSync(this.checkpointDir)) {
+      fs.mkdirSync(this.checkpointDir, { recursive: true })
+    }
+  }
+
+  private getCheckpointPath(checkpointId: string): string {
+    return path.join(this.checkpointDir, `${checkpointId}.json`)
+  }
+
+  createCheckpoint(
+    agentId: string,
+    agent: AgentMetadata,
+    lastTaskId: string | null,
+    progressMarker: { completed: string[]; remaining: string[] }
+  ): ResumeCheckpoint {
+    const checkpoint: ResumeCheckpoint = {
+      checkpointId: `checkpoint-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      agentId,
+      lastState: agent.state,
+      lastTaskId,
+      progressMarker,
+      timestamp: Date.now(),
+      worktreeScope: agent.worktreeScope || null,
+    }
+
+    try {
+      const checkpointPath = this.getCheckpointPath(checkpoint.checkpointId)
+      fs.writeFileSync(checkpointPath, JSON.stringify(checkpoint, null, 2))
+    } catch (error) {
+      console.error('Failed to persist checkpoint:', error)
+    }
+
+    return checkpoint
+  }
+
+  getLatestCheckpoint(agentId: string): ResumeCheckpoint | null {
+    try {
+      if (!fs.existsSync(this.checkpointDir)) {
+        return null
+      }
+
+      const files = fs.readdirSync(this.checkpointDir)
+        .filter(f => f.endsWith('.json'))
+        .map(f => {
+          const path = this.getCheckpointPath(f.replace('.json', ''))
+          const stat = fs.statSync(path)
+          return { path, stat }
+        })
+        .sort((a, b) => b.stat.mtimeMs - a.stat.mtimeMs)
+
+      for (const file of files) {
+        const checkpointData = fs.readFileSync(file.path, 'utf-8')
+        const checkpoint: ResumeCheckpoint = JSON.parse(checkpointData)
+        if (checkpoint.agentId === agentId) {
+          return checkpoint
+        }
+      }
+
+      return null
+    } catch (error) {
+      console.error('Failed to read checkpoint:', error)
+      return null
+    }
+  }
+
+  listCheckpoints(agentId?: string): ResumeCheckpoint[] {
+    try {
+      if (!fs.existsSync(this.checkpointDir)) {
+        return []
+      }
+
+      const files = fs.readdirSync(this.checkpointDir)
+        .filter(f => f.endsWith('.json'))
+        .map(f => {
+          const path = this.getCheckpointPath(f.replace('.json', ''))
+          const checkpointData = fs.readFileSync(path, 'utf-8')
+          return JSON.parse(checkpointData) as ResumeCheckpoint
+        })
+        .sort((a, b) => b.timestamp - a.timestamp)
+
+      if (agentId) {
+        return files.filter(c => c.agentId === agentId)
+      }
+
+      return files
+    } catch (error) {
+      console.error('Failed to list checkpoints:', error)
+      return []
+    }
+  }
+
+  deleteCheckpoint(checkpointId: string): boolean {
+    try {
+      const checkpointPath = this.getCheckpointPath(checkpointId)
+      if (fs.existsSync(checkpointPath)) {
+        fs.unlinkSync(checkpointPath)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Failed to delete checkpoint:', error)
+      return false
+    }
+  }
+
+  cleanupOldCheckpoints(maxToKeep: number = 10): void {
+    try {
+      if (!fs.existsSync(this.checkpointDir)) {
+        return
+      }
+
+      const files = fs.readdirSync(this.checkpointDir)
+        .filter(f => f.endsWith('.json'))
+        .map(f => ({
+          name: f,
+          path: this.getCheckpointPath(f.replace('.json', '')),
+          stat: fs.statSync(this.getCheckpointPath(f.replace('.json', '')))
+        }))
+        .sort((a, b) => b.stat.mtimeMs - a.stat.mtimeMs)
+
+      if (files.length > maxToKeep) {
+        for (const file of files.slice(maxToKeep)) {
+          fs.unlinkSync(file.path)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to cleanup old checkpoints:', error)
+    }
+  }
+}

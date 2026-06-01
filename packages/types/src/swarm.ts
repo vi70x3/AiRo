@@ -466,7 +466,7 @@ export interface CrashDetectedEvent {
   details: string
 }
 
-export interface ValidationResult {
+export interface CrashValidationResult {
   valid: boolean
   errors: string[]
   warnings: string[]

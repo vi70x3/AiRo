@@ -45,7 +45,7 @@ const createDissimilarTurn = (id: string): ReasoningTurn => ({
 })
 
 // Helper: create a turn that shows strong progress
-const createProgressTurn = (id: string): ReasoningTurn => ({
+const createProgressTurn = (id: string, overrides?: Partial<ReasoningTurn>): ReasoningTurn => ({
 	id,
 	toolPattern: ["write_file"],
 	filesTouched: ["new_feature.ts"],
@@ -53,6 +53,7 @@ const createProgressTurn = (id: string): ReasoningTurn => ({
 	conclusions: ["conclusion: feature implemented"],
 	stateTransitions: ["todo_completed:X", "error_resolved:Y"],
 	timestamp: Date.now(),
+	...overrides,
 })
 
 describe("SemanticLoopDetector", () => {

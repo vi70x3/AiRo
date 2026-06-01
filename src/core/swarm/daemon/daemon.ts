@@ -1,22 +1,22 @@
 import {
   AgentMetadata,
-  AgentType,
   AgentLifecycleState,
   Notification,
   NotificationType,
   DirectMessage,
   BroadcastMessage,
   ChannelMessage,
-  ChannelInfo,
   ChannelHistoryEntry,
-  ContextKeyEntry,
   ContextKeyNotification,
   DaemonSnapshot,
-  HistoryQueryOptions,
   Plan,
   TouchNotification,
   IntentNotification,
-  FileOperation
+  FileOperation,
+  CrashReport,
+  CrashDetectedEvent,
+  CrashedAgentInfo,
+  RecoveryResult,
 } from '@roo-code/types'
 
 import { IDaemon } from '../interfaces'
@@ -25,6 +25,9 @@ import { NotificationQueue } from './notification-queue'
 import { ChannelManager } from './channel-manager'
 import { ContextStore } from './context-store'
 import { PlanManager } from './plan-manager'
+import { CrashDetector } from './crash-detector'
+import { RecoveryValidator } from './recovery-validator'
+import { ResumeCheckpointManager } from './resume-checkpoint-manager'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
@@ -36,451 +39,422 @@ interface SnapshotMetadata {
 }
 
 export class Daemon implements IDaemon {
-  private agentRegistry: AgentRegistry
-  private notificationQueue: NotificationQueue
-  private channelManager: ChannelManager
-  private contextStore: ContextStore
-  private planManager: PlanManager
-  
-  private swarmId: string
-  private coordinatorId: string | null
-  private snapshotDir: string
-  private snapshotInterval: NodeJS.Timeout | null
-  private isRunning: boolean
+  // Public properties (accessed by tests)
+  public agentRegistry: AgentRegistry
+  public notificationQueue: NotificationQueue
+  public channelManager: ChannelManager
+  public contextStore: ContextStore
+  public planManager: PlanManager
 
-  constructor(swarmId: string, maxHistorySize: number = 1000) {
+  // Private properties
+  private crashDetector: CrashDetector
+  private recoveryValidator: RecoveryValidator
+  private checkpointManager: ResumeCheckpointManager
+  private coordinatorId: string | null = null
+  private swarmId: string
+  private snapshotsDir: string
+  private snapshots: Map<string, SnapshotMetadata> = new Map()
+
+  constructor(swarmId: string) {
+    this.swarmId = swarmId
     this.agentRegistry = new AgentRegistry()
     this.notificationQueue = new NotificationQueue()
-    this.channelManager = new ChannelManager(maxHistorySize)
+    this.channelManager = new ChannelManager()
     this.contextStore = new ContextStore()
     this.planManager = new PlanManager()
-    
-    this.swarmId = swarmId
-    this.coordinatorId = null
-    this.snapshotDir = path.join(os.homedir(), '.kiro', 'swarm', 'snapshots', swarmId)
-    this.snapshotInterval = null
-    this.isRunning = false
-    
-    // Ensure snapshot directory exists
-    this.ensureSnapshotDir()
+    this.crashDetector = new CrashDetector()
+    this.recoveryValidator = new RecoveryValidator()
+    this.checkpointManager = new ResumeCheckpointManager(swarmId)
+
+    this.snapshotsDir = path.join(os.homedir(), '.kiro', 'swarm', 'snapshots', swarmId)
+    this.ensureSnapshotsDir()
+
+    // Wire crash detector to daemon lifecycle
+    this.crashDetector.onCrash((event) => {
+      this.handleCrashDetected(event)
+    })
   }
-  
-  // IDaemon implementation — delegate to subsystems:
+
+  // --- Agent Registry Methods ---
   registerAgent(agent: AgentMetadata): void {
     this.agentRegistry.registerAgent(agent)
+    this.crashDetector.registerAgent(agent.agentId, agent.state)
   }
-  
+
   unregisterAgent(agentId: string): void {
     this.agentRegistry.unregisterAgent(agentId)
+    this.crashDetector.unregisterAgent(agentId)
+    this.notificationQueue.clear(agentId)
   }
-  
+
   getAgent(agentId: string): AgentMetadata | null {
-    const agent = this.agentRegistry.getAgent(agentId)
-    return agent || null
+    return this.agentRegistry.getAgent(agentId) ?? null
   }
-  
+
   listAgents(): AgentMetadata[] {
     return this.agentRegistry.listAgents()
   }
-  
+
   updateAgentState(agentId: string, state: AgentLifecycleState): void {
     this.agentRegistry.updateAgentState(agentId, state)
+    this.crashDetector.updateAgentState(agentId, state)
   }
-  
-  getAllAgentIds(): string[] {
-    return this.agentRegistry.getAllAgentIds()
-  }
-  
-  enqueueNotification(agentId: string, notification: Notification): void {
-    this.notificationQueue.enqueue(agentId, notification)
-  }
-  
-  getChannelInfo(name: string): ChannelInfo | undefined {
-    return this.channelManager.getChannelInfo(name)
-  }
-  
+
+  // --- Communication Methods ---
   sendDM(message: DirectMessage): void {
     const notification: Notification = {
       notificationId: `dm-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: NotificationType.DM,
       recipientId: message.recipientId,
       payload: message,
-      timestamp: Date.now(),
+      timestamp: message.timestamp,
       delivered: false,
-      acknowledged: false
+      acknowledged: false,
     }
-    
     this.notificationQueue.enqueue(message.recipientId, notification)
   }
-  
+
   broadcast(message: BroadcastMessage): void {
     const agents = this.agentRegistry.listAgents()
-    const senderId = message.senderId
-    
     for (const agent of agents) {
-      // Skip the sender
-      if (agent.agentId === senderId) continue
-      
-      const notification: Notification = {
-        notificationId: `broadcast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: NotificationType.Broadcast,
-        recipientId: agent.agentId,
-        payload: message,
-        timestamp: Date.now(),
-        delivered: false,
-        acknowledged: false
+      if (agent.agentId !== message.senderId) {
+        const notification: Notification = {
+          notificationId: `bc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: NotificationType.Broadcast,
+          recipientId: agent.agentId,
+          payload: message,
+          timestamp: message.timestamp,
+          delivered: false,
+          acknowledged: false,
+        }
+        this.notificationQueue.enqueue(agent.agentId, notification)
       }
-      
-      this.notificationQueue.enqueue(agent.agentId, notification)
     }
   }
-  
+
   createChannel(name: string, topic?: string): void {
     this.channelManager.createChannel(name, topic)
   }
-  
+
   joinChannel(agentId: string, name: string): void {
     this.channelManager.joinChannel(agentId, name)
   }
-  
+
   leaveChannel(agentId: string, name: string): void {
     this.channelManager.leaveChannel(agentId, name)
   }
-  
+
   sendToChannel(message: ChannelMessage): void {
     const recipients = this.channelManager.sendToChannel(message)
-    
-    // Create notifications for each recipient
     for (const recipientId of recipients) {
       const notification: Notification = {
-        notificationId: `channel-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        notificationId: `ch-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type: NotificationType.Channel,
         recipientId,
         payload: message,
-        timestamp: Date.now(),
+        timestamp: message.timestamp,
         delivered: false,
-        acknowledged: false
+        acknowledged: false,
       }
-      
       this.notificationQueue.enqueue(recipientId, notification)
     }
   }
-  
+
   listChannels(): string[] {
     return this.channelManager.listChannels().map(c => c.name)
   }
-  
+
   getChannelMembers(name: string): string[] {
     return this.channelManager.getChannelMembers(name)
   }
 
-  // Channel history methods
-  getChannelHistory(channelName: string, options?: HistoryQueryOptions): ChannelMessage[] {
-    return this.channelManager.getHistory(channelName, options)
+  // --- Context Key Methods ---
+  setContextKey(agentId: string, key: string, value: unknown): void {
+    this.contextStore.setKey(agentId, key, value)
   }
 
-  getRecentChannelMessages(channelName: string, count: number): ChannelMessage[] {
-    return this.channelManager.getRecentMessages(channelName, count)
+  getContextKey(key: string): unknown {
+    const entry = this.contextStore.getKey(key)
+    return entry ? entry.value : undefined
   }
 
-  searchChannelBySender(channelName: string, senderId: string): ChannelMessage[] {
-    return this.channelManager.searchBySender(channelName, senderId)
-  }
-
-  searchChannelByTimeRange(channelName: string, fromTimestamp: number, toTimestamp: number): ChannelMessage[] {
-    return this.channelManager.searchByTimeRange(channelName, fromTimestamp, toTimestamp)
-  }
-
-  getChannelMessageCount(channelName: string): number {
-    return this.channelManager.getMessageCount(channelName)
-  }
-
-  setContextKey(agentId: string, key: string, value: unknown): ContextKeyNotification {
-    return this.contextStore.setKey(agentId, key, value)
-  }
-  
-  getContextKey(key: string): ContextKeyEntry | undefined {
-    return this.contextStore.getKey(key)
-  }
-  
   listContextKeys(): string[] {
-    return this.contextStore.listKeys().map(k => k.key)
+    return this.contextStore.listKeys().map(entry => entry.key)
   }
-  
+
   subscribeToKey(agentId: string, key: string, callback: (newValue: unknown, oldValue: unknown) => void): void {
-    // Wrap the callback to match ContextStore's expected signature
     this.contextStore.subscribeToKey(agentId, key, (notification: ContextKeyNotification) => {
       callback(notification.newValue, notification.oldValue)
     })
   }
-  
-  getPendingNotifications(agentId: string): Notification[] {
+
+  // --- Notification Methods ---
+  getPendingNotifications(agentId: string): Notification[] | null {
+    const agent = this.agentRegistry.getAgent(agentId)
+    if (!agent) {
+      return null
+    }
     return this.notificationQueue.getPending(agentId)
   }
-  
+
+  // --- Touch/Intent Methods ---
   notifyFileTouch(agentId: string, filePath: string, operation: FileOperation): void {
-    const touchNotification: TouchNotification = {
+    const touchPayload: TouchNotification = {
       notificationId: `touch-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      filePath,
       modifyingAgentId: agentId,
+      filePath,
+      operation,
       timestamp: Date.now(),
-      operation
     }
-    
     const agents = this.agentRegistry.listAgents()
-    
-    // Create a notification for each registered agent except the modifier
     for (const agent of agents) {
-      if (agent.agentId === agentId) continue // Skip the modifier
-      
-      const notification: Notification = {
-        notificationId: `touch-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: NotificationType.Touch,
-        recipientId: agent.agentId,
-        payload: touchNotification,
-        timestamp: Date.now(),
-        delivered: false,
-        acknowledged: false
+      if (agent.agentId !== agentId) {
+        const notification: Notification = {
+          notificationId: `touch-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: NotificationType.Touch,
+          recipientId: agent.agentId,
+          payload: touchPayload,
+          timestamp: Date.now(),
+          delivered: false,
+          acknowledged: false,
+        }
+        this.notificationQueue.enqueue(agent.agentId, notification)
       }
-      
-      this.notificationQueue.enqueue(agent.agentId, notification)
     }
   }
-  
+
   broadcastIntent(agentId: string, filePaths: string[], toolName: string): void {
-    const intentNotification: IntentNotification = {
+    const intentPayload: IntentNotification = {
       notificationId: `intent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       declaringAgentId: agentId,
       filePaths,
+      toolName,
       timestamp: Date.now(),
-      toolName
     }
-    
     const agents = this.agentRegistry.listAgents()
-    
-    // Create a notification for each registered agent except the declarer
     for (const agent of agents) {
-      if (agent.agentId === agentId) continue // Skip the declarer
-      
-      const notification: Notification = {
-        notificationId: `intent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        type: NotificationType.Intent,
-        recipientId: agent.agentId,
-        payload: intentNotification,
-        timestamp: Date.now(),
-        delivered: false,
-        acknowledged: false
+      if (agent.agentId !== agentId) {
+        const notification: Notification = {
+          notificationId: `intent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: NotificationType.Intent,
+          recipientId: agent.agentId,
+          payload: intentPayload,
+          timestamp: Date.now(),
+          delivered: false,
+          acknowledged: false,
+        }
+        this.notificationQueue.enqueue(agent.agentId, notification)
       }
-      
-      this.notificationQueue.enqueue(agent.agentId, notification)
     }
   }
-  
+
+  // --- Coordinator Methods ---
+  getCoordinatorId(): string | null {
+    return this.coordinatorId
+  }
+
+  setCoordinatorId(coordinatorId: string): void {
+    this.coordinatorId = coordinatorId
+  }
+
+  // --- Plan Methods ---
   setPlan(plan: Plan): void {
     this.planManager.setPlan(plan)
   }
-  
+
   getPlan(): Plan | null {
     return this.planManager.getPlan()
   }
-  
+
+  // --- Snapshot Methods ---
   createSnapshot(): DaemonSnapshot {
-    const agents = this.agentRegistry.listAgents()
-    const channels = this.channelManager.listChannels()
-    const contextKeys = this.contextStore.listKeys()
-    const plan = this.planManager.getPlan()
-    
-    // For notification queues, we need to collect all pending notifications
-    // This is a simplified implementation - in a real implementation, we'd need to 
-    // collect all pending notifications from all agents
+    const snapshotId = `snap-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+
+    // Build notification queues from registered agents
     const notificationQueues: Record<string, Notification[]> = {}
+    const agents = this.agentRegistry.listAgents()
     for (const agent of agents) {
-      notificationQueues[agent.agentId] = this.notificationQueue.getPending(agent.agentId)
+      const pending = this.notificationQueue.getPending(agent.agentId)
+      if (pending.length > 0) {
+        notificationQueues[agent.agentId] = pending
+      }
     }
-    
-    const channelHistories = this.channelManager.getChannelHistories()
+
+    // Build context keys
+    const contextKeys: Record<string, unknown> = {}
+    for (const entry of this.contextStore.listKeys()) {
+      contextKeys[entry.key] = entry.value
+    }
 
     const snapshot: DaemonSnapshot = {
-      snapshotId: `snapshot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      snapshotId,
       timestamp: Date.now(),
       version: '1.0.0',
       agents,
       notificationQueues,
-      channels: channels.map(c => c.name),
-      channelHistories,
-      contextKeys: contextKeys.reduce((acc, entry) => {
-        acc[entry.key] = entry.value
-        return acc
-      }, {} as Record<string, unknown>),
-      plan,
+      channels: this.channelManager.listChannels().map(c => c.name),
+      channelHistories: this.channelManager.getChannelHistories(),
+      contextKeys,
+      plan: this.planManager.getPlan(),
       swarmId: this.swarmId,
-      coordinatorId: this.coordinatorId || ''
+      coordinatorId: this.coordinatorId ?? '',
     }
-    
-    // Persist snapshot to disk
+
+    // Persist snapshot metadata
+    const metadata: SnapshotMetadata = {
+      snapshotId,
+      timestamp: snapshot.timestamp,
+      version: snapshot.version,
+    }
+    this.snapshots.set(snapshotId, metadata)
     this.persistSnapshot(snapshot)
-    
+
     return snapshot
   }
-  
+
   restoreFromSnapshot(snapshotId: string): void {
-    try {
-      const snapshotPath = this.getSnapshotPath(snapshotId)
-      
-      if (!fs.existsSync(snapshotPath)) {
-        return
-      }
-      
-      const snapshotData = fs.readFileSync(snapshotPath, 'utf-8')
-      const snapshot: DaemonSnapshot = JSON.parse(snapshotData)
-      
-      // Restore agent registry
-      this.agentRegistry = new AgentRegistry()
-      for (const agent of snapshot.agents) {
-        this.agentRegistry.registerAgent(agent)
-      }
-      
-      // Restore notification queues
-      this.notificationQueue = new NotificationQueue()
-      for (const [agentId, notifications] of Object.entries(snapshot.notificationQueues)) {
-        const notificationList = notifications as Notification[]
-        for (const notification of notificationList) {
-          this.notificationQueue.enqueue(agentId, notification)
-        }
-      }
-      
-      // Restore channels
-      this.channelManager = new ChannelManager()
-      for (const channelName of snapshot.channels) {
-        this.channelManager.createChannel(channelName)
-      }
-
-      // Restore channel histories
-      if (snapshot.channelHistories) {
-        this.channelManager.restoreChannelHistories(snapshot.channelHistories)
-      }
-
-      // Restore context keys
-      this.contextStore = new ContextStore()
-      for (const [key, value] of Object.entries(snapshot.contextKeys)) {
-        // Restore context keys - we need an agentId, use coordinatorId or first agent
-        const agentId = snapshot.coordinatorId || snapshot.agents[0]?.agentId || 'system'
-        this.contextStore.setKey(agentId, key, value)
-      }
-      
-      // Restore plan
-      if (snapshot.plan) {
-        this.planManager.setPlan(snapshot.plan)
-      }
-      
-      // Restore coordinatorId
-      this.coordinatorId = snapshot.coordinatorId || null
-    } catch (error) {
-      console.error('Failed to restore snapshot:', error)
+    const snapshotPath = path.join(this.snapshotsDir, `${snapshotId}.json`)
+    if (!fs.existsSync(snapshotPath)) {
+      throw new Error(`Snapshot ${snapshotId} not found`)
     }
-  }
-  
-  listSnapshots(): string[] {
-    try {
-      if (!fs.existsSync(this.snapshotDir)) {
-        return []
+
+    const raw = fs.readFileSync(snapshotPath, 'utf-8')
+    const snapshot: DaemonSnapshot = JSON.parse(raw)
+
+    // Restore agents
+    for (const agent of snapshot.agents) {
+      this.agentRegistry.registerAgent(agent)
+    }
+
+    // Restore notification queues
+    for (const [agentId, notifications] of Object.entries(snapshot.notificationQueues)) {
+      for (const notification of notifications) {
+        this.notificationQueue.enqueue(agentId, notification)
       }
-      
-      const files = fs.readdirSync(this.snapshotDir)
-      return files.filter(f => f.endsWith('.json')).sort()
-    } catch (error) {
-      console.error('Failed to list snapshots:', error)
+    }
+
+    // Restore channels and histories
+    for (const channelName of snapshot.channels) {
+      try {
+        this.channelManager.createChannel(channelName)
+      } catch {
+        // Channel already exists, skip
+      }
+    }
+    this.channelManager.restoreChannelHistories(snapshot.channelHistories)
+
+    // Restore context keys
+    for (const [key, value] of Object.entries(snapshot.contextKeys)) {
+      this.contextStore.setKey('', key, value)
+    }
+
+    // Restore plan
+    if (snapshot.plan) {
+      this.planManager.setPlan(snapshot.plan)
+    }
+
+    // Restore coordinator ID
+    this.coordinatorId = snapshot.coordinatorId || null
+  }
+
+  listSnapshots(): string[] {
+    if (!fs.existsSync(this.snapshotsDir)) {
       return []
     }
+    return fs.readdirSync(this.snapshotsDir)
+      .filter(f => f.endsWith('.json'))
+      .map(f => f.replace('.json', ''))
   }
-  
-  // Additional methods:
-  setCoordinatorId(coordinatorId: string): void {
-    this.coordinatorId = coordinatorId
-  }
-  
-  getCoordinatorId(): string | null {
-    return this.coordinatorId
-  }
-  
-  getSwarmId(): string {
-    return this.swarmId
-  }
-  
-  // Snapshot persistence methods
-  private ensureSnapshotDir(): void {
-    if (!fs.existsSync(this.snapshotDir)) {
-      fs.mkdirSync(this.snapshotDir, { recursive: true })
-    }
-  }
-  
-  private getSnapshotPath(snapshotId: string): string {
-    return path.join(this.snapshotDir, `${snapshotId}.json`)
-  }
-  
-  private persistSnapshot(snapshot: DaemonSnapshot): void {
-    try {
-      this.ensureSnapshotDir()
-      const snapshotPath = this.getSnapshotPath(snapshot.snapshotId)
-      fs.writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2))
-      this.pruneOldSnapshots()
-    } catch (error) {
-      console.error('Failed to persist snapshot:', error)
-    }
-  }
-  
-  private pruneOldSnapshots(): void {
-    try {
-      if (!fs.existsSync(this.snapshotDir)) {
-        return
-      }
-      
-      const files = fs.readdirSync(this.snapshotDir)
-        .filter(f => f.endsWith('.json'))
-        .map(f => ({
-          name: f,
-          path: path.join(this.snapshotDir, f),
-          stat: fs.statSync(path.join(this.snapshotDir, f))
-        }))
-        .sort((a, b) => b.stat.mtimeMs - a.stat.mtimeMs)
-      
-      // Keep only the last 10 snapshots
-      if (files.length > 10) {
-        for (const file of files.slice(10)) {
-          fs.unlinkSync(file.path)
+
+  // --- Crash Recovery Methods ---
+  getCrashReport(swarmId: string): CrashReport {
+    const crashedAgents: CrashedAgentInfo[] = []
+    const recoveryResults: RecoveryResult[] = []
+
+    const agents = this.agentRegistry.listAgents()
+    for (const agent of agents) {
+      if (agent.state === AgentLifecycleState.Crashed) {
+        crashedAgents.push({
+          agentId: agent.agentId,
+          crashType: 'heartbeat_miss',
+          crashedAt: agent.lastHeartbeat,
+          lastKnownState: agent.state,
+          lastTaskId: agent.taskId,
+        })
+
+        const checkpoint = this.checkpointManager.getLatestCheckpoint(agent.agentId)
+        if (checkpoint) {
+          recoveryResults.push({
+            agentId: agent.agentId,
+            success: true,
+            method: 'resume_checkpoint',
+            details: `Recovered via checkpoint ${checkpoint.checkpointId}`,
+          })
+        } else {
+          recoveryResults.push({
+            agentId: agent.agentId,
+            success: true,
+            method: 'reassign_task',
+            details: `No checkpoint available, task will be reassigned`,
+          })
         }
       }
-    } catch (error) {
-      console.error('Failed to prune old snapshots:', error)
+    }
+
+    return {
+      swarmId,
+      timestamp: Date.now(),
+      crashedAgents,
+      recoveryAttempted: crashedAgents.length > 0,
+      recoveryResults,
     }
   }
-  
-  // Periodic snapshot scheduling
-  startPeriodicSnapshots(intervalMs: number = 30000): void {
-    if (this.snapshotInterval) {
-      clearInterval(this.snapshotInterval)
+
+  forceRecoverAgent(agentId: string): AgentMetadata | null {
+    const agent = this.agentRegistry.getAgent(agentId)
+    if (!agent) {
+      return null
     }
-    this.isRunning = true
-    this.snapshotInterval = setInterval(() => {
-      this.createSnapshot()
-    }, intervalMs)
-  }
-  
-  stopPeriodicSnapshots(): void {
-    if (this.snapshotInterval) {
-      clearInterval(this.snapshotInterval)
-      this.snapshotInterval = null
+
+    // Try checkpoint recovery first
+    const checkpoint = this.checkpointManager.getLatestCheckpoint(agentId)
+    if (checkpoint) {
+      const snapshot = this.createSnapshot()
+      const validation = this.recoveryValidator.validateCheckpoint(checkpoint, snapshot)
+      if (validation.valid) {
+        this.agentRegistry.updateAgentState(agentId, AgentLifecycleState.Ready)
+        return this.agentRegistry.getAgent(agentId) ?? null
+      }
     }
-    this.isRunning = false
+
+    // Fallback: reset to Ready state
+    this.agentRegistry.updateAgentState(agentId, AgentLifecycleState.Ready)
+    return this.agentRegistry.getAgent(agentId) ?? null
   }
-  
-  // Final snapshot on swarm completion
-  completeSwarm(): void {
-    this.stopPeriodicSnapshots()
-    this.createSnapshot()
+
+  // --- Private Methods ---
+  private handleCrashDetected(event: CrashDetectedEvent): void {
+    this.agentRegistry.updateAgentState(event.agentId, AgentLifecycleState.Crashed)
+
+    const agent = this.agentRegistry.getAgent(event.agentId)
+    if (agent) {
+      this.checkpointManager.createCheckpoint(
+        event.agentId,
+        agent,
+        agent.taskId,
+        { completed: [], remaining: [] }
+      )
+    }
   }
-  
-  isPeriodicSnapshotRunning(): boolean {
-    return this.isRunning && this.snapshotInterval !== null
+
+  private ensureSnapshotsDir(): void {
+    if (!fs.existsSync(this.snapshotsDir)) {
+      fs.mkdirSync(this.snapshotsDir, { recursive: true })
+    }
+  }
+
+  private persistSnapshot(snapshot: DaemonSnapshot): void {
+    const filePath = path.join(this.snapshotsDir, `${snapshot.snapshotId}.json`)
+    fs.writeFileSync(filePath, JSON.stringify(snapshot, null, 2))
   }
 }
