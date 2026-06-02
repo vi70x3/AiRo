@@ -194,12 +194,15 @@ export class PlanDistributor {
     }
     
     // Also find tasks that this agent's tasks depend on (dependencies)
-    const findDependencies = (taskId: string) => {
-      const task = taskMap.get(taskId)
-      if (task) {
-        for (const depTaskId of task.dependsOn) {
-          relevantTaskIds.add(depTaskId)
-          findDependencies(depTaskId)
+    const findDependencies = (taskId: string, visitedTaskIds: Set<string> = new Set()) => {
+      if (visitedTaskIds.has(taskId)) {
+        return
+      }
+      visitedTaskIds.add(taskId)
+      for (const dep of plan.dependencies) {
+        if (dep.fromTaskId === taskId) {
+          relevantTaskIds.add(dep.toTaskId)
+          findDependencies(dep.toTaskId, visitedTaskIds)
         }
       }
     }
@@ -240,10 +243,12 @@ export class PlanDistributor {
         }
         
         // Find tasks this task depends on
-        for (const depTaskId of task.dependsOn) {
-          const dependencyTask = plan.tasks.find(t => t.taskId === depTaskId)
-          if (dependencyTask && dependencyTask.owner !== agentId) {
-            relatedAgentIds.add(dependencyTask.owner)
+        for (const dep of plan.dependencies) {
+          if (dep.fromTaskId === task.taskId) {
+            const dependencyTask = plan.tasks.find(t => t.taskId === dep.toTaskId)
+            if (dependencyTask && dependencyTask.owner !== agentId) {
+              relatedAgentIds.add(dependencyTask.owner)
+            }
           }
         }
       }

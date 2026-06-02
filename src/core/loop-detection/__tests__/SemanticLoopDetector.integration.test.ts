@@ -198,20 +198,20 @@ describe("SemanticLoopDetector — Integration Tests", () => {
 			}
 			expect(detector.shouldCompress()).toBe(true)
 
-			// Trigger compression — score ≈ 0.70, cooldown active
+			// Trigger compression — score reset to 0.0 per Requirement 5.4, cooldown active
 			detector.onCompression("loop_detected")
-			expect(detector.getLoopConfidenceState().score).toBeCloseTo(0.70, 2)
+			expect(detector.getLoopConfidenceState().score).toBeCloseTo(0.0, 2)
 			expect(detector.getLoopConfidenceState().cooldownActive).toBe(true)
 
 			// ── Cooldown phase (3 turns) ──
-			// Each turn decays score by cooldownDecay (0.10) regardless of similarity
+			// Score stays at 0.0 during cooldown (0.0 − 0.10 = −0.10, clamped to 0.0)
 			const r6 = detector.onTurn(loopTurn("cooldown-1"))
-			expect(r6.loopConfidence.score).toBeCloseTo(0.60, 2) // 0.70 − 0.10
+			expect(r6.loopConfidence.score).toBeCloseTo(0.0, 2) // 0.0 − 0.10 clamped
 			expect(r6.loopConfidence.consecutiveSimilarTurns).toBe(0) // reset during cooldown
 			expect(detector.shouldCompress()).toBe(false) // cooldown blocks compression
 
 			const r7 = detector.onTurn(loopTurn("cooldown-2"))
-			expect(r7.loopConfidence.score).toBeCloseTo(0.50, 2) // 0.60 − 0.10
+			expect(r7.loopConfidence.score).toBeCloseTo(0.0, 2) // 0.0 − 0.10 clamped
 			expect(detector.shouldCompress()).toBe(false)
 
 			// ── Turn 3 after compression: cooldown ends (turnsSinceLastCompression = 3 ≥ cooldownTurns = 3) ──

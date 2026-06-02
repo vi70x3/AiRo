@@ -123,28 +123,55 @@ export class ResumeCheckpointManager {
     }
   }
 
-  cleanupOldCheckpoints(maxToKeep: number = 10): void {
-    try {
-      if (!fs.existsSync(this.checkpointDir)) {
-        return
-      }
+   cleanupOldCheckpoints(maxToKeep: number = 10): void {
+     try {
+       if (!fs.existsSync(this.checkpointDir)) {
+         return
+       }
 
-      const files = fs.readdirSync(this.checkpointDir)
-        .filter(f => f.endsWith('.json'))
-        .map(f => ({
-          name: f,
-          path: this.getCheckpointPath(f.replace('.json', '')),
-          stat: fs.statSync(this.getCheckpointPath(f.replace('.json', '')))
-        }))
-        .sort((a, b) => b.stat.mtimeMs - a.stat.mtimeMs)
+       const files = fs.readdirSync(this.checkpointDir)
+         .filter(f => f.endsWith(".json"))
+         .map(f => {
+           const checkpointPath = this.getCheckpointPath(f.replace(".json", ""))
+           const checkpointData = fs.readFileSync(checkpointPath, "utf-8")
+           const checkpoint: ResumeCheckpoint = JSON.parse(checkpointData)
+           return { name: f, path: checkpointPath, stat: fs.statSync(checkpointPath), checkpoint }
+         })
+         .sort((a, b) => b.stat.mtimeMs - a.stat.mtimeMs)
 
-      if (files.length > maxToKeep) {
-        for (const file of files.slice(maxToKeep)) {
-          fs.unlinkSync(file.path)
-        }
-      }
-    } catch (error) {
-      console.error('Failed to cleanup old checkpoints:', error)
-    }
-  }
+       // Group checkpoints by agentId and keep only the most recent for each agent
+       const agentCheckpoints = new Map<string, ResumeCheckpoint[]>();
+       for (const file of files) {
+         const agentId = file.checkpoint.agentId;
+         if (!agentCheckpoints.has(agentId)) {
+           agentCheckpoints.set(agentId, []);
+         }
+         agentCheckpoints.get(agentId)!.push(file.checkpoint);
+       }
+
+       // Keep only the most recent checkpoint for each agent
+       const recentCheckpoints = new Map<string, ResumeCheckpoint>();
+       for (const [agentId, checkpoints] of agentCheckpoints) {
+         checkpoints.sort((a, b) => b.timestamp - a.timestamp);
+         recentCheckpoints.set(agentId, checkpoints[0]);
+       }
+
+       // Collect all checkpoints except the most recent for each agent
+       const allCheckpoints = new Set<string>();
+       for (const checkpoint of recentCheckpoints.values()) {
+         allCheckpoints.add(checkpoint.checkpointId);
+       }
+
+       // Delete old checkpoints, excluding the most recent for each agent
+       const filesToDelete = files.filter(file => {
+         return !allCheckpoints.has(file.checkpoint.checkpointId);
+       }).slice(0, maxToKeep - recentCheckpoints.size);
+
+       for (const file of filesToDelete) {
+         fs.unlinkSync(file.path);
+       }
+     } catch (error) {
+       console.error("Failed to cleanup old checkpoints:", error)
+     }
+   }
 }

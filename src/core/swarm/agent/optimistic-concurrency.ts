@@ -77,13 +77,10 @@ export class OptimisticConcurrency {
     const anyNegotiate = assessments.some(
       (a) => a.recommendedAction === ConcurrencyAction.Negotiate
     )
-    const mediumCount = assessments.filter(
-      (a) => a.conflictSeverity === ConflictSeverity.Medium
-    ).length
-
+    // Use helper to determine block state, which now includes High and Critical severities.
     const requiredActions: ConcurrencyAction[] = []
     const coordinateWithSet = new Set<string>()
-    let shouldBlock = false
+    let shouldBlock = this.shouldEnterBlockedState(assessments)
     let reason: string | undefined
 
     // Incorporate intent conflict findings into the decision
@@ -119,9 +116,10 @@ export class OptimisticConcurrency {
       reason = 'Critical conflict detected — escalation required'
     } else if (anyNegotiate && !shouldBlock) {
       requiredActions.push(ConcurrencyAction.Negotiate)
-      if (mediumCount > 2) {
+      // Use helper to determine block state (covers high/critical and multiple medium)
+      if (this.shouldEnterBlockedState(assessments)) {
         shouldBlock = true
-        reason = `Multiple medium-severity conflicts (${mediumCount}) — blocking`
+        reason = 'Blocking due to high severity or multiple medium conflicts'
       }
     }
 

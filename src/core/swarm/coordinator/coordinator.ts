@@ -483,12 +483,15 @@ export class Coordinator extends Agent implements ICoordinator {
           }
           break
         }
-        case PlanChangeType.RemoveDependency: {
-          currentPlan.dependencies = currentPlan.dependencies.filter(
-            d => !(d.fromTaskId === change.targetId || d.toTaskId === change.targetId)
-          )
-          break
-        }
+         case PlanChangeType.RemoveDependency: {
+           const depToRemove = change.before as Dependency
+           if (depToRemove) {
+             currentPlan.dependencies = currentPlan.dependencies.filter(
+               d => !(d.fromTaskId === depToRemove.fromTaskId && d.toTaskId === depToRemove.toTaskId)
+             )
+           }
+           break
+         }
         case PlanChangeType.UpdateScope: {
           const modifiedTask = change.after as Task
           if (modifiedTask) {

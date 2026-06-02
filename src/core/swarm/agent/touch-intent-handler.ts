@@ -209,12 +209,12 @@ export class TouchIntentHandler {
 		for (const notification of touchNotifications) {
 			const result = this.handleTouchNotification(notification)
 			if (result.shouldNegotiate) {
-				negotiationsInitiated++
-				if (result.severity === ConflictSeverity.High) {
-					highSeverityConflicts++
-				} else if (result.severity === ConflictSeverity.Medium) {
-					mediumSeverityConflicts++
-				}
+			  negotiationsInitiated++
+			  if (result.severity === ConflictSeverity.High || result.severity === ConflictSeverity.Critical) {
+			    highSeverityConflicts++
+			  } else if (result.severity === ConflictSeverity.Medium) {
+			    mediumSeverityConflicts++
+			  }
 			}
 		}
 

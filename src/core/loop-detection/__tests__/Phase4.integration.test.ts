@@ -10,10 +10,14 @@ describe("SemanticLoopDetector — Phase 4 Integration Tests", () => {
 
   test("Phase 4C trackers are instantiated and callable without error", () => {
     const turn: ReasoningTurn = {
-      // Minimal required fields for a turn – adjust according to actual type definition
-      // Assuming fields: id, content, tools, files, etc. Use empty placeholders.
-      // The type import will ensure compile‑time correctness.
-    } as unknown as ReasoningTurn;
+      id: "phase4c-test-turn-1",
+      toolPattern: ["read_file"],
+      filesTouched: ["test.ts"],
+      hypotheses: [],
+      conclusions: [],
+      stateTransitions: [],
+      timestamp: Date.now(),
+    };
 
     // Call onTurn – should not throw and should return expected structure
     const result = detector.onTurn(turn);
@@ -26,9 +30,17 @@ describe("SemanticLoopDetector — Phase 4 Integration Tests", () => {
   test("onCompression records adaptation failure via Phase 4C detector", () => {
     // Simulate a situation where compression is triggered
     // First, drive confidence high enough by feeding similar turns
-    const baseTurn: ReasoningTurn = {} as unknown as ReasoningTurn;
+    const baseTurn: ReasoningTurn = {
+      id: "phase4c-base-turn",
+      toolPattern: ["read_file"],
+      filesTouched: ["test.ts"],
+      hypotheses: [],
+      conclusions: [],
+      stateTransitions: [],
+      timestamp: Date.now(),
+    };
     for (let i = 0; i < 5; i++) {
-      detector.onTurn(baseTurn);
+      detector.onTurn({ ...baseTurn, id: `phase4c-base-turn-${i}` });
     }
     // Force compression regardless of score
     const event = detector.onCompression("test_compression");

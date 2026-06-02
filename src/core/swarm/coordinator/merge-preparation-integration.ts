@@ -93,7 +93,7 @@ export class MergePreparationIntegration {
       worktreeId: plan.planId,
       readyForMerge: readiness.ready,
       unresolvedConflicts: [],
-      validationChecks: readiness.validationResults,
+      // validationChecks removed; using validationResults only
       validationResults: readiness.validationResults,
       preparedAt: Date.now(),
       completionReports,
@@ -182,7 +182,7 @@ export class MergePreparationIntegration {
       worktreeId: plan.planId,
       readyForMerge: readiness.ready,
       unresolvedConflicts: [],
-      validationChecks: readiness.validationResults,
+      // validationChecks removed; using validationResults only
       validationResults: readiness.validationResults,
       preparedAt: Date.now(),
       completionReports: [],

@@ -73,7 +73,7 @@ export class MergePreparer {
         .filter(c => c.status !== ConflictStatus.Resolved)
         .map(c => c.conflictId),
       testResults: null,
-      validationChecks: validationResults,
+      // validationChecks removed; using validationResults only
       validationResults,
       preparedAt: Date.now(),
       completionReports,

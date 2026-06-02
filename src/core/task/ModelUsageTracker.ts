@@ -37,7 +37,7 @@ export class ModelUsageTracker {
 	 * Returns a read-only view of all records currently in the lookback window.
 	 */
 	getRecentRecords(): readonly ModelUsageRecord[] {
-		return this.records
+		return [...this.records]
 	}
 
 	/**

@@ -254,7 +254,7 @@ export interface MergePreparation {
   readyForMerge: boolean;
   unresolvedConflicts: string[]; // conflictIds
   testResults: unknown; // Could be more specific
-  validationChecks: ValidationResult[]; // Could be more specific
+  // Consolidated validation results; duplicate field removed
   validationResults: ValidationResult[];
   preparedAt: number; // timestamp
   completionReports: CompletionReport[];
@@ -713,7 +713,6 @@ export interface MergePreparationResult {
   worktreeId: string;
   readyForMerge: boolean;
   unresolvedConflicts: string[];
-  validationChecks: ValidationResult[];
   validationResults: ValidationResult[];
   preparedAt: number;
   completionReports: CompletionReport[];
