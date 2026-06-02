@@ -115,8 +115,8 @@ The codebase includes corresponding test suites using the **Vitest** framework t
 
 AiRo Code tailors its system prompts based on your current task:
 
-*   **Code Mode:** For standard development, editing, and file operations.
-*   **Architect Mode:** For system design, planning, and structural changes.
+*   **Vibe Mode:** For standard development, editing, and file operations.
+*   **Spec Mode:** For system design, planning, and structural changes.
 *   **Ask Mode:** For querying the codebase, clarifying concepts, and documentation.
 *   **Debug Mode:** For tracing errors, examining logs, and diagnosing issues.
 *   **Custom Modes:** For defining specialized instructions tailored to your team's specific workflow.
