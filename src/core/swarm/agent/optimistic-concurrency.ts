@@ -13,6 +13,7 @@ import {
   TouchHandlingResult,
   IntentHandlingResult,
 } from './touch-intent-handler'
+import { IntentAvoidance } from './intent-avoidance'
 
 export interface ConcurrencyDecision {
   canProceed: boolean
@@ -46,6 +47,7 @@ export class OptimisticConcurrency {
   private workingSet: WorkingSet
   private touchIntentHandler: TouchIntentHandler
   private daemon: IDaemon
+  private intentAvoidance: IntentAvoidance
 
   constructor(
     agentId: string,
@@ -57,10 +59,14 @@ export class OptimisticConcurrency {
     this.workingSet = workingSet
     this.touchIntentHandler = touchIntentHandler
     this.daemon = daemon
+    this.intentAvoidance = new IntentAvoidance(agentId)
   }
 
   decideBeforeOperation(filePaths: string[], operation: FileOperation): ConcurrencyDecision {
     const assessments = this.assessFileConcurrency(filePaths)
+
+    // Check intent conflicts via IntentAvoidance
+    const intentConflictReport = this.intentAvoidance.checkIntentConflicts(filePaths, this.daemon)
 
     const allCanProceed = assessments.every(
       (a) => a.recommendedAction === ConcurrencyAction.Proceed
@@ -80,13 +86,38 @@ export class OptimisticConcurrency {
     let shouldBlock = false
     let reason: string | undefined
 
-    if (allCanProceed) {
+    // Incorporate intent conflict findings into the decision
+    if (intentConflictReport.hasConflicts) {
+      // Add all conflicting agents from intent report to coordination set
+      for (const conflict of intentConflictReport.conflicts) {
+        for (const conflictingAgentId of conflict.conflictingAgentIds) {
+          coordinateWithSet.add(conflictingAgentId)
+        }
+      }
+
+      // If intent conflicts are high/critical severity, add escalation or negotiation
+      if (intentConflictReport.maxSeverity === 'critical') {
+        requiredActions.push(ConcurrencyAction.Escalate)
+        shouldBlock = true
+        reason = 'Critical intent conflict detected — escalation required'
+      } else if (intentConflictReport.maxSeverity === 'high') {
+        requiredActions.push(ConcurrencyAction.WaitForOther)
+        if (!anyEscalate) {
+          shouldBlock = true
+          reason = 'High-severity intent conflict — should wait for other agent'
+        }
+      } else if (intentConflictReport.maxSeverity === 'medium') {
+        requiredActions.push(ConcurrencyAction.Negotiate)
+      }
+    }
+
+    if (allCanProceed && !intentConflictReport.hasConflicts) {
       requiredActions.push(ConcurrencyAction.Proceed)
-    } else if (anyEscalate) {
+    } else if (anyEscalate && !shouldBlock) {
       requiredActions.push(ConcurrencyAction.Escalate)
       shouldBlock = true
       reason = 'Critical conflict detected — escalation required'
-    } else if (anyNegotiate) {
+    } else if (anyNegotiate && !shouldBlock) {
       requiredActions.push(ConcurrencyAction.Negotiate)
       if (mediumCount > 2) {
         shouldBlock = true

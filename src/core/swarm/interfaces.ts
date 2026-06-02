@@ -16,6 +16,7 @@ import {
 	ContextKeyNotification,
 	CompletionReport,
 	Plan,
+	PlanVersion,
 	Task,
 	Dependency,
 	Checkpoint,
@@ -47,7 +48,12 @@ import {
 	DependencyType,
 	CheckpointStatus,
 	CrashReport,
+	ConflictHistoryEntry,
+	ConflictTimelineEntry,
+	ConflictNegotiation,
 } from '@roo-code/types'
+
+import { CompareAndSetResult, TransactionalUpdateEntry, TransactionalUpdateResult, IncrementResult } from './daemon/context-store'
 
 // IAgent Interface
 export interface IAgent {
@@ -85,53 +91,69 @@ export interface IAgent {
 }
 
 // IDaemon Interface
+import { WorkingSet } from '../agent/working-set'
+
 export interface IDaemon {
-	// Agent Registry
-	registerAgent(agent: AgentMetadata): void
-	unregisterAgent(agentId: string): void
-	getAgent(agentId: string): AgentMetadata | null
-	listAgents(): AgentMetadata[]
-	updateAgentState(agentId: string, state: AgentLifecycleState): void
+  // Agent Registry
+  registerAgent(agent: AgentMetadata): void
+  unregisterAgent(agentId: string): void
+  getAgent(agentId: string): AgentMetadata | null
+  listAgents(): AgentMetadata[]
+  updateAgentState(agentId: string, state: AgentLifecycleState): void
 
-	// Communication methods
-	sendDM(message: DirectMessage): void
-	broadcast(message: BroadcastMessage): void
-	createChannel(name: string, topic?: string): void
-	joinChannel(agentId: string, name: string): void
-	leaveChannel(agentId: string, name: string): void
-	sendToChannel(message: ChannelMessage): void
-	listChannels(): string[]
-	getChannelMembers(name: string): string[]
+  // Communication methods
+  sendDM(message: DirectMessage): void
+  broadcast(message: BroadcastMessage): void
+  createChannel(name: string, topic?: string): void
+  joinChannel(agentId: string, name: string): void
+  leaveChannel(agentId: string, name: string): void
+  sendToChannel(message: ChannelMessage): void
+  listChannels(): string[]
+  getChannelMembers(name: string): string[]
 
-	// Context Keys
-	setContextKey(agentId: string, key: string, value: unknown): void
-	getContextKey(key: string): unknown
-	listContextKeys(): string[]
-	subscribeToKey(agentId: string, key: string, callback: (newValue: unknown, oldValue: unknown) => void): void
+  // Context Keys
+  setContextKey(agentId: string, key: string, value: unknown): void
+  getContextKey(key: string): unknown
+  listContextKeys(): string[]
+  subscribeToKey(agentId: string, key: string, callback: (newValue: unknown, oldValue: unknown) => void): void
 
-	// Notifications
-	getPendingNotifications(agentId: string): Notification[] | null
+  // Context Key Atomic Operations
+  compareAndSetKey(agentId: string, key: string, expectedValue: unknown, newValue: unknown): CompareAndSetResult
+  transactionalUpdateKeys(agentId: string, updates: TransactionalUpdateEntry[], expectedValues?: Map<string, unknown>): TransactionalUpdateResult
+  incrementKey(agentId: string, key: string, delta: number): IncrementResult
 
-	// Touch/Intent
-	notifyFileTouch(agentId: string, filePath: string, operation: FileOperation): void
-	broadcastIntent(agentId: string, filePaths: string[], toolName: string): void
+  // Notifications
+  getPendingNotifications(agentId: string): Notification[] | null
 
-	// Coordinator management
-	getCoordinatorId(): string | null
-	setCoordinatorId(coordinatorId: string): void
+  // Touch/Intent
+  notifyFileTouch(agentId: string, filePath: string, operation: FileOperation): void
+  broadcastIntent(agentId: string, filePaths: string[], toolName: string): void
 
-	// Plan methods
-	setPlan(plan: Plan): void
-	getPlan(): Plan | null
+  // Working Set Registry
+  registerWorkingSet(agentId: string, workingSet: WorkingSet): void
+  updateWorkingSet(agentId: string, workingSet: WorkingSet): void
+  getWorkingSet(agentId: string): WorkingSet | undefined
 
-	// Snapshots
-	createSnapshot(): DaemonSnapshot
-	restoreFromSnapshot(snapshotId: string): void
-	listSnapshots(): string[]
+  // Coordinator management
+  getCoordinatorId(): string | null
+  setCoordinatorId(coordinatorId: string): void
 
-	// Crash Recovery
-	getCrashReport(swarmId: string): CrashReport
-	forceRecoverAgent(agentId: string): AgentMetadata | null
+  // Plan methods
+  setPlan(plan: Plan): void
+  getPlan(): Plan | null
+
+  // Plan version methods
+  setPlanVersions(versions: PlanVersion[]): void
+  getPlanVersions(): PlanVersion[]
+
+  // Snapshots
+  createSnapshot(): DaemonSnapshot
+  restoreFromSnapshot(snapshotId: string): void
+  listSnapshots(): string[]
+
+  // Crash Recovery
+  getCrashReport(swarmId: string): CrashReport
+  forceRecoverAgent(agentId: string): AgentMetadata | null
 }
 
 // IWorktreeManager Interface

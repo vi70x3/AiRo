@@ -15,6 +15,8 @@ import {
   CompletionReport,
   WorktreeMetadata,
   WorktreeStatus,
+  PlanVersion,
+  PlanDiff,
 } from '@roo-code/types'
 import { PlanCreator, PlanInput } from './plan-creation'
 import { WorktreeDecider, WorktreeDecision } from './worktree-decision'
@@ -22,11 +24,13 @@ import { SpawnManager, SpawnResult } from './spawn-manager'
 import { PlanReviewer } from './plan-reviewer'
 import { LifecycleTracker } from './lifecycle-tracker'
 import { PlanDistributor, DistributionResult } from './plan-distributor'
+import { PlanVersioning } from './plan-versioning'
 
 export class Coordinator extends Agent implements ICoordinator {
   private trackedAgents: Map<string, AgentLifecycleState>
   private completionReports: Map<string, CompletionReport>
   private pendingPlanUpdates: Map<string, PlanUpdate>
+  private planVersioning: PlanVersioning
 
   public readonly planCreator: PlanCreator
   public readonly worktreeDecider: WorktreeDecider
@@ -41,6 +45,7 @@ export class Coordinator extends Agent implements ICoordinator {
     this.trackedAgents = new Map()
     this.completionReports = new Map()
     this.pendingPlanUpdates = new Map()
+    this.planVersioning = new PlanVersioning()
     this.planCreator = new PlanCreator()
     this.worktreeDecider = new WorktreeDecider()
     this.spawnManager = new SpawnManager(this.daemon, this.agentId)
@@ -48,6 +53,13 @@ export class Coordinator extends Agent implements ICoordinator {
     this.lifecycleTracker = new LifecycleTracker(this.daemon)
     this.planDistributor = new PlanDistributor(this.daemon)
     this.markReady()
+  }
+
+  /**
+   * Sync the current version history to the daemon for snapshot persistence.
+   */
+  private syncVersionsToDaemon(): void {
+    this.daemon.setPlanVersions(this.planVersioning.getHistory())
   }
 
   // --- ICoordinator Plan Methods ---
@@ -62,12 +74,16 @@ export class Coordinator extends Agent implements ICoordinator {
       updateHistory: [],
     }
     this.daemon.setPlan(plan)
+    this.planVersioning.initialize(plan, this.agentId)
+    this.syncVersionsToDaemon()
     return plan
   }
 
   createPlanFromInput(input: PlanInput): Plan {
     const plan = this.planCreator.createPlan(input)
     this.daemon.setPlan(plan)
+    this.planVersioning.initialize(plan, this.agentId)
+    this.syncVersionsToDaemon()
     return plan
   }
 
@@ -81,6 +97,8 @@ export class Coordinator extends Agent implements ICoordinator {
    *                 changes applied to the plan, update pushed to history
    *   4. rejected — status set to 'rejected', reviewedBy/reviewedAt stamped,
    *                 update is NOT applied but IS recorded in history for audit
+   *
+   * When approved, a new plan version is automatically created.
    *
    * @param update - The PlanUpdate to review (must be in 'pending' status)
    * @returns PlanUpdateDecision with approval status and reason
@@ -118,6 +136,16 @@ export class Coordinator extends Agent implements ICoordinator {
     if (decision.approved) {
       update.status = 'approved'
       this.applyPlanUpdate(update)
+      // Auto-create a new version when the plan is approved and modified
+      const updatedPlan = this.daemon.getPlan()
+      if (updatedPlan) {
+        this.planVersioning.recordVersion(
+          updatedPlan,
+          this.agentId,
+          `Plan update approved: ${update.reason}`
+        )
+        this.syncVersionsToDaemon()
+      }
     } else {
       update.status = 'rejected'
     }
@@ -145,6 +173,178 @@ export class Coordinator extends Agent implements ICoordinator {
 
   distributePlanUpdate(plan: Plan, update: PlanUpdate): DistributionResult {
     return this.planDistributor.distributePlanUpdate(plan, update)
+  }
+
+  // --- Plan Mutation Methods (with automatic version creation) ---
+
+  /**
+   * Add a task to the current plan and auto-create a new version.
+   *
+   * @param task - The task to add
+   * @param changeDescription - Description of the change for version history
+   * @returns The updated Plan
+   */
+  addTask(task: Task, changeDescription?: string): Plan {
+    const currentPlan = this.daemon.getPlan()
+    if (!currentPlan) {
+      throw new Error('No current plan exists. Create a plan first.')
+    }
+
+    currentPlan.tasks.push(task)
+    currentPlan.version++
+    this.daemon.setPlan(currentPlan)
+
+    this.planVersioning.recordVersion(
+      currentPlan,
+      this.agentId,
+      changeDescription ?? `Added task: ${task.taskId}`
+    )
+    this.syncVersionsToDaemon()
+
+    return currentPlan
+  }
+
+  /**
+   * Remove a task from the current plan and auto-create a new version.
+   * Also removes any dependencies involving the removed task.
+   *
+   * @param taskId - The ID of the task to remove
+   * @param changeDescription - Description of the change for version history
+   * @returns The updated Plan
+   */
+  removeTask(taskId: string, changeDescription?: string): Plan {
+    const currentPlan = this.daemon.getPlan()
+    if (!currentPlan) {
+      throw new Error('No current plan exists. Create a plan first.')
+    }
+
+    currentPlan.tasks = currentPlan.tasks.filter(t => t.taskId !== taskId)
+    currentPlan.dependencies = currentPlan.dependencies.filter(
+      d => d.fromTaskId !== taskId && d.toTaskId !== taskId
+    )
+    currentPlan.version++
+    this.daemon.setPlan(currentPlan)
+
+    this.planVersioning.recordVersion(
+      currentPlan,
+      this.agentId,
+      changeDescription ?? `Removed task: ${taskId}`
+    )
+    this.syncVersionsToDaemon()
+
+    return currentPlan
+  }
+
+  /**
+   * Update an existing task in the current plan and auto-create a new version.
+   *
+   * @param taskId - The ID of the task to update
+   * @param updates - Partial task fields to update
+   * @param changeDescription - Description of the change for version history
+   * @returns The updated Plan
+   */
+  updateTask(taskId: string, updates: Partial<Task>, changeDescription?: string): Plan {
+    const currentPlan = this.daemon.getPlan()
+    if (!currentPlan) {
+      throw new Error('No current plan exists. Create a plan first.')
+    }
+
+    const taskIndex = currentPlan.tasks.findIndex(t => t.taskId === taskId)
+    if (taskIndex === -1) {
+      throw new Error(`Task ${taskId} not found in plan.`)
+    }
+
+    currentPlan.tasks[taskIndex] = { ...currentPlan.tasks[taskIndex], ...updates }
+    currentPlan.version++
+    this.daemon.setPlan(currentPlan)
+
+    this.planVersioning.recordVersion(
+      currentPlan,
+      this.agentId,
+      changeDescription ?? `Updated task: ${taskId}`
+    )
+    this.syncVersionsToDaemon()
+
+    return currentPlan
+  }
+
+  /**
+   * Set task dependencies for a specific task and auto-create a new version.
+   *
+   * @param taskId - The ID of the task whose dependencies to set
+   * @param dependsOn - Array of task IDs this task depends on
+   * @param changeDescription - Description of the change for version history
+   * @returns The updated Plan
+   */
+  setTaskDependencies(taskId: string, dependsOn: string[], changeDescription?: string): Plan {
+    const currentPlan = this.daemon.getPlan()
+    if (!currentPlan) {
+      throw new Error('No current plan exists. Create a plan first.')
+    }
+
+    const taskIndex = currentPlan.tasks.findIndex(t => t.taskId === taskId)
+    if (taskIndex === -1) {
+      throw new Error(`Task ${taskId} not found in plan.`)
+    }
+
+    currentPlan.tasks[taskIndex].dependsOn = dependsOn
+    currentPlan.version++
+    this.daemon.setPlan(currentPlan)
+
+    this.planVersioning.recordVersion(
+      currentPlan,
+      this.agentId,
+      changeDescription ?? `Updated dependencies for task: ${taskId}`
+    )
+    this.syncVersionsToDaemon()
+
+    return currentPlan
+  }
+
+  // --- Version History Query Methods ---
+
+  /**
+   * Get the full version history of the current plan.
+   *
+   * @returns Array of PlanVersion entries, or empty array if no plan exists
+   */
+  getPlanHistory(): PlanVersion[] {
+    return this.planVersioning.getHistory()
+  }
+
+  /**
+   * Get a specific version of the current plan.
+   *
+   * @param version - The version number (1-based)
+   * @returns The PlanVersion, or undefined if not found
+   */
+  getPlanVersion(version: number): PlanVersion | undefined {
+    return this.planVersioning.getVersion(version)
+  }
+
+  /**
+   * Compare two versions of the current plan and return the diff.
+   *
+   * @param v1 - First version number
+   * @param v2 - Second version number
+   * @returns PlanDiff between the two versions
+   */
+  compareVersions(v1: number, v2: number): PlanDiff {
+    return this.planVersioning.compareVersions(v1, v2)
+  }
+
+  /**
+   * Roll back the current plan to a previous version.
+   * Creates a NEW version that copies the old state (append-only log).
+   *
+   * @param version - The version number to roll back to
+   * @returns The restored Plan
+   */
+  rollbackToVersion(version: number): Plan {
+    const result = this.planVersioning.rollbackToVersion(version, this.agentId)
+    this.daemon.setPlan(result.plan)
+    this.syncVersionsToDaemon()
+    return result.plan
   }
 
   // --- ICoordinator Spawning Methods ---

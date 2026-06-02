@@ -6,8 +6,10 @@ import {
   FileOperation,
   TouchNotification,
   IntentNotification,
+  SemanticConflict,
 } from '@roo-code/types'
 import { IDaemon } from '../interfaces'
+import { SemanticConflictDetector } from './semantic-conflict-detector'
 
 /**
  * Classification of conflict types from the spec:
@@ -64,6 +66,7 @@ export class ConflictDetector {
   // agentId → filePath → TrackedFileStatus
   private fileStatusTracking: Map<string, Map<string, TrackedFileStatus>>
   private detectedConflicts: Map<string, DetectedConflict>
+  private semanticDetector: SemanticConflictDetector
 
   constructor(daemon: IDaemon, worktreeScope: string, managerId: string) {
     this.daemon = daemon
@@ -71,6 +74,7 @@ export class ConflictDetector {
     this.managerId = managerId
     this.fileStatusTracking = new Map()
     this.detectedConflicts = new Map()
+    this.semanticDetector = new SemanticConflictDetector()
   }
 
   /**
@@ -317,5 +321,26 @@ export class ConflictDetector {
         this.fileStatusTracking.delete(agentId)
       }
     }
+  }
+
+  /**
+   * Detect semantic conflicts between two versions of a file.
+   * This runs after text diff detection to find structural incompatibilities
+   * that simple text diffs cannot detect.
+   *
+   * @param filePath - The file path being analyzed
+   * @param content1 - Content from agent 1 (first version)
+   * @param content2 - Content from agent 2 (second version)
+   * @returns Array of SemanticConflict objects describing structural incompatibilities
+   */
+  detectSemanticConflicts(filePath: string, content1: string, content2: string): SemanticConflict[] {
+    return this.semanticDetector.detectSemanticConflicts(filePath, content1, content2)
+  }
+
+  /**
+   * Get the underlying SemanticConflictDetector for direct access.
+   */
+  getSemanticDetector(): SemanticConflictDetector {
+    return this.semanticDetector
   }
 }

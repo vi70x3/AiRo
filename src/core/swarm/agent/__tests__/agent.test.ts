@@ -24,6 +24,7 @@ describe('Agent', () => {
     return {
       registerAgent: vi.fn(),
       unregisterAgent: vi.fn(),
+      updateAgentState: vi.fn(),
       sendDM: vi.fn(),
       broadcast: vi.fn(),
       joinChannel: vi.fn(),
@@ -48,6 +49,8 @@ describe('Agent', () => {
       listSnapshots: vi.fn(),
       setPlan: vi.fn(),
       getPlan: vi.fn(),
+      setPlanVersions: vi.fn(),
+      getPlanVersions: vi.fn(() => []),
     }
   }
 

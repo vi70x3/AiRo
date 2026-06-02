@@ -10,6 +10,7 @@ import {
   ContextKeyNotification,
   DaemonSnapshot,
   Plan,
+  PlanVersion,
   TouchNotification,
   IntentNotification,
   FileOperation,
@@ -17,13 +18,17 @@ import {
   CrashDetectedEvent,
   CrashedAgentInfo,
   RecoveryResult,
+  ConflictHistoryEntry,
+  ConflictTimelineEntry,
+  ConflictNegotiation,
 } from '@roo-code/types'
 
 import { IDaemon } from '../interfaces'
+import { WorkingSet } from '../agent/working-set'
 import { AgentRegistry } from './agent-registry'
 import { NotificationQueue } from './notification-queue'
 import { ChannelManager } from './channel-manager'
-import { ContextStore } from './context-store'
+import { ContextStore, CompareAndSetResult, TransactionalUpdateEntry, TransactionalUpdateResult, IncrementResult } from './context-store'
 import { PlanManager } from './plan-manager'
 import { CrashDetector } from './crash-detector'
 import { RecoveryValidator } from './recovery-validator'
@@ -54,6 +59,11 @@ export class Daemon implements IDaemon {
   private swarmId: string
   private snapshotsDir: string
   private snapshots: Map<string, SnapshotMetadata> = new Map()
+  private planVersions: PlanVersion[] = []
+  private conflictHistory: ConflictHistoryEntry[] = []
+  private conflictTimeline: ConflictTimelineEntry[] = []
+  private activeNegotiations: ConflictNegotiation[] = []
+  private workingSets: Map<string, WorkingSet> = new Map()
 
   constructor(swarmId: string) {
     this.swarmId = swarmId
@@ -170,7 +180,9 @@ export class Daemon implements IDaemon {
 
   // --- Context Key Methods ---
   setContextKey(agentId: string, key: string, value: unknown): void {
-    this.contextStore.setKey(agentId, key, value)
+    const notification = this.contextStore.setKey(agentId, key, value)
+    // Push a ContextKey notification to all subscribers via the notification queue
+    this.enqueueContextKeyNotifications(notification)
   }
 
   getContextKey(key: string): unknown {
@@ -186,6 +198,33 @@ export class Daemon implements IDaemon {
     this.contextStore.subscribeToKey(agentId, key, (notification: ContextKeyNotification) => {
       callback(notification.newValue, notification.oldValue)
     })
+  }
+
+  // --- Context Key Atomic Operations ---
+  compareAndSetKey(agentId: string, key: string, expectedValue: unknown, newValue: unknown): CompareAndSetResult {
+    const result = this.contextStore.compareAndSet(agentId, key, expectedValue, newValue)
+    if (result.success && result.notification) {
+      this.enqueueContextKeyNotifications(result.notification)
+    }
+    return result
+  }
+
+  transactionalUpdateKeys(agentId: string, updates: TransactionalUpdateEntry[], expectedValues?: Map<string, unknown>): TransactionalUpdateResult {
+    const result = this.contextStore.transactionalUpdate(agentId, updates, expectedValues)
+    if (result.success) {
+      for (const notification of result.notifications) {
+        this.enqueueContextKeyNotifications(notification)
+      }
+    }
+    return result
+  }
+
+  incrementKey(agentId: string, key: string, delta: number): IncrementResult {
+    const result = this.contextStore.increment(agentId, key, delta)
+    if (result.success && result.notification) {
+      this.enqueueContextKeyNotifications(result.notification)
+    }
+    return result
   }
 
   // --- Notification Methods ---
@@ -221,6 +260,19 @@ export class Daemon implements IDaemon {
         this.notificationQueue.enqueue(agent.agentId, notification)
       }
     }
+  }
+
+  // --- Working Set Registry Methods ---
+  registerWorkingSet(agentId: string, workingSet: WorkingSet): void {
+    this.workingSets.set(agentId, workingSet)
+  }
+
+  updateWorkingSet(agentId: string, workingSet: WorkingSet): void {
+    this.workingSets.set(agentId, workingSet)
+  }
+
+  getWorkingSet(agentId: string): WorkingSet | undefined {
+    return this.workingSets.get(agentId)
   }
 
   broadcastIntent(agentId: string, filePaths: string[], toolName: string): void {
@@ -266,6 +318,15 @@ export class Daemon implements IDaemon {
     return this.planManager.getPlan()
   }
 
+  // --- Plan Version Methods ---
+  setPlanVersions(versions: PlanVersion[]): void {
+    this.planVersions = versions
+  }
+
+  getPlanVersions(): PlanVersion[] {
+    return this.planVersions
+  }
+
   // --- Snapshot Methods ---
   createSnapshot(): DaemonSnapshot {
     const snapshotId = `snap-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -296,8 +357,12 @@ export class Daemon implements IDaemon {
       channelHistories: this.channelManager.getChannelHistories(),
       contextKeys,
       plan: this.planManager.getPlan(),
+      planVersions: this.planVersions,
       swarmId: this.swarmId,
       coordinatorId: this.coordinatorId ?? '',
+      conflictHistory: this.conflictHistory,
+      conflictTimeline: this.conflictTimeline,
+      activeNegotiations: this.activeNegotiations,
     }
 
     // Persist snapshot metadata
@@ -353,8 +418,41 @@ export class Daemon implements IDaemon {
       this.planManager.setPlan(snapshot.plan)
     }
 
+    // Restore plan version history
+    this.planVersions = snapshot.planVersions ?? []
+
     // Restore coordinator ID
     this.coordinatorId = snapshot.coordinatorId || null
+
+    // Restore conflict tracking data
+    this.conflictHistory = snapshot.conflictHistory ?? []
+    this.conflictTimeline = snapshot.conflictTimeline ?? []
+    this.activeNegotiations = snapshot.activeNegotiations ?? []
+  }
+
+  // --- Conflict Tracking Methods ---
+  setConflictHistory(history: ConflictHistoryEntry[]): void {
+    this.conflictHistory = history
+  }
+
+  getConflictHistory(): ConflictHistoryEntry[] {
+    return this.conflictHistory
+  }
+
+  setConflictTimeline(timeline: ConflictTimelineEntry[]): void {
+    this.conflictTimeline = timeline
+  }
+
+  getConflictTimeline(): ConflictTimelineEntry[] {
+    return this.conflictTimeline
+  }
+
+  setActiveNegotiations(negotiations: ConflictNegotiation[]): void {
+    this.activeNegotiations = negotiations
+  }
+
+  getActiveNegotiations(): ConflictNegotiation[] {
+    return this.activeNegotiations
   }
 
   listSnapshots(): string[] {
@@ -456,5 +554,30 @@ export class Daemon implements IDaemon {
   private persistSnapshot(snapshot: DaemonSnapshot): void {
     const filePath = path.join(this.snapshotsDir, `${snapshot.snapshotId}.json`)
     fs.writeFileSync(filePath, JSON.stringify(snapshot, null, 2))
+  }
+
+  /**
+   * Push a ContextKey notification to all subscribers of the key
+   * via the daemon's notification queue (in addition to the callback
+   * subscription already handled by ContextStore).
+   */
+  private enqueueContextKeyNotifications(contextNotification: ContextKeyNotification): void {
+    const entry = this.contextStore.getKey(contextNotification.key)
+    if (!entry) return
+
+    for (const subscriberId of entry.subscribers) {
+      if (subscriberId !== contextNotification.setterAgentId) {
+        const notification: Notification = {
+          notificationId: `ctxkey-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: NotificationType.ContextKey,
+          recipientId: subscriberId,
+          payload: contextNotification,
+          timestamp: contextNotification.timestamp,
+          delivered: false,
+          acknowledged: false,
+        }
+        this.notificationQueue.enqueue(subscriberId, notification)
+      }
+    }
   }
 }

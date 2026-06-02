@@ -338,19 +338,22 @@ export interface Blocker {
   blockingAgentIds: string[];
 }
 
-// Daemon Snapshot
-export interface DaemonSnapshot {
-  snapshotId: string;
-  timestamp: number;
-  version: string; // semver or similar
-  agents: AgentMetadata[]; // simplified, could be more detailed
-  notificationQueues: Record<string, NotificationQueue>; // agentId -> queue
-  channels: string[]; // channel names
-  channelHistories: ChannelHistoryEntry[]; // channel message histories
-  contextKeys: Record<string, unknown>; // key -> value
-  plan: Plan | null;
-  swarmId: string;
-  coordinatorId: string; // agentId
+// Plan Versioning — diff between two plan versions
+export interface PlanDiff {
+  addedTasks: string[];       // taskIds added
+  removedTasks: string[];     // taskIds removed
+  modifiedTasks: { taskId: string; changes: string[] }[]; // per-task field changes
+  statusChange?: { from: string; to: string }; // plan-level status change
+}
+
+// Plan Versioning — snapshot of a plan at a point in time
+export interface PlanVersion {
+  version: number;
+  plan: Plan;                  // full plan snapshot (only for latest version; for older versions this may be omitted)
+  createdAt: number;
+  createdBy: string;           // agentId
+  changeDescription: string;
+  diff: PlanDiff;
 }
 
 // UI Event Types
@@ -416,6 +419,7 @@ export interface TaskNode {
   dependsOn: string[]; // taskIds
   blockedBy: string[]; // taskIds
   priority: number;
+  estimatedDuration: number; // in minutes
 }
 
 export interface DependencyEdge {
@@ -514,4 +518,136 @@ export interface CrashDetectorConfig {
   heartbeatMissThreshold: number
   timeoutDurationMs: number
   enabled: boolean
+}
+
+// Conflict Tracking Types
+export type ConflictResolutionMethod = 'merge' | 'override' | 'abort' | 'manual' | 'defer' | 'negotiation'
+
+export interface ConflictHistoryEntry {
+  conflictId: string
+  timestamp: number
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  files: string[]
+  resolutionStatus: 'active' | 'resolved' | 'escalated' | 'deferred'
+  resolvedBy?: string
+  resolvedAt?: number
+  resolutionMethod?: ConflictResolutionMethod
+}
+
+export interface ConflictTimelineEntry {
+  conflictId: string
+  agentId: string
+  worktreeScope: string
+  timestamp: number
+  event: 'detected' | 'negotiation_started' | 'proposal_submitted' | 'proposal_accepted' | 'proposal_rejected' | 'resolved' | 'escalated'
+  details: string
+}
+
+// Negotiation Protocol Types
+export type NegotiationStatus = 'open' | 'proposed' | 'accepted' | 'rejected' | 'closed'
+
+export type ResolutionStrategy = 'merge' | 'override' | 'abort' | 'manual' | 'defer'
+
+export interface NegotiationProposal {
+  proposalId: string
+  agentId: string
+  resolutionStrategy: ResolutionStrategy
+  description: string
+  timestamp: number
+}
+
+export interface ConflictNegotiation {
+  negotiationId: string
+  conflictId: string
+  initiator: string
+  participants: string[]
+  status: NegotiationStatus
+  proposals: NegotiationProposal[]
+  createdAt: number
+  updatedAt: number
+  resolvedBy?: string
+  resolvedAt?: number
+  acceptedProposalId?: string
+}
+
+// Semantic Conflict Detection Types
+export type SemanticConflictType =
+  | 'function_signature'
+  | 'class_structure'
+  | 'api_contract'
+  | 'configuration'
+  | 'dependency'
+
+export interface SemanticConflict {
+  type: SemanticConflictType
+  location: string
+  description: string
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  affectedSymbols: string[]
+}
+
+// Extended DaemonSnapshot with conflict tracking
+export interface DaemonSnapshot {
+  snapshotId: string
+  timestamp: number
+  version: string
+  agents: AgentMetadata[]
+  notificationQueues: Record<string, NotificationQueue>
+  channels: string[]
+  channelHistories: ChannelHistoryEntry[]
+  contextKeys: Record<string, unknown>
+  plan: Plan | null
+  planVersions: PlanVersion[]
+  swarmId: string
+  coordinatorId: string
+  conflictHistory?: ConflictHistoryEntry[]
+  conflictTimeline?: ConflictTimelineEntry[]
+  activeNegotiations?: ConflictNegotiation[]
+}
+
+// Severity level type matching ConflictSeverity enum values from conflict-detector
+export type ConflictSeverityLevel = 'none' | 'low' | 'medium' | 'high' | 'critical'
+
+// New Types for Working Set Comparison and Intent Avoidance
+export enum IntentAvoidanceStrategy {
+  Wait = 'wait',
+  Redirect = 'redirect',
+  Coordinate = 'coordinate',
+  ProceedWithCaution = 'proceed_with_caution',
+}
+
+export interface WorkingSetComparisonResult {
+  remoteAgentId: string
+  overlappingFiles: string[]
+  severity: ConflictSeverityLevel
+  suggestedActions: string[] // e.g., ['wait', 'coordinate']
+}
+
+export interface ConflictRiskReport {
+  agentId: string
+  totalOverlaps: number
+  overallSeverity: ConflictSeverityLevel
+  perAgentResults: Record<string, WorkingSetComparisonResult>
+  details: Record<string, ConflictSeverityLevel> // filePath -> severity
+}
+
+export interface IntentConflictDetail {
+  filePath: string
+  conflictingAgentIds: string[]
+  severity: ConflictSeverityLevel
+  operations: FileOperation[]
+}
+
+export interface IntentConflictReport {
+  conflicts: IntentConflictDetail[]
+  hasConflicts: boolean
+  maxSeverity: ConflictSeverityLevel
+}
+
+export interface AvoidancePlan {
+  safePaths: string[]
+  conflictingPaths: string[]
+  waitForAgents: string[]
+  coordinationSuggestions: string[]
+  strategy: IntentAvoidanceStrategy
 }

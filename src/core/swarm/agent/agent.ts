@@ -13,6 +13,7 @@ import {
   ContextKeyNotification,
   FileOperation,
 } from '@roo-code/types'
+import { CompareAndSetResult, TransactionalUpdateEntry, TransactionalUpdateResult, IncrementResult } from '../daemon/context-store'
 import { validateTransition, getTransitionTrigger } from '../lifecycle'
 import { v4 as uuidv4 } from 'uuid'
 import { WorkingSet } from './working-set'
@@ -178,6 +179,19 @@ export class Agent implements IAgent {
 
   subscribeToKey(key: string, callback: (notification: ContextKeyNotification) => void): void {
     this.daemon.subscribeToKey(this.agentId, key, callback)
+  }
+
+  // --- IAgent Context Atomic Operations ---
+  compareAndSetKey(key: string, expectedValue: unknown, newValue: unknown): CompareAndSetResult {
+    return this.daemon.compareAndSetKey(this.agentId, key, expectedValue, newValue)
+  }
+
+  transactionalUpdateKeys(updates: TransactionalUpdateEntry[], expectedValues?: Map<string, unknown>): TransactionalUpdateResult {
+    return this.daemon.transactionalUpdateKeys(this.agentId, updates, expectedValues)
+  }
+
+  incrementKey(key: string, delta: number): IncrementResult {
+    return this.daemon.incrementKey(this.agentId, key, delta)
   }
 
   // --- IAgent Notification Methods ---
