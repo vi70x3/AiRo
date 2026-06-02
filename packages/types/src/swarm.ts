@@ -1,3 +1,4 @@
+// Generated file - Updated with validation and merge preparation types
 import { z } from 'zod';
 
 // Agent Lifecycle
@@ -102,7 +103,6 @@ export interface Notification {
   acknowledged: boolean;
 }
 
-// NotificationQueue is a concept only, so we just declare the type
 export type NotificationQueue = Array<Notification>;
 
 // Plan Management
@@ -605,7 +605,6 @@ export interface DaemonSnapshot {
   activeNegotiations?: ConflictNegotiation[]
 }
 
-// Severity level type matching ConflictSeverity enum values from conflict-detector
 export type ConflictSeverityLevel = 'none' | 'low' | 'medium' | 'high' | 'critical'
 
 // New Types for Working Set Comparison and Intent Avoidance
@@ -650,4 +649,84 @@ export interface AvoidancePlan {
   waitForAgents: string[]
   coordinationSuggestions: string[]
   strategy: IntentAvoidanceStrategy
+}
+
+// Plan Quality Validation Types
+export enum PlanValidationSeverity {
+  Error = 'error',
+  Warning = 'warning',
+  Info = 'info',
+}
+
+export enum PlanValidationIssueType {
+  CircularDependency = 'circular_dependency',
+  OrphanTask = 'orphan_task',
+  MissingDescription = 'missing_description',
+  InvalidScope = 'invalid_scope',
+  UnreachableTask = 'unreachable_task',
+  DuplicateTask = 'duplicate_task',
+  InconsistentDependencies = 'inconsistent_dependencies',
+}
+
+export interface PlanValidationIssue {
+  issueId: string;
+  type: PlanValidationIssueType;
+  severity: PlanValidationSeverity;
+  message: string;
+}
+
+export interface PlanValidationResult {
+  planId: string;
+  version: number;
+  issues: PlanValidationIssue[];
+  overallSeverity: PlanValidationSeverity;
+}
+
+export interface TaskValidationResult {
+  taskId: string;
+  issues: PlanValidationIssue[];
+  overallSeverity: PlanValidationSeverity;
+}
+
+export interface DependencyValidationResult {
+  dependency: Dependency;
+  issues: PlanValidationIssue[];
+  overallSeverity: PlanValidationSeverity;
+}
+
+export interface ScopeValidationResult {
+  scope: string;
+  issues: PlanValidationIssue[];
+  overallSeverity: PlanValidationSeverity;
+}
+
+// Merge Preparation Types
+export interface MergeReadinessReport {
+  ready: boolean;
+  blockers: string[];
+  unresolvedConflictCount: number;
+  activeAgentCount: number;
+  validationResults: ValidationResult[];
+}
+
+export interface MergePreparationResult {
+  worktreeId: string;
+  readyForMerge: boolean;
+  unresolvedConflicts: string[];
+  validationChecks: ValidationResult[];
+  validationResults: ValidationResult[];
+  preparedAt: number;
+  completionReports: CompletionReport[];
+  blockers: string[];
+}
+
+export type MergePreparationAction =
+  | { type: 'notify'; message: string }
+  | { type: 'auto_merge'; reason: string }
+  | { type: 'block'; reason: string };
+
+export interface MergePreparationStatusReport {
+  status: 'pending' | 'ready' | 'blocked';
+  actions: MergePreparationAction[];
+  report: MergePreparationResult;
 }

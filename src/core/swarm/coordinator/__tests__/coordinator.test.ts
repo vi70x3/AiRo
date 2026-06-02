@@ -22,7 +22,7 @@ const createMockDaemon = () => {
     registerAgent: vi.fn((agent) => { agents[agent.agentId] = agent }),
     unregisterAgent: vi.fn((id) => { delete agents[id] }),
     getAgent: vi.fn((id) => agents[id] ?? null),
-    updateAgentState: vi.fn(),
+    updateAgentState: vi.fn((id: string, state: string) => { if (agents[id]) agents[id].state = state }),
     sendDM: vi.fn(),
     broadcast: vi.fn(),
     setCoordinatorId: vi.fn((id) => { coordinatorId = id }),

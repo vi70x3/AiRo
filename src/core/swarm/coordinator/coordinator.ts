@@ -17,6 +17,7 @@ import {
   WorktreeStatus,
   PlanVersion,
   PlanDiff,
+  PlanValidationSeverity,
 } from '@roo-code/types'
 import { PlanCreator, PlanInput } from './plan-creation'
 import { WorktreeDecider, WorktreeDecision } from './worktree-decision'
@@ -25,6 +26,8 @@ import { PlanReviewer } from './plan-reviewer'
 import { LifecycleTracker } from './lifecycle-tracker'
 import { PlanDistributor, DistributionResult } from './plan-distributor'
 import { PlanVersioning } from './plan-versioning'
+import { PlanQualityValidator } from './plan-quality-validator'
+import { MergePreparationIntegration } from './merge-preparation-integration'
 
 export class Coordinator extends Agent implements ICoordinator {
   private trackedAgents: Map<string, AgentLifecycleState>
@@ -38,6 +41,8 @@ export class Coordinator extends Agent implements ICoordinator {
   public readonly planReviewer: PlanReviewer
   public readonly lifecycleTracker: LifecycleTracker
   public readonly planDistributor: PlanDistributor
+  public readonly planValidator: PlanQualityValidator
+  public readonly mergeIntegration: MergePreparationIntegration
 
   constructor(agentId: string, daemon: IDaemon) {
     super(agentId, AgentType.Coordinator, daemon)
@@ -52,6 +57,8 @@ export class Coordinator extends Agent implements ICoordinator {
     this.planReviewer = new PlanReviewer(this.daemon)
     this.lifecycleTracker = new LifecycleTracker(this.daemon)
     this.planDistributor = new PlanDistributor(this.daemon)
+    this.planValidator = new PlanQualityValidator()
+    this.mergeIntegration = new MergePreparationIntegration(this.daemon, this.agentId)
     this.markReady()
   }
 
@@ -73,6 +80,13 @@ export class Coordinator extends Agent implements ICoordinator {
       description,
       updateHistory: [],
     }
+    // Validate plan quality before persisting
+    const validationResult = this.planValidator.validatePlan(plan)
+    if (validationResult.overallSeverity === PlanValidationSeverity.Error) {
+      throw new Error(
+        `Plan validation failed: ${validationResult.issues.map((i) => i.message).join('; ')}`
+      )
+    }
     this.daemon.setPlan(plan)
     this.planVersioning.initialize(plan, this.agentId)
     this.syncVersionsToDaemon()
@@ -81,6 +95,13 @@ export class Coordinator extends Agent implements ICoordinator {
 
   createPlanFromInput(input: PlanInput): Plan {
     const plan = this.planCreator.createPlan(input)
+    // Validate plan quality before persisting
+    const validationResult = this.planValidator.validatePlan(plan)
+    if (validationResult.overallSeverity === PlanValidationSeverity.Error) {
+      throw new Error(
+        `Plan validation failed: ${validationResult.issues.map((i) => i.message).join('; ')}`
+      )
+    }
     this.daemon.setPlan(plan)
     this.planVersioning.initialize(plan, this.agentId)
     this.syncVersionsToDaemon()
@@ -384,6 +405,11 @@ export class Coordinator extends Agent implements ICoordinator {
     this.completionReports.set(report.agentId, report)
     this.trackedAgents.set(report.agentId, AgentLifecycleState.Completed)
     this.lifecycleTracker.handleCompletion(report)
+    // Trigger merge preparation integration on each completion
+    const plan = this.daemon.getPlan()
+    if (plan) {
+      this.mergeIntegration.handleTaskCompletionForMerge(report, plan)
+    }
   }
 
   handleAgentFailure(agentId: string, _error: string): void {
