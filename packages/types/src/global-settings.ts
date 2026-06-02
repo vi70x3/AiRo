@@ -228,11 +228,33 @@ export const globalSettingsSchema = z.object({
 			decrement: z.number().min(0.01).max(0.5).optional().default(0.15),
 			cooldownTurns: z.number().int().min(1).max(10).optional().default(3),
 			cooldownDecay: z.number().min(0.01).max(0.5).optional().default(0.1),
+			// Phase 4A: Feedback Injection config
+			feedbackEnabled: z.boolean().optional().default(true),
+			feedbackTurns: z.number().int().min(1).max(10).optional().default(3),
+			maxRecoveryHints: z.number().int().min(1).max(5).optional().default(3),
+			// Phase 4A: Silent Failure Detection config
+			silentFailureEnabled: z.boolean().optional().default(true),
+			silentFailureThresholds: z.object({
+				emptyResponse: z.number().int().min(1).max(5).optional().default(2),
+				noToolUse: z.number().int().min(1).max(5).optional().default(2),
+				zeroSignal: z.number().int().min(1).max(10).optional().default(3),
+				toolError: z.number().int().min(1).max(10).optional().default(3),
+			}).optional().default({}),
+			// Phase 4B: Strategy Memory config
+			strategyMemoryEnabled: z.boolean().optional().default(true),
+			strategyMemorySize: z.number().int().min(5).max(50).optional().default(20),
+			strategyBoundaryTurns: z.number().int().min(2).max(10).optional().default(3),
+			// Phase 4B: Wandering Detection config
+			wanderingEnabled: z.boolean().optional().default(true),
+			wanderingDissimilarityThreshold: z.number().min(0.1).max(0.8).optional().default(0.4),
+			wanderingLowProgressThreshold: z.number().min(0.05).max(0.5).optional().default(0.2),
+			wanderingTurnsThreshold: z.number().int().min(3).max(20).optional().default(5),
+			wanderingMinUniqueFiles: z.number().int().min(1).max(10).optional().default(3),
+			wanderingGracePeriod: z.number().int().min(0).max(20).optional().default(5),
 		})
-		.optional()
-		.default({}),
-
-	rateLimitSeconds: z.number().optional(),
+		.optional(),
+	
+		rateLimitSeconds: z.number().optional(),
 	experiments: experimentsSchema.optional(),
 
 	codebaseIndexModels: codebaseIndexModelsSchema.optional(),
