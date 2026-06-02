@@ -1,12 +1,16 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 import SwarmInfoWidget from '../SwarmInfoWidget'
 
+// Store the handler for later use
+let messageHandler: ((event: MessageEvent) => void) | null = null
+
 // Mock UI components
-jest.mock('../../../components/ui/dialog', () => ({
+vi.mock('../../../components/ui/dialog', () => ({
   Dialog: ({ children, open, onOpenChange }: any) => (
-    <div data-testid="dialog" data-open={open} onClick={onOpenChange}>{children}</div>
+    <div data-testid="dialog" data-open={open} onClick={onOpenChange}>{open ? children : null}</div>
   ),
   DialogContent: ({ children }: any) => (
     <div data-testid="dialog-content">{children}</div>
@@ -20,62 +24,40 @@ jest.mock('../../../components/ui/dialog', () => ({
 }))
 
 // Mock Button component
-jest.mock('../../../components/ui/button', () => ({
+vi.mock('../../../components/ui/button', () => ({
   Button: ({ children, onClick }: any) => (
     <button data-testid="button" onClick={onClick}>{children}</button>
   ),
 }))
 
 // Mock Badge component
-jest.mock('../../../components/ui/badge', () => ({
+vi.mock('../../../components/ui/badge', () => ({
   Badge: ({ children }: any) => (
     <div data-testid="badge">{children}</div>
   ),
 }))
 
-// Mock the useEvent handler to simulate message events
-const mockMessageHandler = jest.fn((event: any) => {
-  if (event.data.type === 'swarmState') {
-    ;(window as any).__messageHandler(event)
-  }
-})
-
-// Mock the message event listener
-jest.mock('react-use', () => ({
-  useEvent: jest.fn((eventName: string, handler: any) => {
+// Mock the message event listener - just store the handler, don't call it
+vi.mock('react-use', () => ({
+  useEvent: vi.fn((eventName: string, handler: any) => {
     if (eventName === 'message') {
+      messageHandler = handler
       ;(window as any).__messageHandler = handler
-      mockMessageHandler({
-        data: {
-          type: 'swarmState',
-          payload: {
-            swarmId: 'test-swarm',
-            coordinatorId: 'coordinator-1',
-            agents: [],
-            channels: [],
-            overallStatus: 'running',
-            startTime: new Date('2023-01-01T00:00:00Z'),
-            activeAgents: 0,
-            completedTasks: 0,
-            totalTasks: 0,
-          },
-        },
-      })
     }
   }),
 }))
 
 // Mock the useExtensionState hook
-jest.mock('../../../context/ExtensionStateContext', () => ({
+vi.mock('../../../context/ExtensionStateContext', () => ({
   useExtensionState: () => ({
     didHydrateState: true,
   }),
 }))
 
 // Mock the vscode utility
-jest.mock('../../../utils/vscode', () => ({
+vi.mock('../../../utils/vscode', () => ({
   vscode: {
-    postMessage: jest.fn(),
+    postMessage: vi.fn(),
   },
 }))
 
@@ -98,7 +80,8 @@ describe('SwarmInfoWidget', () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
+    messageHandler = null
   })
 
   it('renders without crashing', () => {
@@ -110,14 +93,13 @@ describe('SwarmInfoWidget', () => {
     render(<SwarmInfoWidget />)
     
     // Simulate message event with swarm state
-    const handler = (window as any).__messageHandler
-    if (handler) {
-      handler({
+    if (messageHandler) {
+      messageHandler({
         data: {
           type: 'swarmState',
           payload: mockSwarmState,
         },
-      })
+      } as any)
     }
     
     await waitFor(() => {
@@ -131,23 +113,23 @@ describe('SwarmInfoWidget', () => {
     render(<SwarmInfoWidget />)
     
     // Simulate message event with swarm state
-    const handler = (window as any).__messageHandler
-    if (handler) {
-      handler({
+    if (messageHandler) {
+      messageHandler({
         data: {
           type: 'swarmState',
           payload: mockSwarmState,
         },
-      })
+      } as any)
     }
     
     await waitFor(() => {
       // Click on an agent
-      const agentElement = screen.getByText('Agent')
+      const agentElements = screen.getAllByText('Agent')
+      const agentElement = agentElements[0]
       fireEvent.click(agentElement)
       
       // Check if the dialog is opened
-      expect(screen.getByTestId('dialog')).toBeInTheDocument()
+      expect(screen.getByTestId('dialog[data-open="true"]')).toBeInTheDocument()
     })
   })
 
@@ -155,9 +137,8 @@ describe('SwarmInfoWidget', () => {
     render(<SwarmInfoWidget />)
     
     // Simulate message event with channels
-    const handler = (window as any).__messageHandler
-    if (handler) {
-      handler({
+    if (messageHandler) {
+      messageHandler({
         data: {
           type: 'swarmState',
           payload: {
@@ -167,7 +148,7 @@ describe('SwarmInfoWidget', () => {
             ],
           },
         },
-      })
+      } as any)
     }
     
     await waitFor(() => {
@@ -176,11 +157,11 @@ describe('SwarmInfoWidget', () => {
       fireEvent.click(channelsTab)
       
       // Click on a channel
-      const channelElement = screen.getByText('channel-1')
+      const channelElement = screen.getByText('#channel-1')
       fireEvent.click(channelElement)
       
       // Check if the dialog is opened
-      expect(screen.getByTestId('dialog')).toBeInTheDocument()
+      expect(screen.getByTestId('dialog[data-open="true"]')).toBeInTheDocument()
     })
   })
 
@@ -188,14 +169,13 @@ describe('SwarmInfoWidget', () => {
     render(<SwarmInfoWidget />)
     
     // Simulate message event with swarm state
-    const handler = (window as any).__messageHandler
-    if (handler) {
-      handler({
+    if (messageHandler) {
+      messageHandler({
         data: {
           type: 'swarmState',
           payload: mockSwarmState,
         },
-      })
+      } as any)
     }
     
     await waitFor(() => {
@@ -204,7 +184,7 @@ describe('SwarmInfoWidget', () => {
       fireEvent.click(infoButton)
       
       // Check if the dialog is opened
-      expect(screen.getByTestId('dialog')).toBeInTheDocument()
+      expect(screen.getByTestId('dialog[data-open="true"]')).toBeInTheDocument()
     })
   })
 
@@ -212,16 +192,15 @@ describe('SwarmInfoWidget', () => {
     render(<SwarmInfoWidget />)
     
     // Simulate message event with error
-    const handler = (window as any).__messageHandler
-    if (handler) {
-      handler({
+    if (messageHandler) {
+      messageHandler({
         data: {
           type: 'swarmStateError',
           payload: {
             error: 'Failed to connect to swarm state service',
           },
         },
-      })
+      } as any)
     }
     
     await waitFor(() => {

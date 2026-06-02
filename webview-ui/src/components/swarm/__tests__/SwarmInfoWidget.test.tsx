@@ -1,10 +1,11 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 import SwarmInfoWidget from '../SwarmInfoWidget'
 
 // Mock UI components
-jest.mock('../../../components/ui/dialog', () => ({
+vi.mock('../../../components/ui/dialog', () => ({
   Dialog: ({ children, open, onOpenChange }: any) => (
     <div data-testid="dialog" data-open={open} onClick={onOpenChange}>{children}</div>
   ),
@@ -23,29 +24,29 @@ jest.mock('../../../components/ui/dialog', () => ({
 }))
 
 // Mock Button component
-jest.mock('../../../components/ui/button', () => ({
+vi.mock('../../../components/ui/button', () => ({
   Button: ({ children, onClick }: any) => (
     <button data-testid="button" onClick={onClick}>{children}</button>
   ),
 }))
 
 // Mock Badge component
-jest.mock('../../../components/ui/badge', () => ({
+vi.mock('../../../components/ui/badge', () => ({
   Badge: ({ children }: any) => (
     <div data-testid="badge">{children}</div>
   ),
 }))
 
 // Mock the useEvent handler to simulate message events
-const mockMessageHandler = jest.fn((event: any) => {
+const mockMessageHandler = vi.fn((event: any) => {
   if (event.data.type === 'swarmState') {
     ;(window as any).__messageHandler(event)
   }
 })
 
 // Mock the message event listener
-jest.mock('react-use', () => ({
-  useEvent: jest.fn((eventName: string, handler: any) => {
+vi.mock('react-use', () => ({
+  useEvent: vi.fn((eventName: string, handler: any) => {
     if (eventName === 'message') {
       ;(window as any).__messageHandler = handler
       mockMessageHandler({
@@ -69,16 +70,16 @@ jest.mock('react-use', () => ({
 }))
 
 // Mock the useExtensionState hook
-jest.mock('../../../context/ExtensionStateContext', () => ({
+vi.mock('../../../context/ExtensionStateContext', () => ({
   useExtensionState: () => ({
     didHydrateState: true,
   }),
 }))
 
 // Mock the vscode utility
-jest.mock('../../../utils/vscode', () => ({
+vi.mock('../../../utils/vscode', () => ({
   vscode: {
-    postMessage: jest.fn(),
+    postMessage: vi.fn(),
   },
 }))
 
@@ -101,7 +102,7 @@ describe('SwarmInfoWidget', () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('renders without crashing', () => {
@@ -166,7 +167,8 @@ describe('SwarmInfoWidget', () => {
     
     await waitFor(() => {
       // Click on an agent
-      const agentElement = screen.getByText('Agent')
+      const agentElements = screen.getAllByText('Agent')
+      const agentElement = agentElements[0]
       fireEvent.click(agentElement)
       
       // Check if the dialog is opened

@@ -1,333 +1,209 @@
-import { randomUUID } from "node:crypto"
+import { randomUUID } from "node:crypto";
 
-import { SemanticStateTracker } from "./SemanticStateTracker"
-import SimilarityScorer from "./SimilarityScorer"
-import ProgressDetector from "./ProgressDetector"
-import LoopConfidenceCalculator, { LoopCalculatorConfig } from "./LoopConfidenceCalculator"
+import { SemanticStateTracker } from "./SemanticStateTracker";
+import SimilarityScorer from "./SimilarityScorer";
+import ProgressDetector from "./ProgressDetector";
+import LoopConfidenceCalculator, { LoopCalculatorConfig } from "./LoopConfidenceCalculator";
+import { InterventionEffectivenessTracker } from "./InterventionEffectivenessTracker";
+import { RelapseDetector } from "./RelapseDetector";
+import { AdaptationFailureDetector } from "./AdaptationFailureDetector";
+
 import type {
-	ReasoningTurn,
-	LoopConfidenceState,
-	CompressionRecoveryState,
-	CompressionEvent,
-	ProgressEvent,
-} from "../../../packages/types/src/loop-detection"
+  ReasoningTurn,
+  LoopConfidenceState,
+  CompressionRecoveryState,
+  CompressionEvent,
+  ProgressEvent,
+} from "../../../packages/types/src/loop-detection";
 
-/**
- * Configuration for the SemanticLoopDetector.
- */
 export interface SemanticLoopDetectorConfig {
-	/** Number of turns to retain in the rolling window. Default: 10 */
-	windowSize?: number
-	/** Similarity threshold above which turns are considered "similar". Default: 0.6 */
-	similarityThreshold?: number
-	/** Partial configuration for the internal LoopConfidenceCalculator. */
-	calculatorConfig?: Partial<LoopCalculatorConfig>
-	/** Optional telemetry callback invoked when a loop is detected. */
-	onLoopDetected?: (event: {
-		confidenceScore: number
-		similarityScore: number
-		progressScore: number
-		consecutiveSimilarTurns: number
-	}) => void
-	/** Optional telemetry callback invoked when compression is triggered. */
-	onCompressionTriggered?: (event: { compressionId: string; confidenceScore: number; reason: string }) => void
-	/** Optional telemetry callback invoked when recovery after compression is detected. */
-	onRecoveryDetected?: (event: { compressionId: string; turnsToRecover: number }) => void
+  windowSize?: number;
+  similarityThreshold?: number;
+  calculatorConfig?: Partial<LoopCalculatorConfig>;
+  onLoopDetected?: (event: {
+    confidenceScore: number;
+    similarityScore: number;
+    progressScore: number;
+    consecutiveSimilarTurns: number;
+  }) => void;
+  onCompressionTriggered?: (event: { compressionId: string; confidenceScore: number; reason: string }) => void;
+  onRecoveryDetected?: (event: { compressionId: string; turnsToRecover: number }) => void;
 }
 
-/**
- * SemanticLoopDetector is the main orchestrator for the semantic loop detection
- * system. It wires together four components into a sequential pipeline:
- *
- * ```
- * ReasoningTurn
- *   → SemanticStateTracker  (store turn in rolling window)
- *   → SimilarityScorer      (compare current turn vs most recent previous turn)
- *   → ProgressDetector      (evaluate whether the turn shows meaningful progress)
- *   → LoopConfidenceCalculator (update loop confidence score)
- *   → LoopConfidenceState   (output for telemetry / compression decisions)
- * ```
- *
- * ### Lifecycle
- *
- * 1. Construct with optional config overrides.
- * 2. Call `onTurn()` after each agent turn (after tool execution, before next API request).
- * 3. Call `shouldCompress()` to check if compression should be triggered.
- * 4. Call `shouldCompress()` to check if compression should be triggered.
- * 5. Call `onCompression()` to generate a compression event and reset state.
- * 6. Call `reset()` when starting a new task to clear all state.
- *
- * ### State Management
- *
- * All mutable state is held in explicit fields (`loopConfidenceState`,
- * `compressionRecoveryState`) and is never hidden. The detector is fully
- * deterministic given the same sequence of turns.
- */
 export default class SemanticLoopDetector {
-	private readonly stateTracker: SemanticStateTracker
-	private readonly similarityScorer: SimilarityScorer
-	private readonly progressDetector: ProgressDetector
-	private readonly confidenceCalculator: LoopConfidenceCalculator
-	private readonly similarityThreshold: number
-	private readonly onLoopDetected?: SemanticLoopDetectorConfig["onLoopDetected"]
-	private readonly onCompressionTriggered?: SemanticLoopDetectorConfig["onCompressionTriggered"]
-	private readonly onRecoveryDetected?: SemanticLoopDetectorConfig["onRecoveryDetected"]
+  private readonly stateTracker: SemanticStateTracker;
+  private readonly similarityScorer: SimilarityScorer;
+  private readonly progressDetector: ProgressDetector;
+  private readonly confidenceCalculator: LoopConfidenceCalculator;
+  private readonly similarityThreshold: number;
+  private readonly onLoopDetected?: SemanticLoopDetectorConfig["onLoopDetected"];
+  private readonly onCompressionTriggered?: SemanticLoopDetectorConfig["onCompressionTriggered"];
+  private readonly onRecoveryDetected?: SemanticLoopDetectorConfig["onRecoveryDetected"];
 
-	private loopConfidenceState: LoopConfidenceState
-	private compressionRecoveryState: CompressionRecoveryState
+  // Phase 4C components (optional, instantiated with defaults)
+  private readonly interventionTracker: InterventionEffectivenessTracker;
+  private readonly relapseDetector: RelapseDetector;
+  private readonly adaptationFailureDetector: AdaptationFailureDetector;
 
-	constructor(config?: SemanticLoopDetectorConfig) {
-		this.stateTracker = new SemanticStateTracker(config?.windowSize ?? 10)
-		this.similarityScorer = new SimilarityScorer()
-		this.progressDetector = new ProgressDetector()
-		this.confidenceCalculator = new LoopConfidenceCalculator(config?.calculatorConfig)
-		this.similarityThreshold = config?.similarityThreshold ?? 0.6
-		this.onLoopDetected = config?.onLoopDetected
-		this.onCompressionTriggered = config?.onCompressionTriggered
-		this.onRecoveryDetected = config?.onRecoveryDetected
+  private loopConfidenceState: LoopConfidenceState;
+  private compressionRecoveryState: CompressionRecoveryState;
 
-		// Note: lastCompressionAt is typed as `number` (not nullable) in the
-		// existing type definition, so we use 0 to represent "no compression yet".
-		this.loopConfidenceState = {
-			score: 0,
-			consecutiveSimilarTurns: 0,
-			lastCompressionAt: 0,
-			cooldownActive: false,
-			lastSeenCompressionId: null,
-		}
+  constructor(config?: SemanticLoopDetectorConfig) {
+    this.stateTracker = new SemanticStateTracker(config?.windowSize ?? 10);
+    this.similarityScorer = new SimilarityScorer();
+    this.progressDetector = new ProgressDetector();
+    this.confidenceCalculator = new LoopConfidenceCalculator(config?.calculatorConfig);
+    this.similarityThreshold = config?.similarityThreshold ?? 0.6;
+    this.onLoopDetected = config?.onLoopDetected;
+    this.onCompressionTriggered = config?.onCompressionTriggered;
+    this.onRecoveryDetected = config?.onRecoveryDetected;
 
-		this.compressionRecoveryState = {
-			lastCompressionId: null,
-			isRecovered: false,
-			turnsSinceLastCompression: 0,
-		}
-	}
+    // Initialise Phase 4C detectors with default configuration.
+    this.interventionTracker = new InterventionEffectivenessTracker();
+    this.relapseDetector = new RelapseDetector();
+    this.adaptationFailureDetector = new AdaptationFailureDetector();
 
-	/**
-	 * Process a new reasoning turn through the detection pipeline.
-	 *
-	 * Pipeline steps:
-	 * 1. Store the turn in the state tracker.
-	 * 2. Compute similarity against the most recent previous turn (0.0 if first turn).
-	 * 3. Detect progress events by comparing against all previous turns in the window.
-	 * 4. Update compression recovery counter if a compression has occurred.
-	 * 5. Calculate updated loop confidence.
-	 *
-	 * @param turn - The reasoning turn to process.
-	 * @returns The updated loop confidence, similarity score, progress events, and progress score.
-	 */
-	onTurn(turn: ReasoningTurn): {
-		loopConfidence: LoopConfidenceState
-		similarityScore: number
-		progressEvents: ProgressEvent[]
-		progressScore: number
-	} {
-		// Step 1: Store the turn
-		this.stateTracker.addTurn(turn)
+    this.loopConfidenceState = {
+      score: 0,
+      consecutiveSimilarTurns: 0,
+      lastCompressionAt: 0,
+      cooldownActive: false,
+      lastSeenCompressionId: null,
+    };
 
-		// Step 2: Compute similarity against the most recent previous turn.
-		// getTurns() returns all turns in the window including the one just added,
-		// so we compare the current turn (last element) against the one before it.
-		const allTurns = this.stateTracker.getTurns()
-		let similarityScore: number
-		if (allTurns.length < 2) {
-			// First turn in the window — no previous turn to compare against.
-			similarityScore = 0.0
-		} else {
-			const currentTurnInWindow = allTurns[allTurns.length - 1]
-			const previousTurn = allTurns[allTurns.length - 2]
-			similarityScore = this.similarityScorer.computeSimilarity(currentTurnInWindow, previousTurn)
-		}
+    this.compressionRecoveryState = {
+      lastCompressionId: null,
+      isRecovered: false,
+      turnsSinceLastCompression: 0,
+    };
+  }
 
-		// Step 3: Detect progress by comparing the current turn against all
-		// previous turns in the window (excluding the current turn itself).
-		const previousTurns = allTurns.slice(0, -1)
-		const { events: progressEvents, score: progressScore } =
-			this.progressDetector.detectProgress(turn, previousTurns)
+  onTurn(turn: ReasoningTurn): {
+    loopConfidence: LoopConfidenceState;
+    similarityScore: number;
+    progressEvents: ProgressEvent[];
+    progressScore: number;
+  } {
+    // Store turn
+    this.stateTracker.addTurn(turn);
 
-		// Step 4: Update compression recovery counter.
-		// If a compression has occurred (lastCompressionId is set), increment
-		// the turnsSinceLastCompression counter on each new turn.
-		if (this.compressionRecoveryState.lastCompressionId !== null) {
-			this.compressionRecoveryState = {
-				...this.compressionRecoveryState,
-				turnsSinceLastCompression: this.compressionRecoveryState.turnsSinceLastCompression + 1,
-			}
-		}
+    const allTurns = this.stateTracker.getTurns();
+    let similarityScore = 0;
+    if (allTurns.length >= 2) {
+      const current = allTurns[allTurns.length - 1];
+      const previous = allTurns[allTurns.length - 2];
+      similarityScore = this.similarityScorer.computeSimilarity(current, previous);
+    }
 
-		// Step 5: Calculate updated loop confidence using the calculator.
-		this.loopConfidenceState = this.confidenceCalculator.calculate(
-			this.loopConfidenceState,
-			similarityScore,
-			progressScore,
-			this.compressionRecoveryState,
-		)
+    const previousTurns = allTurns.slice(0, -1);
+    const { events: progressEvents, score: progressScore } = this.progressDetector.detectProgress(
+      turn,
+      previousTurns,
+    );
 
-		// Step 6: Emit telemetry and logging for loop detection.
-		// A loop is detected when similarity is high (>= threshold) and progress is low (< 0.3).
-		if (similarityScore >= this.similarityThreshold && progressScore < 0.3) {
-			console.log(
-				`[loop-detection] Loop detected: confidence=${this.loopConfidenceState.score}, similarity=${similarityScore}, progress=${progressScore}`,
-			)
-			this.onLoopDetected?.({
-				confidenceScore: this.loopConfidenceState.score,
-				similarityScore,
-				progressScore,
-				consecutiveSimilarTurns: this.loopConfidenceState.consecutiveSimilarTurns,
-			})
-		}
+    // Update recovery counter if a compression has occurred.
+    if (this.compressionRecoveryState.lastCompressionId !== null) {
+      this.compressionRecoveryState = {
+        ...this.compressionRecoveryState,
+        turnsSinceLastCompression: this.compressionRecoveryState.turnsSinceLastCompression + 1,
+      };
+    }
 
-		// Step 7: Emit telemetry and logging for recovery detection.
-		// Recovery is detected when there was a compression, recovery was not yet marked,
-		// and the current turn shows strong progress (>= 0.3).
-		if (
-			this.compressionRecoveryState.lastCompressionId !== null &&
-			!this.compressionRecoveryState.isRecovered &&
-			progressScore >= 0.3
-		) {
-			const turnsToRecover = this.compressionRecoveryState.turnsSinceLastCompression
-			console.log(`[loop-detection] Recovery detected after ${turnsToRecover} turns`)
-			this.onRecoveryDetected?.({
-				compressionId: this.compressionRecoveryState.lastCompressionId,
-				turnsToRecover,
-			})
-			// Mark recovery so we don't fire the callback on subsequent turns.
-			this.compressionRecoveryState = {
-				...this.compressionRecoveryState,
-				isRecovered: true,
-			}
-		}
+    // Calculate new confidence state.
+    this.loopConfidenceState = this.confidenceCalculator.calculate(
+      this.loopConfidenceState,
+      similarityScore,
+      progressScore,
+      this.compressionRecoveryState,
+    );
 
-		return {
-			loopConfidence: this.loopConfidenceState,
-			similarityScore,
-			progressEvents,
-			progressScore,
-		}
-	}
+    // Telemetry placeholders for Phase 4C – record generic success for demonstration.
+    this.interventionTracker.record("default", "success");
+    this.relapseDetector.recordSuccess("default", this.getTurnCount());
+    // Adaptation failures are recorded on compression (see onCompression).
 
-	/**
-	 * Check whether compression should be triggered based on the current
-	 * loop confidence score.
-	 *
-	 * Compression is recommended when the confidence score exceeds the
-	 * threshold AND the cooldown period from a previous compression is
-	 * not active.
-	 *
-	 * @param threshold - Confidence threshold (0.0–1.0). Default: 0.7
-	 * @returns `true` if compression should be triggered.
-	 */
-	shouldCompress(threshold: number = 0.7): boolean {
-		return this.loopConfidenceState.score >= threshold && !this.loopConfidenceState.cooldownActive
-	}
+    // Emit loop‑detected telemetry.
+    if (similarityScore >= this.similarityThreshold && progressScore < 0.3) {
+      this.onLoopDetected?.({
+        confidenceScore: this.loopConfidenceState.score,
+        similarityScore,
+        progressScore,
+        consecutiveSimilarTurns: this.loopConfidenceState.consecutiveSimilarTurns,
+      });
+    }
 
-	/**
-	 * Record a compression event and reset internal state.
-	 *
-	 * This method:
-	 * 1. Generates a unique compression event ID using `crypto.randomUUID()`.
-	 * 2. Creates a `CompressionEvent` with the provided reason, current timestamp,
-	 *    and the number of turns at the time of compression.
-	 * 3. Updates `loopConfidenceState` to mark the compression timestamp and
-	 *    activate the cooldown.
-	 * 4. Updates `compressionRecoveryState` to track the new compression and
-	 *    reset the recovery counter.
-	 * 5. Clears the state tracker's rolling window.
-	 *
-	 * @param reason - Human-readable reason for the compression. Default: "loop_detected"
-	 * @returns The generated `CompressionEvent`.
-	 */
-	onCompression(reason: string = "loop_detected"): CompressionEvent {
-		const id = randomUUID()
-		const timestamp = Date.now()
-		const turnsAtCompression = this.stateTracker.getTurns().length
+    // Emit recovery telemetry.
+    if (
+      this.compressionRecoveryState.lastCompressionId !== null &&
+      !this.compressionRecoveryState.isRecovered &&
+      progressScore >= 0.3
+    ) {
+      const turnsToRecover = this.compressionRecoveryState.turnsSinceLastCompression;
+      this.onRecoveryDetected?.({
+        compressionId: this.compressionRecoveryState.lastCompressionId!,
+        turnsToRecover,
+      });
+      this.compressionRecoveryState = { ...this.compressionRecoveryState, isRecovered: true };
+    }
 
-		const event: CompressionEvent = {
-			id,
-			reason,
-			timestamp,
-			turnsAtCompression,
-		}
+    return {
+      loopConfidence: this.loopConfidenceState,
+      similarityScore,
+      progressEvents,
+      progressScore,
+    };
+  }
 
-		// Emit telemetry and logging for compression.
-		console.log(`[loop-detection] Compression triggered: id=${id}, reason=${reason}`)
-		this.onCompressionTriggered?.({
-			compressionId: id,
-			confidenceScore: this.loopConfidenceState.score,
-			reason,
-		})
+  shouldCompress(threshold: number = 0.7): boolean {
+    return this.loopConfidenceState.score >= threshold && !this.loopConfidenceState.cooldownActive;
+  }
 
-		// Update loop confidence state: mark compression timestamp and activate cooldown.
-		this.loopConfidenceState = {
-			...this.loopConfidenceState,
-			lastCompressionAt: timestamp,
-			cooldownActive: true,
-			lastSeenCompressionId: id,
-		}
+  onCompression(reason: string = "loop_detected"): CompressionEvent {
+    const id = randomUUID();
+    const timestamp = Date.now();
+    const turnsAtCompression = this.stateTracker.getTurns().length;
 
-		// Update compression recovery state: track the new compression and reset recovery.
-		this.compressionRecoveryState = {
-			lastCompressionId: id,
-			isRecovered: false,
-			turnsSinceLastCompression: 0,
-		}
+    // Record adaptation failure as part of Phase 4C.
+    this.adaptationFailureDetector.recordFailure("default");
 
-		// Clear the state tracker's rolling window so future similarity
-		// comparisons start fresh after compression.
-		this.stateTracker.clear()
+    const event: CompressionEvent = { id, reason, timestamp, turnsAtCompression };
 
-		return event
-	}
+    this.onCompressionTriggered?.({ compressionId: id, confidenceScore: this.loopConfidenceState.score, reason });
 
-	/**
-	 * Get the current loop confidence state (read-only snapshot).
-	 *
-	 * @returns The current `LoopConfidenceState`.
-	 */
-	getLoopConfidenceState(): LoopConfidenceState {
-		return this.loopConfidenceState
-	}
+    this.loopConfidenceState = {
+      ...this.loopConfidenceState,
+      lastCompressionAt: timestamp,
+      cooldownActive: true,
+      lastSeenCompressionId: id,
+    };
 
-	/**
-	 * Get the current compression recovery state (read-only snapshot).
-	 *
-	 * @returns The current `CompressionRecoveryState`.
-	 */
-	getCompressionRecoveryState(): CompressionRecoveryState {
-		return this.compressionRecoveryState
-	}
+    this.compressionRecoveryState = { lastCompressionId: id, isRecovered: false, turnsSinceLastCompression: 0 };
 
-	/**
-	 * Reset all internal state to initial values, as if the detector
-	 * were freshly constructed.
-	 *
-	 * Call this when starting a new task to clear accumulated state
-	 * from previous tasks.
-	 */
-	reset(): void {
-		this.loopConfidenceState = {
-			score: 0,
-			consecutiveSimilarTurns: 0,
-			lastCompressionAt: 0,
-			cooldownActive: false,
-			lastSeenCompressionId: null,
-		}
+    this.stateTracker.clear();
+    return event;
+  }
 
-		this.compressionRecoveryState = {
-			lastCompressionId: null,
-			isRecovered: false,
-			turnsSinceLastCompression: 0,
-		}
+  getLoopConfidenceState(): LoopConfidenceState {
+    return this.loopConfidenceState;
+  }
 
-		this.stateTracker.clear()
-	}
+  getCompressionRecoveryState(): CompressionRecoveryState {
+    return this.compressionRecoveryState;
+  }
 
-	/**
-	 * Get the number of turns currently stored in the rolling window.
-	 *
-	 * @returns The number of turns in the state tracker's window.
-	 */
-	getTurnCount(): number {
-		return this.stateTracker.getTurns().length
-	}
+  reset(): void {
+    this.loopConfidenceState = {
+      score: 0,
+      consecutiveSimilarTurns: 0,
+      lastCompressionAt: 0,
+      cooldownActive: false,
+      lastSeenCompressionId: null,
+    };
+    this.compressionRecoveryState = { lastCompressionId: null, isRecovered: false, turnsSinceLastCompression: 0 };
+    this.stateTracker.clear();
+  }
+
+  getTurnCount(): number {
+    return this.stateTracker.getTurns().length;
+  }
 }

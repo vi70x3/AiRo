@@ -45,7 +45,17 @@ export class ContextProxy {
 
 	constructor(context: vscode.ExtensionContext) {
 		this.originalContext = context
-		this.stateCache = {}
+		this.stateCache = {
+			loopDetection: {
+				enabled: false,
+				windowSize: 10,
+				threshold: 0.8,
+				increment: 0.1,
+				decrement: 0.05,
+				cooldownTurns: 5,
+				cooldownDecay: 0.9,
+			},
+		}
 		this.secretCache = {}
 		this._isInitialized = false
 	}
@@ -214,10 +224,14 @@ export class ContextProxy {
 		]
 
 		// Check that all v1 required phrases are present
-		const hasAllV1Phrases = v1RequiredPhrases.every((phrase) => prompt.toLowerCase().includes(phrase.toLowerCase()))
+		const hasAllV1Phrases = v1RequiredPhrases.every((phrase) =>
+			prompt.toLowerCase().includes(phrase.toLowerCase())
+		)
 
 		// Check that no v2 features are present
-		const hasNoV2Features = v2Features.every((feature) => !prompt.toLowerCase().includes(feature.toLowerCase()))
+		const hasNoV2Features = v2Features.every((feature) =>
+			!prompt.toLowerCase().includes(feature.toLowerCase())
+		)
 
 		return hasAllV1Phrases && hasNoV2Features
 	}
@@ -259,9 +273,9 @@ export class ContextProxy {
 				// Migrate the API key if it exists and we don't already have one
 				if (oldNestedSettings.openRouterApiKey && !this.secretCache.openRouterImageApiKey) {
 					await this.originalContext.secrets.store(
-						"openRouterImageApiKey",
-						oldNestedSettings.openRouterApiKey,
-					)
+					"openRouterImageApiKey",
+					oldNestedSettings.openRouterApiKey,
+				)
 					this.secretCache.openRouterImageApiKey = oldNestedSettings.openRouterApiKey
 					logger.info("Migrated openRouterImageApiKey to secrets")
 				}
@@ -269,9 +283,9 @@ export class ContextProxy {
 				// Migrate the selected model if it exists and we don't already have one
 				if (oldNestedSettings.selectedModel && !this.stateCache.openRouterImageGenerationSelectedModel) {
 					await this.originalContext.globalState.update(
-						"openRouterImageGenerationSelectedModel",
-						oldNestedSettings.selectedModel,
-					)
+					"openRouterImageGenerationSelectedModel",
+					oldNestedSettings.selectedModel,
+				)
 					this.stateCache.openRouterImageGenerationSelectedModel = oldNestedSettings.selectedModel
 					logger.info("Migrated openRouterImageGenerationSelectedModel to global state")
 				}
@@ -507,8 +521,20 @@ export class ContextProxy {
 		const globalState = this.getAllGlobalState()
 		const secretState = this.getAllSecretState()
 
-		// Simply merge all states - no nested secrets to handle
-		return { ...globalState, ...secretState }
+		// Merge all states and ensure loopDetection is present
+		const result = { ...globalState, ...secretState }
+		if (!result.loopDetection) {
+			result.loopDetection = {
+				enabled: false,
+				windowSize: 10,
+				threshold: 0.8,
+				increment: 0.1,
+				decrement: 0.05,
+				cooldownTurns: 5,
+				cooldownDecay: 0.9,
+			}
+		}
+		return result
 	}
 
 	public async setValues(values: RooCodeSettings) {
@@ -540,7 +566,17 @@ export class ContextProxy {
 	 */
 	public async resetAllState() {
 		// Clear in-memory caches
-		this.stateCache = {}
+		this.stateCache = {
+			loopDetection: {
+				enabled: false,
+				windowSize: 10,
+				threshold: 0.8,
+				increment: 0.1,
+				decrement: 0.05,
+				cooldownTurns: 5,
+				cooldownDecay: 0.9,
+			},
+		}
 		this.secretCache = {}
 
 		await Promise.all([
