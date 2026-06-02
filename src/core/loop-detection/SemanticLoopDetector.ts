@@ -172,6 +172,7 @@ export default class SemanticLoopDetector {
 
     this.loopConfidenceState = {
       ...this.loopConfidenceState,
+      score: 0.0,
       lastCompressionAt: timestamp,
       cooldownActive: true,
       lastSeenCompressionId: id,

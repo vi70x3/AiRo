@@ -191,8 +191,10 @@ export default class ProgressDetector {
 		if (a.length !== b.length) {
 			return false
 		}
-		for (let i = 0; i < a.length; i++) {
-			if (a[i] !== b[i]) {
+		const sortedA = [...a].sort()
+		const sortedB = [...b].sort()
+		for (let i = 0; i < sortedA.length; i++) {
+			if (sortedA[i] !== sortedB[i]) {
 				return false
 			}
 		}

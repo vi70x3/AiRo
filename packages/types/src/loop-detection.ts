@@ -27,6 +27,51 @@ export enum ProgressTier {
 	Weak = "weak",
 }
 
+/** Coarse tool categories for strategy classification */
+export enum ToolCategory {
+	Read = "read",
+	Write = "write",
+	Execute = "execute",
+	Explore = "explore",
+	Delegate = "delegate",
+	Complete = "complete",
+	Meta = "meta",
+	Other = "other",
+}
+
+/** A strategy fingerprint — coarse representation of an approach */
+export interface StrategyRecord {
+	/** Unique ID for this strategy instance */
+	id: string
+	/** The sequence of tool categories observed */
+	categorySequence: ToolCategory[]
+	/** Files touched during this strategy */
+	filesTouched: string[]
+	/** Turn indices (in the global task turn list) where this strategy was active */
+	turnRange: { start: number; end: number }
+	/** Whether this strategy ended in compression */
+	endedInCompression: boolean
+	/** Whether this strategy produced strong progress */
+	producedProgress: boolean
+	/** Timestamp when this strategy was recorded */
+	timestamp: number
+}
+
+export interface WanderingState {
+	/** Number of consecutive turns with low similarity but also low progress */
+	consecutiveWanderingTurns: number
+	/** Cumulative progress score over the wandering window */
+	cumulativeProgress: number
+	/** Number of unique files touched during wandering */
+	uniqueFilesTouched: number
+	/** Number of unique tools used during wandering */
+	uniqueToolsUsed: number
+	/** Whether wandering has been detected (threshold exceeded) */
+	isWandering: boolean
+	/** Turn index where wandering started */
+	wanderingStartTurn: number
+}
+
 export interface ProgressEvent {
 	type: string // e.g., "file_created", "hypothesis_new"
 	tier: ProgressTier
