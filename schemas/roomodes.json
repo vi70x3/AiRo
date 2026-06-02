@@ -29,7 +29,10 @@
 					},
 					"source": {
 						"type": "string",
-						"enum": ["global", "project"]
+						"enum": [
+							"global",
+							"project"
+						]
 					},
 					"groups": {
 						"type": "array",
@@ -37,7 +40,15 @@
 							"anyOf": [
 								{
 									"type": "string",
-									"enum": ["read", "edit", "command", "mcp", "modes", "browser"]
+									"enum": [
+										"read",
+										"edit",
+										"command",
+										"mcp",
+										"modes",
+										"custom",
+										"browser"
+									]
 								},
 								{
 									"type": "array",
@@ -46,7 +57,15 @@
 									"items": [
 										{
 											"type": "string",
-											"enum": ["read", "edit", "command", "mcp", "modes", "browser"]
+											"enum": [
+												"read",
+												"edit",
+												"command",
+												"mcp",
+												"modes",
+												"custom",
+												"browser"
+											]
 										},
 										{
 											"type": "object",
@@ -77,17 +96,26 @@
 									"type": "string"
 								}
 							},
-							"required": ["relativePath"],
+							"required": [
+								"relativePath"
+							],
 							"additionalProperties": false
 						}
 					}
 				},
-				"required": ["slug", "name", "roleDefinition", "groups"],
+				"required": [
+					"slug",
+					"name",
+					"roleDefinition",
+					"groups"
+				],
 				"additionalProperties": false
 			}
 		}
 	},
-	"required": ["customModes"],
+	"required": [
+		"customModes"
+	],
 	"additionalProperties": false,
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"$id": "https://github.com/RooCodeInc/Roo-Code/blob/main/schemas/roomodes.json",

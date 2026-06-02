@@ -15,18 +15,19 @@ describe("mode-validator", () => {
 	describe("isToolAllowedForMode", () => {
 		describe("code mode", () => {
 			it("allows all code mode tools", () => {
-				// Code mode has all groups
-				Object.entries(TOOL_GROUPS).forEach(([_, config]) => {
-					config.tools.forEach((tool: string) => {
-						// new_task and async_task are now restricted even if their group is present
-						if (tool === "new_task" || tool === "async_task") {
-							expect(isToolAllowedForMode(tool, codeMode, [])).toBe(false)
-						} else {
-							expect(isToolAllowedForMode(tool, codeMode, [])).toBe(true)
-						}
+					// Code mode has all groups
+					Object.entries(TOOL_GROUPS).forEach(([_, config]) => {
+						config.tools.forEach((tool: string) => {
+							// new_task and async_task are now restricted even if their group is present
+							// custom_tool is opt-in only and requires the customTools experiment
+							if (tool === "new_task" || tool === "async_task" || tool === "custom_tool") {
+								expect(isToolAllowedForMode(tool, codeMode, [])).toBe(false)
+							} else {
+								expect(isToolAllowedForMode(tool, codeMode, [])).toBe(true)
+							}
+						})
 					})
 				})
-			})
 
 			it("disallows unknown tools", () => {
 				expect(isToolAllowedForMode("unknown_tool" as any, codeMode, [])).toBe(false)
