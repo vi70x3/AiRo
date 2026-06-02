@@ -16,7 +16,7 @@
 ## Key Differences in This Fork
 *   **Spec-driven by default:** Replaces Architect mode with [Kiro](http://kiro.dev/)-style Spec mode and Code mode with Vibe mode with appropriate prompt engineering.
 *   **Streamlined Automation:** Removes the restrictive "Roo is having trouble" halts to prevent interrupted automation runs.
-*   **Instance Separation:** Isolates modes and model configurations per instance, allowing you to run multiple independent AiRo tabs side-by-side.
+*   **Instance Separation:** Isolates modes and model configurations per instance, allowing you to run multiple independent AiRo tabs side-by-side within one VScode window.
 *   **Asynchronous Subtasks (Alpha, enable in experimental settings):** Introduces the `async_task` toolset to run subtasks concurrently. Each subtask opens in a new editor tab, utilizing git worktrees and merging automatically upon completion.
     *   *Note:* `new_task` and `async_task` are restricted to the Orchestrator or custom modes (not available in standard Vibe, Spec, Ask, or Debug modes).
     *   [ ] Integration with [superpowers](https://github.com/obra/superpowers)
