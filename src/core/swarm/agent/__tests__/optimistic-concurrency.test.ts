@@ -45,7 +45,7 @@ describe('OptimisticConcurrency', () => {
 
   beforeEach(() => {
     daemon = createMockDaemon()
-    workingSet = new WorkingSet(daemon, 'test-agent')
+    workingSet = new WorkingSet()
     touchIntentHandler = new TouchIntentHandler('test-agent', workingSet, daemon)
     concurrency = new OptimisticConcurrency('test-agent', workingSet, touchIntentHandler, daemon)
   })

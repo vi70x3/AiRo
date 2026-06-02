@@ -95,11 +95,6 @@ class MockDaemon implements IDaemon {
   notifyFileTouch(agentId: string, filePath: string, operation: FileOperation): void {}
   broadcastIntent(agentId: string, filePaths: string[], toolName: string): void {}
   
-  // Notification handling
-  getPendingNotifications(agentId: string): Notification[] | null {
-    return this.notifications[agentId] || null
-  }
-  
   // Helper methods for testing
   addNotification(agentId: string, notification: Notification): void {
     if (!this.notifications[agentId]) {

@@ -8,7 +8,7 @@ import {
 	Task,
 	Dependency,
 	DependencyType,
-	TaskStatus,
+	SwarmTaskStatus,
 } from '@roo-code/types'
 
 // Helper to create a mock daemon
@@ -51,7 +51,7 @@ const createTask = (
 	owner: string = 'agent-1',
 	dependsOn: string[] = [],
 	priority: number = 1,
-	status: TaskStatus = TaskStatus.Pending,
+	status: SwarmTaskStatus = SwarmTaskStatus.Pending,
 ): Task => ({
 	taskId,
 	description: `Task ${taskId}`,
@@ -408,7 +408,7 @@ describe('PlanReviewer', () => {
 			mockDaemon.registerAgent(runningAgent)
 
 			const tasks = [
-				createTask('task-1', 'agent-2', [], 1, TaskStatus.InProgress),
+				createTask('task-1', 'agent-2', [], 1, SwarmTaskStatus.InProgress),
 			]
 			const plan = createPlan(tasks, [], 1)
 			const update: PlanUpdate = {

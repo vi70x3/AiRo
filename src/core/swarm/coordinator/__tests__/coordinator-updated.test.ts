@@ -8,7 +8,7 @@ import {
   Task,
   Dependency,
   DependencyType,
-  TaskStatus,
+  SwarmTaskStatus,
 } from '@roo-code/types'
 
 // Helper to create mock daemon
@@ -53,7 +53,7 @@ const createTasks = (scopes: string[]): Task[] =>
     description: `Task ${i}`,
     owner: '',
     scope,
-    status: TaskStatus.Pending,
+    status: SwarmTaskStatus.Pending,
     dependsOn: [],
     blockedBy: [],
     checkpoints: [],
@@ -135,7 +135,7 @@ describe('Coordinator (updated)', () => {
         description: 'Direct task',
         owner: 'coord-1',
         scope: 's1',
-        status: TaskStatus.Pending,
+        status: SwarmTaskStatus.Pending,
         dependsOn: [],
         blockedBy: [],
         checkpoints: [],
