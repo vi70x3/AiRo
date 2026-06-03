@@ -56,26 +56,26 @@ describe('Agent', () => {
 
   it('should start in Spawned state', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent-1', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent-1', AgentType.Agent, mockDaemon)
     expect(agent.state).toBe(AgentLifecycleState.Spawned)
   })
 
   it('should transition to Ready state', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     agent.markReady()
     expect(agent.state).toBe(AgentLifecycleState.Ready)
   })
 
   it('should have correct initial state', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     expect(agent.state).toBe(AgentLifecycleState.Spawned)
   })
 
   it('should transition between states correctly', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     
     // Test initial state
     expect(agent.state).toBe(AgentLifecycleState.Spawned)
@@ -87,7 +87,7 @@ describe('Agent', () => {
 
   it('should handle invalid state transitions', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     
     // Try to go from Spawned to Completed (invalid transition)
     expect(() => {
@@ -97,7 +97,7 @@ describe('Agent', () => {
 
   it('should update heartbeat on state transitions', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     
     const initialHeartbeat = agent.lastHeartbeat
     // Use vi.setSystemTime to mock Date.now for testing
@@ -112,7 +112,7 @@ describe('Agent', () => {
 
   it('should register with daemon on construction', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     
     // Check that registerAgent was called
     expect(mockDaemon.registerAgent).toHaveBeenCalledWith(agent.toMetadata())
@@ -120,7 +120,7 @@ describe('Agent', () => {
 
   it('should unregister from daemon on dispose', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     agent.dispose()
     
     // Check that unregisterAgent was called
@@ -129,7 +129,7 @@ describe('Agent', () => {
 
   it('should send DM to recipient', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     agent.sendDM('recipient-123', 'test message')
     
     // Check that sendDM was called on daemon
@@ -138,7 +138,7 @@ describe('Agent', () => {
 
   it('should broadcast messages', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     agent.broadcast('test broadcast')
     
     // Check that broadcast was called
@@ -153,7 +153,7 @@ describe('Agent', () => {
 
   it('should handle channel operations', () => {
     const mockDaemon = createMockDaemon()
-    const agent = new Agent('test-agent', AgentType.WORKTREE, mockDaemon)
+    const agent = new Agent('test-agent', AgentType.Agent, mockDaemon)
     agent.joinChannel('test-channel')
     agent.leaveChannel('test-channel')
     

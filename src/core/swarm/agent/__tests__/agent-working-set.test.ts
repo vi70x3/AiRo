@@ -26,7 +26,7 @@ describe('Agent WorkingSet Integration', () => {
     // Create a mock agent for testing
     const mockAgent: any = {
       agentId: 'test-agent',
-      agentType: AgentType.CodeModification,
+      agentType: AgentType.Agent,
       parentId: null,
       worktreeScope: null,
       // Add other required properties...

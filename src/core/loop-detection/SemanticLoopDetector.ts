@@ -32,6 +32,7 @@ export interface SemanticLoopDetectorConfig {
 
 export default class SemanticLoopDetector {
   private readonly stateTracker: SemanticStateTracker;
+  private globalTurnCount: number = 0;
   private readonly similarityScorer: SimilarityScorer;
   private readonly progressDetector: ProgressDetector;
   private readonly confidenceCalculator: LoopConfidenceCalculator;
@@ -86,6 +87,8 @@ export default class SemanticLoopDetector {
   } {
     // Store turn
     this.stateTracker.addTurn(turn);
+    // Increment global turn counter
+    this.globalTurnCount++;
 
     const allTurns = this.stateTracker.getTurns();
     let similarityScore = 0;
@@ -119,7 +122,7 @@ export default class SemanticLoopDetector {
 
     // Telemetry placeholders for Phase 4C – record generic success for demonstration.
     this.interventionTracker.record("default", "success");
-    this.relapseDetector.recordSuccess("default", this.getTurnCount());
+    this.relapseDetector.recordSuccess("default", this.globalTurnCount);
     // Adaptation failures are recorded on compression (see onCompression).
 
     // Emit loop‑detected telemetry.

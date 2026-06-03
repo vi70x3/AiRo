@@ -270,8 +270,9 @@ export class OptimisticConcurrency {
     // Process touch results
     for (const result of touchResults) {
       if (result.severity === ConflictSeverity.High) {
-        requiredActions.push(ConcurrencyAction.Negotiate)
+        requiredActions.push(ConcurrencyAction.Escalate)
         coordinateWithSet.add(result.notification.modifyingAgentId)
+        shouldBlock = true
       } else if (result.severity === ConflictSeverity.Critical) {
         requiredActions.push(ConcurrencyAction.Escalate)
         coordinateWithSet.add(result.notification.modifyingAgentId)

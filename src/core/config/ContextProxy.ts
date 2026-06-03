@@ -53,7 +53,7 @@ export class ContextProxy {
 				increment: 0.1,
 				decrement: 0.05,
 				cooldownTurns: 5,
-				cooldownDecay: 0.9,
+				cooldownDecay: 0.1,
 			},
 		}
 		this.secretCache = {}
@@ -531,7 +531,7 @@ export class ContextProxy {
 				increment: 0.1,
 				decrement: 0.05,
 				cooldownTurns: 5,
-				cooldownDecay: 0.9,
+				cooldownDecay: 0.1,
 			}
 		}
 		return result
@@ -574,7 +574,7 @@ export class ContextProxy {
 				increment: 0.1,
 				decrement: 0.05,
 				cooldownTurns: 5,
-				cooldownDecay: 0.9,
+				cooldownDecay: 0.1,
 			},
 		}
 		this.secretCache = {}
