@@ -1,7 +1,10 @@
 <p align="center">
   <a href="https://github.com/vi70x3/airo/releases">
     <img src="https://img.shields.io/github/downloads/vi70x3/airo/total?style=flat&logo=vscode" alt="Latest Nightly Release">
-  </a>  
+  </a>
+  <a href="https://app.deepsource.com/gh/vi70x4/AiRo/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/vi70x4/AiRo.svg/?label=code+coverage&show_trend=true&token=5cHwCeZo4DT18G34XmGaJZXJ"/></a>
+  <a href="https://app.deepsource.com/gh/vi70x4/AiRo/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/vi70x4/AiRo.svg/?label=active+issues&show_trend=true&token=5cHwCeZo4DT18G34XmGaJZXJ"/></a>
+  <a href="https://app.deepsource.com/gh/vi70x4/AiRo/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/vi70x4/AiRo.svg/?label=resolved+issues&show_trend=true&token=5cHwCeZo4DT18G34XmGaJZXJ"/></a>
 </p>
 
 # AiRo Code
