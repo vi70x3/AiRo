@@ -67,7 +67,7 @@ CAPABILITIES
 	}
 
 	// MCP section — only show if at least one MCP tool is enabled (not disabled via server config)
-	if (mcpHub && hasAnyMcpToolsAvailable(mcpHub)) {
+	if (mcpHub && hasAnyMcpContentAvailable(mcpHub)) {
 		section += `\n- You have access to MCP servers that may provide additional tools and resources. Each server may provide different capabilities that you can use to accomplish tasks more effectively.`
 	}
 
@@ -75,12 +75,18 @@ CAPABILITIES
 }
 
 /**
-	* Check if any MCP tools are available across all connected servers.
-	* Returns true if at least one server has at least one tool with enabledForPrompt !== false.
+	* Check if any MCP content (tools or resources) is available across all connected servers.
+	* Returns true if at least one server has:
+	* - At least one tool with enabledForPrompt !== false, OR
+	* - At least one resource, OR
+	* - At least one resource template
 	*/
-function hasAnyMcpToolsAvailable(mcpHub: McpHub): boolean {
+function hasAnyMcpContentAvailable(mcpHub: McpHub): boolean {
 	const servers = mcpHub.getServers()
 	return servers.some(
-		(server) => server.tools && server.tools.some((tool) => tool.enabledForPrompt !== false),
+		(server) =>
+			server.tools && server.tools.some((tool) => tool.enabledForPrompt !== false) ||
+			server.resources && server.resources.length > 0 ||
+			server.resourceTemplates && server.resourceTemplates.length > 0,
 	)
 }

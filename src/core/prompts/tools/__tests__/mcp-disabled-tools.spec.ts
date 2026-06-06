@@ -1,5 +1,6 @@
 import { getMcpDisabledToolNames } from "../mcp-disabled-tools"
 import type { McpHub } from "../../../../services/mcp/McpHub"
+import { describe, it, expect } from "vitest"
 import type { McpServer } from "@roo-code/types"
 
 /**
@@ -114,3 +115,12 @@ describe("getMcpDisabledToolNames", () => {
 		expect(result).toContain("mcp--testServer--tool3")
 	})
 })
+
+	it("handles empty servers array gracefully", () => {
+		const mockHub = {
+			getServers: () => [],
+		} as unknown as McpHub
+		const result = getMcpDisabledToolNames(mockHub)
+		expect(result).toEqual([])
+	})
+

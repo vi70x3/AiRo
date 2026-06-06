@@ -16,11 +16,22 @@ export function getMcpDisabledToolNames(mcpHub?: McpHub): string[] {
 		return []
 	}
 
-	const servers = mcpHub.getServers()
+	let servers: readonly { name: string; tools?: Array<{ name: string; enabledForPrompt?: boolean }> }[]
+	try {
+		servers = mcpHub.getServers()
+	} catch {
+		// If getServers() throws (e.g. hub in a bad state), treat as no servers
+		return []
+	}
+
+	if (!Array.isArray(servers) || servers.length === 0) {
+		return []
+	}
+
 	const disabledNames: string[] = []
 
 	for (const server of servers) {
-		if (!server.tools) {
+		if (!server.tools || !Array.isArray(server.tools)) {
 			continue
 		}
 		for (const tool of server.tools) {

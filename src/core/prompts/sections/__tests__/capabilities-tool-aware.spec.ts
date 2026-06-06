@@ -124,4 +124,40 @@ describe("getCapabilitiesSection - tool aware", () => {
 		// Should have ", and" before the last item
 		expect(result).toContain(", and ask follow-up questions")
 	})
+
+	it("includes MCP section when server has resources but no tools", () => {
+		const mockMcpHub = {
+			getServers: () => [{
+				name: "test",
+				resources: [{ uri: "test://resource", name: "test-resource" }],
+			}],
+		} as any
+		const ctx = new ToolAvailabilityContext([])
+		const result = getCapabilitiesSection(cwd, mockMcpHub, ctx)
+		expect(result).toContain("MCP servers")
+	})
+
+	it("includes MCP section when server has resourceTemplates but no tools", () => {
+		const mockMcpHub = {
+			getServers: () => [{
+				name: "test",
+				resourceTemplates: [{ uriTemplate: "test://{id}", name: "test-template" }],
+			}],
+		} as any
+		const ctx = new ToolAvailabilityContext([])
+		const result = getCapabilitiesSection(cwd, mockMcpHub, ctx)
+		expect(result).toContain("MCP servers")
+	})
+
+	it("omits MCP section when server has empty resources array", () => {
+		const mockMcpHub = {
+			getServers: () => [{
+				name: "test",
+				resources: [],
+			}],
+		} as any
+		const ctx = new ToolAvailabilityContext([])
+		const result = getCapabilitiesSection(cwd, mockMcpHub, ctx)
+		expect(result).not.toContain("MCP servers")
+	})
 })
