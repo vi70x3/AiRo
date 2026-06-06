@@ -66,10 +66,21 @@ CAPABILITIES
 		section += `\n- You can use the execute_command tool to run commands on the user's computer whenever you feel it can help accomplish the user's task. When you need to execute a CLI command, you must provide a clear explanation of what the command does. Prefer to execute complex CLI commands over creating executable scripts, since they are more flexible and easier to run. Interactive and long-running commands are allowed, since the commands are run in the user's VSCode terminal. The user may keep commands running in the background and you will be kept updated on their status along the way. Each command you execute is run in a new terminal instance.`
 	}
 
-	// MCP section (already conditional on mcpHub)
-	if (mcpHub) {
+	// MCP section — only show if at least one MCP tool is enabled (not disabled via server config)
+	if (mcpHub && hasAnyMcpToolsAvailable(mcpHub)) {
 		section += `\n- You have access to MCP servers that may provide additional tools and resources. Each server may provide different capabilities that you can use to accomplish tasks more effectively.`
 	}
 
 	return section
+}
+
+/**
+	* Check if any MCP tools are available across all connected servers.
+	* Returns true if at least one server has at least one tool with enabledForPrompt !== false.
+	*/
+function hasAnyMcpToolsAvailable(mcpHub: McpHub): boolean {
+	const servers = mcpHub.getServers()
+	return servers.some(
+		(server) => server.tools && server.tools.some((tool) => tool.enabledForPrompt !== false),
+	)
 }

@@ -93,6 +93,14 @@ const TOOL_REFERENCE_PATTERNS: Record<string, RegExp[]> = {
  * @param toolContext - The tool availability context
  * @returns The instructions with disabled tool references removed
  */
+/**
+ * Escape special regex characters in a literal string so it can be safely
+ * used inside a RegExp constructor.
+ */
+function regexEscape(str: string): string {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
 export function stripDisabledToolReferences(
 	instructions: string,
 	toolContext: ToolAvailabilityContext,
@@ -105,6 +113,12 @@ export function stripDisabledToolReferences(
 			for (const pattern of patterns) {
 				result = result.replace(pattern, "")
 			}
+		} else if (toolName.startsWith("mcp--")) {
+			// MCP tool names (format: mcp--serverName--toolName) are not in the
+			// static registry. Dynamically build a pattern to strip lines that
+			// reference the disabled MCP tool name in backticks.
+			const escaped = regexEscape(toolName)
+			result = result.replace(new RegExp(`^[^\n]*\`${escaped}\`[^\n]*(?:\r?\n|$)`, "gm"), "")
 		}
 	}
 

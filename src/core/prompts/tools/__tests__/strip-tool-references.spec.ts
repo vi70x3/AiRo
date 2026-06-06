@@ -83,4 +83,60 @@ describe("stripDisabledToolReferences", () => {
 		const input = "Just some general instructions without any tool mentions."
 		expect(stripDisabledToolReferences(input, ctx)).toBe(input)
 	})
+
+	it("strips lines referencing disabled MCP tool names", () => {
+		const ctx = new ToolAvailabilityContext(["mcp--testServer--disabledTool"])
+		const input =
+			"Some instructions.\n" +
+			"- Use `mcp--testServer--disabledTool` to do something.\n" +
+			"- Use `mcp--testServer--enabledTool` for other things.\n" +
+			"More text."
+		const result = stripDisabledToolReferences(input, ctx)
+		expect(result).not.toContain("mcp--testServer--disabledTool")
+		expect(result).toContain("mcp--testServer--enabledTool")
+		expect(result).toContain("Some instructions.")
+		expect(result).toContain("More text.")
+	})
+
+	it("strips multiple disabled MCP tool references", () => {
+		const ctx = new ToolAvailabilityContext([
+			"mcp--server1--toolA",
+			"mcp--server2--toolB",
+		])
+		const input =
+			"Start.\n" +
+			"- Use `mcp--server1--toolA` for A.\n" +
+			"- Use `mcp--server2--toolB` for B.\n" +
+			"- Use `mcp--server1--toolC` for C.\n" +
+			"End."
+		const result = stripDisabledToolReferences(input, ctx)
+		expect(result).not.toContain("mcp--server1--toolA")
+		expect(result).not.toContain("mcp--server2--toolB")
+		expect(result).toContain("mcp--server1--toolC")
+		expect(result).toContain("Start.")
+		expect(result).toContain("End.")
+	})
+
+	it("works alongside native tool stripping for MCP tools", () => {
+		const ctx = new ToolAvailabilityContext(["execute_command", "mcp--testServer--myTool"])
+		const input =
+			"Instructions:\n" +
+			"- Use `execute_command` for shell.\n" +
+			"- Use `mcp--testServer--myTool` for MCP.\n" +
+			"- Use `list_files` for listing."
+		const result = stripDisabledToolReferences(input, ctx)
+		expect(result).not.toContain("execute_command")
+		expect(result).not.toContain("mcp--testServer--myTool")
+		expect(result).toContain("list_files")
+	})
+
+	it("does not strip enabled MCP tool references", () => {
+		const ctx = new ToolAvailabilityContext(["mcp--server1--disabledTool"])
+		const input =
+			"- Use `mcp--server1--disabledTool` for disabled.\n" +
+			"- Use `mcp--server1--enabledTool` for enabled."
+		const result = stripDisabledToolReferences(input, ctx)
+		expect(result).not.toContain("mcp--server1--disabledTool")
+		expect(result).toContain("mcp--server1--enabledTool")
+	})
 })

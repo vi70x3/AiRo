@@ -54,8 +54,40 @@ describe("getCapabilitiesSection - tool aware", () => {
 		expect(result).toContain("interact with the user's environment")
 	})
 
-	it("still includes MCP section when mcpHub is provided", () => {
-		const mockMcpHub = { getServers: () => [{ name: "test" }] } as any
+	it("still includes MCP section when mcpHub is provided with enabled tools", () => {
+		const mockMcpHub = {
+			getServers: () => [{ name: "test", tools: [{ name: "tool1", enabledForPrompt: true }] }],
+		} as any
+		const ctx = new ToolAvailabilityContext([])
+		const result = getCapabilitiesSection(cwd, mockMcpHub, ctx)
+		expect(result).toContain("MCP servers")
+	})
+
+	it("omits MCP section when all MCP tools are disabled", () => {
+		const mockMcpHub = {
+			getServers: () => [{ name: "test", tools: [{ name: "tool1", enabledForPrompt: false }] }],
+		} as any
+		const ctx = new ToolAvailabilityContext([])
+		const result = getCapabilitiesSection(cwd, mockMcpHub, ctx)
+		expect(result).not.toContain("MCP servers")
+	})
+
+	it("omits MCP section when server has no tools", () => {
+		const mockMcpHub = {
+			getServers: () => [{ name: "test", tools: [] }],
+		} as any
+		const ctx = new ToolAvailabilityContext([])
+		const result = getCapabilitiesSection(cwd, mockMcpHub, ctx)
+		expect(result).not.toContain("MCP servers")
+	})
+
+	it("includes MCP section when at least one tool is enabled across servers", () => {
+		const mockMcpHub = {
+			getServers: () => [
+				{ name: "server1", tools: [{ name: "tool1", enabledForPrompt: false }] },
+				{ name: "server2", tools: [{ name: "tool2", enabledForPrompt: true }] },
+			],
+		} as any
 		const ctx = new ToolAvailabilityContext([])
 		const result = getCapabilitiesSection(cwd, mockMcpHub, ctx)
 		expect(result).toContain("MCP servers")
