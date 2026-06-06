@@ -2,7 +2,7 @@
   <h1> airiOS - Code </h1>
   <img width="256" height="384" alt="airiOS mascot" src="https://github.com/user-attachments/assets/840b1add-258b-4d7f-99a1-4bafe845a059" />
   <br>
-  <a href="https://github.com/vi70x3/airo/releases">
+  <a href="https://github.com/airi-os/code/releases">
     <img src="https://img.shields.io/github/downloads/airi-os/code/total?style=flat&logo=vscode" alt="Latest Nightly Release">
   </a>
   <a href="https://app.deepsource.com/gh/airi-os/code/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/airi-os/code.svg/?label=code+coverage&show_trend=true&token=uaeCVqRkDRLwRVYU8OIYJAKC"/></a>
@@ -20,13 +20,13 @@
 ## Key Differences in This Fork
 *   **Spec-driven by default:** Replaces Architect mode with [Kiro](http://kiro.dev/)-style Spec mode and Code mode with Vibe mode with appropriate prompt engineering.
 *   **Streamlined Automation:** Removes the restrictive "Roo is having trouble" halts to prevent interrupted automation runs.
-*   **Instance Separation:** Isolates modes and model configurations per instance, allowing you to run multiple independent AiRo tabs side-by-side within one VScode window.
+*   **Instance Separation:** Isolates modes and model configurations per instance, allowing you to run multiple independent airiOS Code tabs side-by-side within one VScode window.
 *   **Asynchronous Subtasks (Alpha, enable in experimental settings):** Introduces the `async_task` toolset to run subtasks concurrently. Each subtask opens in a new editor tab, utilizing git worktrees and merging automatically upon completion.
     *   *Note:* `new_task` and `async_task` are restricted to the Orchestrator or custom modes (not available in standard Vibe, Spec, Ask, or Debug modes).
     *   [ ] Integration with [superpowers](https://github.com/obra/superpowers)
-*   **Tools Control:** Adds a Tools section in settings to individually toggle all the default AiRo tools available to agent.
+*   **Tools Control:** Adds a Tools section in settings to individually toggle all the default airiOS Code tools available to agent.
 *   **Planned Integration:** 
-    *   [ ] Integration with [vi70x3/airi](https://github.com/vi70x3/airi) to append AiRo context snapshots to AIRI heartbeats.
+    *   [ ] Integration with [vi70x3/airi](https://github.com/vi70x3/airi) to append airiOS Code context snapshots to AIRI heartbeats.
 
 ---
 
@@ -107,7 +107,7 @@ This system detects reasoning loops, wandering behaviors, and model changes, tak
 
 ## Included Modes
 
-AiRo Code tailors its system prompts based on your current task:
+airiOS Code tailors its system prompts based on your current task:
 
 *   **Vibe Mode:** For standard development, editing, and file operations.
 *   **Spec Mode:** For system design, planning, and structural changes.
@@ -121,4 +121,4 @@ Learn more: [Using Modes](https://roocodeinc.github.io/Roo-Code/basic-usage/usin
 
 ## Resources
 
-*   **[Documentation](https://roocodeinc.github.io/AiRo-Code/):** Guides for installation, configuration, and feature usage.
+*   **[Documentation](https://roocodeinc.github.io/airiOS Code-Code/):** Guides for installation, configuration, and feature usage.
