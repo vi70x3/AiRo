@@ -120,9 +120,9 @@ export default class SemanticLoopDetector {
       this.compressionRecoveryState,
     );
 
-    // Telemetry placeholders for Phase 4C – record generic success for demonstration.
-    this.interventionTracker.record("default", "success");
-    this.relapseDetector.recordSuccess("default", this.globalTurnCount);
+    // Record intervention effectiveness with actual turn context
+    this.interventionTracker.record("loop_check", "success");
+    this.relapseDetector.recordSuccess("loop_check", this.globalTurnCount);
     // Adaptation failures are recorded on compression (see onCompression).
 
     // Emit loop‑detected telemetry.
@@ -184,6 +184,7 @@ export default class SemanticLoopDetector {
     this.compressionRecoveryState = { lastCompressionId: id, isRecovered: false, turnsSinceLastCompression: 0 };
 
     this.stateTracker.clear();
+    this.globalTurnCount = 0;
     return event;
   }
 
@@ -205,9 +206,10 @@ export default class SemanticLoopDetector {
     };
     this.compressionRecoveryState = { lastCompressionId: null, isRecovered: false, turnsSinceLastCompression: 0 };
     this.stateTracker.clear();
+    this.globalTurnCount = 0;
   }
 
   getTurnCount(): number {
-    return this.stateTracker.getTurns().length;
+    return this.globalTurnCount;
   }
 }

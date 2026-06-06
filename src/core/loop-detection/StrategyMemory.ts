@@ -24,10 +24,11 @@ export default class StrategyMemory {
 	 * Adds a strategy record to memory, with duplicate guard.
 	 */
 	addStrategy(record: StrategyRecord): void {
-		// Task 3.4: Duplicate guard — skip if the last strategy has the same fingerprint
+		// Duplicate guard — skip if the last strategy has the same fingerprint
+		// Compare fingerprints instead of IDs (which are random UUIDs)
 		if (this.strategies.length > 0) {
 			const last = this.strategies[this.strategies.length - 1]
-			if (last.id === record.id) {
+			if (last.fingerprint === record.fingerprint) {
 				return
 			}
 		}

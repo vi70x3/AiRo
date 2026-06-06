@@ -79,11 +79,11 @@ describe("SemanticLoopDetector", () => {
 
 		it("should accept custom windowSize", () => {
 			const d = new SemanticLoopDetector({ windowSize: 5 })
-			// Add 6 turns; only 5 should remain in the window
+			// Add 6 turns; getTurnCount returns global count (6), not windowed count
 			for (let i = 0; i < 6; i++) {
 				d.onTurn(createMockTurn(`turn-${i}`))
 			}
-			expect(d.getTurnCount()).toBe(5)
+			expect(d.getTurnCount()).toBe(6)
 		})
 
 		it("should accept custom calculatorConfig", () => {
@@ -291,6 +291,7 @@ describe("SemanticLoopDetector", () => {
 			detector.onTurn(createMockTurn("2"))
 			expect(detector.getTurnCount()).toBe(2)
 			detector.onCompression("test")
+			// getTurnCount returns global count, which is reset to 0 after compression
 			expect(detector.getTurnCount()).toBe(0)
 		})
 	})
@@ -378,13 +379,15 @@ describe("SemanticLoopDetector", () => {
 			for (let i = 0; i < 5; i++) {
 				d.onTurn(createMockTurn(`${i}`))
 			}
-			expect(d.getTurnCount()).toBe(3)
+			// getTurnCount returns global count (5), not windowed count (3)
+			expect(d.getTurnCount()).toBe(5)
 		})
 
 		it("should return 0 after compression clears the tracker", () => {
 			detector.onTurn(createMockTurn("1"))
 			detector.onTurn(createMockTurn("2"))
 			detector.onCompression("test")
+			// getTurnCount returns global count, which is reset to 0 after compression
 			expect(detector.getTurnCount()).toBe(0)
 		})
 	})

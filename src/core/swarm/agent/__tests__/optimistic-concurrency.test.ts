@@ -147,11 +147,13 @@ describe('OptimisticConcurrency', () => {
     expect(actionLow).toBe(ConcurrencyAction.Proceed)
   })
 
-  it('determineAction returns Negotiate for Medium/High severity', () => {
+  it('determineAction returns Negotiate for Medium, Escalate for High/Critical severity', () => {
     const actionMed = concurrency.determineAction(ConflictSeverity.Medium, 'unknown')
     const actionHigh = concurrency.determineAction(ConflictSeverity.High, 'unknown')
+    const actionCritical = concurrency.determineAction(ConflictSeverity.Critical, 'unknown')
     expect(actionMed).toBe(ConcurrencyAction.Negotiate)
-    expect(actionHigh).toBe(ConcurrencyAction.Negotiate)
+    expect(actionHigh).toBe(ConcurrencyAction.Escalate)
+    expect(actionCritical).toBe(ConcurrencyAction.Escalate)
   })
 
   it('determineAction returns Escalate for Critical severity', () => {

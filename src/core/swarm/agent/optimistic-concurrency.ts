@@ -81,7 +81,7 @@ export class OptimisticConcurrency {
     const requiredActions: ConcurrencyAction[] = []
     const coordinateWithSet = new Set<string>()
     let shouldBlock = this.shouldEnterBlockedState(assessments)
-    let reason: string | undefined
+    let reason: string | undefined = shouldBlock ? "High/critical conflict detected — blocking required" : undefined
 
     // Incorporate intent conflict findings into the decision
     if (intentConflictReport.hasConflicts) {
@@ -197,7 +197,7 @@ export class OptimisticConcurrency {
             intent.declaringAgentId !== this.agentId
           ) {
             activeAgents.push(intent.declaringAgentId)
-            const intentSeverity = ConflictSeverity.Medium
+            const intentSeverity = ConflictSeverity.High
             if (this.severityRank(intentSeverity) > this.severityRank(maxSeverity)) {
               maxSeverity = intentSeverity
             }
@@ -230,7 +230,7 @@ export class OptimisticConcurrency {
       case ConflictSeverity.Medium:
         return ConcurrencyAction.Negotiate
       case ConflictSeverity.High:
-        return ConcurrencyAction.Negotiate
+        return ConcurrencyAction.Escalate
       case ConflictSeverity.Critical:
         return ConcurrencyAction.Escalate
       default:

@@ -48,11 +48,11 @@ export class ContextProxy {
 		this.stateCache = {
 			loopDetection: {
 				enabled: false,
-				windowSize: 10,
-				threshold: 0.8,
+				windowSize: 20,
+				threshold: 0.7,
 				increment: 0.1,
-				decrement: 0.05,
-				cooldownTurns: 5,
+				decrement: 0.15,
+				cooldownTurns: 3,
 				cooldownDecay: 0.1,
 			},
 		}

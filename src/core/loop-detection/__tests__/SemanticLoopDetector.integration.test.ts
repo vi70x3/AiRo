@@ -359,7 +359,8 @@ describe("SemanticLoopDetector — Integration Tests", () => {
 			smallWindow.onTurn(commonTurn("t2"))
 			smallWindow.onTurn(commonTurn("t3"))
 			smallWindow.onTurn(commonTurn("t4")) // evicts Turn 1
-			expect(smallWindow.getTurnCount()).toBe(3)
+			// getTurnCount returns global count (4), not windowed count (3)
+			expect(smallWindow.getTurnCount()).toBe(4)
 
 			// Turn 5: touches unique_file.ts again with a modification tool
 			// ProgressDetector will see this as a "new file" because Turn 1

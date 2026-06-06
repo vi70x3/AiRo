@@ -83,7 +83,10 @@ export default class WanderingDetector {
 			}
 		} else {
 			// Reset wandering state — agent either found similarity (loop) or made progress
-			this.reset()
+			// Only reset state, not turnCount, to preserve wandering detection continuity
+			this.state = { ...INITIAL_STATE }
+			this.allFilesSeen.clear()
+			this.allToolsSeen.clear()
 		}
 
 		// Wandering is confirmed if all conditions are met
