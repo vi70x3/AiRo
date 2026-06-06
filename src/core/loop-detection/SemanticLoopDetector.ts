@@ -127,8 +127,8 @@ export default class SemanticLoopDetector {
       this.interventionTracker.record(strategyName, "success");
 
       // Check for relapse when a loop is detected
-      const relapseResult = this.relapseDetector.check(strategyName, this.globalTurnCount);
-      if (relapseResult.isRelapse) {
+      const relapseResult = this.relapseDetector.check(strategyName, this.globalTurnCount, true);
+      if (relapseResult.relapsed) {
         // Handle relapse - record failure and trigger additional intervention
         this.interventionTracker.record(strategyName, "failure");
         this.adaptationFailureDetector.recordFailure("relapse");

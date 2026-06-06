@@ -247,7 +247,7 @@ export class ConflictStrategies {
     if (!coordinatorId) return
 
     this.daemon.sendDM({
-      messageId: crypto.randomUUID(),
+      messageId: randomUUID(),
       senderId: this.agentId,
       recipientId: coordinatorId,
       content: JSON.stringify({
