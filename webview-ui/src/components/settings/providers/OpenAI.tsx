@@ -21,7 +21,7 @@ export const OpenAI = ({ apiConfiguration, setApiConfigurationField, selectedMod
 	const { t } = useAppTranslation()
 
 	const [openAiNativeBaseUrlSelected, setOpenAiNativeBaseUrlSelected] = useState(
-		Boolean(apiConfiguration?.openAiNativeBaseUrl,
+		Boolean(apiConfiguration?.openAiNativeBaseUrl),
 	)
 
 	const handleInputChange = useCallback(

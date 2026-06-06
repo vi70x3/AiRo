@@ -324,7 +324,7 @@ export const WorktreesView = () => {
 			{/* Delete Modal */}
 			{deleteWorktree && (
 				<DeleteWorktreeModal
-					open={Boolean(deleteWorktree}
+					open={Boolean(deleteWorktree)}
 					onClose={() => setDeleteWorktree(null)}
 					worktree={deleteWorktree}
 					onSuccess={() => {

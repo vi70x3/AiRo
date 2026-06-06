@@ -19,7 +19,7 @@ export const Vertex = ({ apiConfiguration, setApiConfigurationField }: VertexPro
 
 	// Check if the selected model supports 1M context (supported Claude 4 models)
 	const supports1MContextBeta =
-		Boolean(apiConfiguration?.apiModelId &&
+		Boolean(apiConfiguration?.apiModelId) &&
 		VERTEX_1M_CONTEXT_MODEL_IDS.includes(
 			apiConfiguration.apiModelId as (typeof VERTEX_1M_CONTEXT_MODEL_IDS)[number],
 		)

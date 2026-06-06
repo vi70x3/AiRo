@@ -40,11 +40,11 @@ export const Requesty = ({
 }: RequestyProps) => {
 	const { t } = useAppTranslation()
 
-	const [requestyEndpointSelected, setRequestyEndpointSelected] = useState(Boolean(apiConfiguration.requestyBaseUrl)
+	const [requestyEndpointSelected, setRequestyEndpointSelected] = useState(Boolean(apiConfiguration.requestyBaseUrl))
 
 	// This ensures that the "Use custom URL" checkbox is hidden when the user deletes the URL.
 	useEffect(() => {
-		setRequestyEndpointSelected(Boolean(apiConfiguration?.requestyBaseUrl)
+		setRequestyEndpointSelected(Boolean(apiConfiguration?.requestyBaseUrl))
 	}, [apiConfiguration?.requestyBaseUrl])
 
 	const handleInputChange = useCallback(

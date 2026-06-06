@@ -18,7 +18,7 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField }: GeminiPro
 	const { t } = useAppTranslation()
 
 	const [googleGeminiBaseUrlSelected, setGoogleGeminiBaseUrlSelected] = useState(
-		Boolean(apiConfiguration?.googleGeminiBaseUrl,
+		Boolean(apiConfiguration?.googleGeminiBaseUrl),
 	)
 
 	const handleInputChange = useCallback(

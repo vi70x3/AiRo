@@ -43,7 +43,7 @@ export const OpenAICompatible = ({
 }: OpenAICompatibleProps) => {
 	const { t } = useAppTranslation()
 
-	const [azureApiVersionSelected, setAzureApiVersionSelected] = useState(Boolean(apiConfiguration?.azureApiVersion)
+	const [azureApiVersionSelected, setAzureApiVersionSelected] = useState(Boolean(apiConfiguration?.azureApiVersion))
 
 	const [openAiModels, setOpenAiModels] = useState<Record<string, ModelInfo> | null>(null)
 
@@ -275,7 +275,7 @@ export const OpenAICompatible = ({
 							supportsReasoningEffort: ["low", "medium", "high", "xhigh"],
 						}}
 					/>
-				)}
+				))}
 			</div>
 			<div className="flex flex-col gap-3">
 				<div className="text-sm text-vscode-descriptionForeground whitespace-pre-line">

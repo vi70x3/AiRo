@@ -458,9 +458,9 @@ export function useScrollLifecycle({
 
 			const activeElement = document.activeElement
 			const focusInsideChat =
-				activeElement instanceof HTMLElement && Boolean(scrollContainerRef.current?.contains(activeElement)
+				activeElement instanceof HTMLElement && Boolean(scrollContainerRef.current?.contains(activeElement))
 			const eventTargetInsideChat =
-				keyEvent.target instanceof Node && Boolean(scrollContainerRef.current?.contains(keyEvent.target)
+				keyEvent.target instanceof Node && Boolean(scrollContainerRef.current?.contains(keyEvent.target))
 
 			if (focusInsideChat || eventTargetInsideChat || activeElement === document.body) {
 				enterUserBrowsingHistory("keyboard-nav-up")

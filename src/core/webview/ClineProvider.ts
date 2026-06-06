@@ -1461,7 +1461,7 @@ export class ClineProvider
 	}
 
 	public hasProviderProfileEntry(name: string): boolean {
-		return Boolean(this.getProviderProfileEntry(name)
+		return Boolean(this.getProviderProfileEntry(name))
 	}
 
 	async upsertProviderProfile(

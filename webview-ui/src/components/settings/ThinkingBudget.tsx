@@ -57,7 +57,7 @@ interface ThinkingBudgetProps {
 	setApiConfigurationField: <K extends keyof ProviderSettings>(
 		field: K,
 		value: ProviderSettings[K],
-		isUserAction?: boolean,
+		isUserAction?: boolean
 	) => void
 	modelInfo?: ModelInfo
 }
