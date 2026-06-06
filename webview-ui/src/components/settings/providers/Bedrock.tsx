@@ -43,7 +43,7 @@ export const Bedrock = ({ apiConfiguration, setApiConfigurationField, selectedMo
 
 	// Update the endpoint enabled state when the configuration changes
 	useEffect(() => {
-		setAwsEndpointSelected(!!apiConfiguration?.awsBedrockEndpointEnabled)
+		setAwsEndpointSelected(Boolean(apiConfiguration?.awsBedrockEndpointEnabled)
 	}, [apiConfiguration?.awsBedrockEndpointEnabled])
 
 	const handleInputChange = useCallback(

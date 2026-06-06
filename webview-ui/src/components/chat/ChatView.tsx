@@ -1555,7 +1555,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								: undefined
 						}
 						hasSubtasks={
-							!!(
+							Boolean(
 								currentTaskItem?.id &&
 								aggregatedCostsMap.has(currentTaskItem.id) &&
 								aggregatedCostsMap.get(currentTaskItem.id)!.childrenCost > 0

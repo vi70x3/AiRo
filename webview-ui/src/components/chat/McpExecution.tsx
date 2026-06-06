@@ -286,7 +286,7 @@ export const McpExecution = ({
 					isExpanded={isResponseExpanded}
 					response={formattedResponseText}
 					isJson={responseIsJson}
-					hasArguments={!!(isArguments || useMcpServer?.arguments || argumentsText)}
+					hasArguments={Boolean(isArguments || useMcpServer?.arguments || argumentsText)}
 					isPartial={status ? status.status !== "completed" : false}
 				/>
 			</div>
