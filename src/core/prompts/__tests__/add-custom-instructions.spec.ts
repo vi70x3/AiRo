@@ -192,6 +192,7 @@ const createMockMcpHub = (withServers: boolean = false): McpHub =>
 							name: "test-server",
 							disabled: false,
 							resources: [{ uri: "test://resource", name: "Test Resource" }],
+							tools: [{ name: "test-tool", enabledForPrompt: true }],
 						},
 					]
 				: [],

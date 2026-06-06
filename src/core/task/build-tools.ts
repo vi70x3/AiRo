@@ -8,7 +8,7 @@ import { customToolRegistry, formatNative } from "@roo-code/core"
 import type { ClineProvider } from "../webview/ClineProvider"
 import { getRooDirectoriesForCwd } from "../../services/roo-config/index.js"
 
-import { getNativeTools, getMcpServerTools } from "../prompts/tools/native-tools"
+import { getNativeTools, getMcpServerTools, getMcpDisabledToolNames } from "../prompts/tools/native-tools"
 import {
 	filterNativeToolsForMode,
 	filterMcpToolsForMode,
@@ -98,10 +98,14 @@ export async function buildNativeToolsArrayWithRestrictions(options: BuildToolsO
 	const { CodeIndexManager } = await import("../../services/code-index/manager")
 	const codeIndexManager = CodeIndexManager.getInstance(provider.context, cwd)
 
+	// Collect disabled MCP tool names and merge with native disabled tools
+	// so the LLM never sees references to tools that are disabled via per-server config
+	const mcpDisabledTools = getMcpDisabledToolNames(mcpHub)
+
 	// Build settings object for tool filtering.
 	const filterSettings = {
 		todoListEnabled: apiConfiguration?.todoListEnabled ?? true,
-		disabledTools,
+		disabledTools: [...(disabledTools ?? []), ...mcpDisabledTools],
 		modelInfo,
 	}
 

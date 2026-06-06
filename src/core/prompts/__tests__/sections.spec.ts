@@ -43,11 +43,22 @@ describe("getCapabilitiesSection", () => {
 		expect(result).toContain("read and write files")
 	})
 
-	it("includes MCP reference when mcpHub is provided", () => {
-		const mockMcpHub = {} as McpHub
+	it("includes MCP reference when mcpHub is provided with enabled tools", () => {
+		const mockMcpHub = {
+			getServers: () => [{ name: "test", tools: [{ name: "tool1", enabledForPrompt: true }] }],
+		} as any
 		const result = getCapabilitiesSection(cwd, mockMcpHub)
 
 		expect(result).toContain("MCP servers")
+	})
+
+	it("excludes MCP reference when all MCP tools are disabled", () => {
+		const mockMcpHub = {
+			getServers: () => [{ name: "test", tools: [{ name: "tool1", enabledForPrompt: false }] }],
+		} as any
+		const result = getCapabilitiesSection(cwd, mockMcpHub)
+
+		expect(result).not.toContain("MCP servers")
 	})
 
 	it("excludes MCP reference when mcpHub is undefined", () => {

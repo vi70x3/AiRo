@@ -93,6 +93,14 @@ const TOOL_REFERENCE_PATTERNS: Record<string, RegExp[]> = {
  * @param toolContext - The tool availability context
  * @returns The instructions with disabled tool references removed
  */
+/**
+ * Escape special regex characters in a literal string so it can be safely
+ * used inside a RegExp constructor.
+ */
+function regexEscape(str: string): string {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
 export function stripDisabledToolReferences(
 	instructions: string,
 	toolContext: ToolAvailabilityContext,
@@ -105,6 +113,23 @@ export function stripDisabledToolReferences(
 			for (const pattern of patterns) {
 				result = result.replace(pattern, "")
 			}
+		} else if (toolName.startsWith("mcp--")) {
+			// MCP tool names (format: mcp--serverName--toolName) are not in the
+			// static registry. Dynamically build patterns to strip references.
+			const escaped = regexEscape(toolName)
+			// 1) Remove bullet-point list items that mention the tool in backticks
+			result = result.replace(
+				new RegExp(`^-[^\n]*\`${escaped}\`[^\n]*(?:\r?\n|$)`, "gm"),
+				"",
+			)
+			// 2) Remove bullet-point list items that mention the tool name bare
+			//    (no backticks) — match the canonical mcp--server--tool identifier
+			result = result.replace(
+				new RegExp(`^-[^\n]*\\b${escaped}\\b[^\n]*(?:\r?\n|$)`, "gm"),
+				"",
+			)
+			// 3) Remove inline backtick-wrapped references from non-list lines
+			result = result.replace(new RegExp(`\`${escaped}\``, "g"), "")
 		}
 	}
 

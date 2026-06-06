@@ -14,6 +14,7 @@ import { SkillsManager } from "../../services/skills/SkillsManager"
 import type { SystemPromptSettings } from "./types"
 import { ToolAvailabilityContext } from "./tools/tool-availability-context"
 import { stripDisabledToolReferences } from "./tools/strip-tool-references"
+import { getMcpDisabledToolNames } from "./tools/native-tools"
 import {
 	getRulesSection,
 	getSystemInfoSection,
@@ -62,8 +63,11 @@ async function generatePrompt(
 		throw new Error("Extension context is required for generating system prompt")
 	}
 
-	// Create tool availability context from disabled tools setting
-	const toolContext = new ToolAvailabilityContext(settings?.disabledTools)
+	// Collect disabled MCP tool names and merge with native disabled tools
+	// so the LLM never sees references to tools that are disabled via per-server config
+	const mcpDisabledTools = getMcpDisabledToolNames(mcpHub)
+	const allDisabledTools = [...new Set([...(settings?.disabledTools ?? []), ...mcpDisabledTools])]
+	const toolContext = new ToolAvailabilityContext(allDisabledTools)
 
 	// Get the full mode config to ensure we have the role definition (used for groups, etc.)
 	const modeConfig = getModeBySlug(mode, customModeConfigs) || modes.find((m) => m.slug === mode) || modes[0]
