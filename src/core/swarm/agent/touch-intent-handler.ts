@@ -113,7 +113,7 @@ export class TouchIntentHandler {
 		}
 
 		const dm: DirectMessage = {
-			messageId: crypto.randomUUID(),
+			messageId: randomUUID(),
 			senderId: this.agentId,
 			recipientId: targetAgentId,
 			content: JSON.stringify(negotiationContent),
@@ -142,7 +142,7 @@ export class TouchIntentHandler {
 		}
 
 		const dm: DirectMessage = {
-			messageId: crypto.randomUUID(),
+			messageId: randomUUID(),
 			senderId: this.agentId,
 			recipientId: targetAgentId,
 			content: JSON.stringify(responseContent),

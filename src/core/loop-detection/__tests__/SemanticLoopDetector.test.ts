@@ -446,5 +446,79 @@ describe("SemanticLoopDetector", () => {
 			expect(detector.getLoopConfidenceState().score).toBeLessThan(0.5)
 			expect(detector.shouldCompress()).toBe(false)
 		})
+
+		describe("relapse handling", () => {
+			it("should record failure and adaptation failure when relapse is detected", () => {
+				const detector = new SemanticLoopDetector()
+
+				const relapseDetector = (detector as any).relapseDetector
+				const adaptationFailureDetector = (detector as any).adaptationFailureDetector
+				const interventionTracker = (detector as any).interventionTracker
+
+				vi.spyOn(relapseDetector, "check").mockReturnValue({ relapsed: true, severity: "high" })
+				const recordSpy = vi.spyOn(interventionTracker, "record")
+				const failureSpy = vi.spyOn(adaptationFailureDetector, "recordFailure")
+
+				const turn1 = createMockTurn("1")
+				detector.onTurn(turn1)
+				for (let i = 2; i <= 8; i++) {
+					detector.onTurn(createSimilarTurn(`${i}`, turn1))
+				}
+
+				expect(recordSpy).toHaveBeenCalledWith(expect.any(String), "failure")
+				expect(failureSpy).toHaveBeenCalledWith("relapse")
+			})
+
+			it("should NOT trigger failure path when relapseDetector returns relapsed: false", () => {
+				const detector = new SemanticLoopDetector()
+
+				const relapseDetector = (detector as any).relapseDetector
+				const adaptationFailureDetector = (detector as any).adaptationFailureDetector
+				const interventionTracker = (detector as any).interventionTracker
+
+				vi.spyOn(relapseDetector, "check").mockReturnValue({ relapsed: false })
+				const recordSpy = vi.spyOn(interventionTracker, "record")
+				const failureSpy = vi.spyOn(adaptationFailureDetector, "recordFailure")
+
+				const turn1 = createMockTurn("1")
+				detector.onTurn(turn1)
+				for (let i = 2; i <= 8; i++) {
+					detector.onTurn(createSimilarTurn(`${i}`, turn1))
+				}
+
+				const failureCalls = recordSpy.mock.calls.filter(
+					(call: any[]) => call[1] === "failure",
+				)
+				expect(failureCalls).toHaveLength(0)
+				expect(failureSpy).not.toHaveBeenCalled()
+			})
+
+			it("should NOT throw when relapseDetector.check returns undefined (null-safety guard)", () => {
+				const detector = new SemanticLoopDetector()
+
+				const relapseDetector = (detector as any).relapseDetector
+				const adaptationFailureDetector = (detector as any).adaptationFailureDetector
+				const interventionTracker = (detector as any).interventionTracker
+
+				vi.spyOn(relapseDetector, "check").mockReturnValue(undefined)
+				const recordSpy = vi.spyOn(interventionTracker, "record")
+				const failureSpy = vi.spyOn(adaptationFailureDetector, "recordFailure")
+
+				const turn1 = createMockTurn("1")
+
+				expect(() => {
+					detector.onTurn(turn1)
+					for (let i = 2; i <= 8; i++) {
+						detector.onTurn(createSimilarTurn(`${i}`, turn1))
+					}
+				}).not.toThrow()
+
+				const failureCalls = recordSpy.mock.calls.filter(
+					(call: any[]) => call[1] === "failure",
+				)
+				expect(failureCalls).toHaveLength(0)
+				expect(failureSpy).not.toHaveBeenCalled()
+			})
+		})
 	})
 })
