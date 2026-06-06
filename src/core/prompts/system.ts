@@ -66,7 +66,7 @@ async function generatePrompt(
 	// Collect disabled MCP tool names and merge with native disabled tools
 	// so the LLM never sees references to tools that are disabled via per-server config
 	const mcpDisabledTools = getMcpDisabledToolNames(mcpHub)
-	const allDisabledTools = [...(settings?.disabledTools ?? []), ...mcpDisabledTools]
+	const allDisabledTools = [...new Set([...(settings?.disabledTools ?? []), ...mcpDisabledTools])]
 	const toolContext = new ToolAvailabilityContext(allDisabledTools)
 
 	// Get the full mode config to ensure we have the role definition (used for groups, etc.)
