@@ -48,7 +48,7 @@ export const useRequestyKeyInfo = (baseUrl?: string, apiKey?: string, options?: 
 		queryKey: ["requesty-key-info", baseUrl, apiKey],
 		queryFn: () => getRequestyKeyInfo(baseUrl, apiKey),
 		staleTime: 30 * 1000, // 30 seconds
-		enabled: !!apiKey,
+		enabled: Boolean(apiKey,
 		...options,
 	})
 }

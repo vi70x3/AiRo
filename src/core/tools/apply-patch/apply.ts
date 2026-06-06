@@ -181,6 +181,8 @@ export async function processHunk(
 			}
 		}
 	}
+
+	return undefined as unknown as ApplyPatchFileChange
 }
 
 /**

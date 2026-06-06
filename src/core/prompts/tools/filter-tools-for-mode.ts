@@ -386,7 +386,7 @@ export function isToolAllowedInMode(
 	if (ALWAYS_AVAILABLE_TOOLS.includes(toolName)) {
 		// But still check for conditional exclusions
 		if (toolName === "codebase_search") {
-			return !!(
+			return Boolean(
 				codeIndexManager &&
 				codeIndexManager.isFeatureEnabled &&
 				codeIndexManager.isFeatureConfigured &&

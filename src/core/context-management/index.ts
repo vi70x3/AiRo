@@ -1,5 +1,5 @@
 import { Anthropic } from "@anthropic-ai/sdk"
-import crypto from "crypto"
+import crypto from "node:crypto"
 
 import { ApiHandler, ApiHandlerCreateMessageMetadata } from "../../api"
 import { MAX_CONDENSE_THRESHOLD, MIN_CONDENSE_THRESHOLD, summarizeConversation, SummarizeResponse } from "../condense"
@@ -143,6 +143,7 @@ export type WillManageContextOptions = {
 	profileThresholds: Record<string, number>
 	currentProfileId: string
 	lastMessageTokens: number
+	forceCondense?: boolean
 }
 
 /**
@@ -225,6 +226,8 @@ export type ContextManagementOptions = {
 	cwd?: string
 	/** Optional controller for file access validation */
 	rooIgnoreController?: RooIgnoreController
+	/** When true, forces condensing regardless of token thresholds (e.g. on model switch) */
+	forceCondense?: boolean
 }
 
 export type ContextManagementResult = SummarizeResponse & {

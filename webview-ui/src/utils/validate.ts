@@ -174,6 +174,8 @@ function validateProviderAgainstOrganizationSettings(
 			}
 		}
 	}
+
+	return undefined
 }
 
 function getModelIdForProvider(apiConfiguration: ProviderSettings, provider: ProviderName): string | undefined {

@@ -240,6 +240,7 @@ const ModesView = () => {
 			const id = setTimeout(() => renameInputRef.current?.focus(), 0)
 			return () => clearTimeout(id)
 		}
+		return undefined
 	}, [isRenamingMode])
 
 	const handleStartRenameMode = useCallback(() => {

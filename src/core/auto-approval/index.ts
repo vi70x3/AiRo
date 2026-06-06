@@ -157,7 +157,7 @@ export async function checkAutoApproval({
 			return state.alwaysAllowSubtasks === true ? { decision: "approve" } : { decision: "ask" }
 		}
 
-		const isOutsideWorkspace = !!tool.isOutsideWorkspace
+		const isOutsideWorkspace = Boolean(tool.isOutsideWorkspace)
 
 		if (isReadOnlyToolAction(tool)) {
 			return state.alwaysAllowReadOnly === true &&

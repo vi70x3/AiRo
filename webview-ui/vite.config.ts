@@ -27,10 +27,11 @@ const wasmPlugin = (): Plugin => ({
 			const wasmBinary = await import(id)
 
 			return `
-           			const wasmModule = new WebAssembly.Module(${wasmBinary.default});
-           			export default wasmModule;
-         		`
+	          			const wasmModule = new WebAssembly.Module(${wasmBinary.default});
+	          			export default wasmModule;
+	        		`
 		}
+		return undefined
 	},
 })
 
@@ -169,6 +170,7 @@ export default defineConfig(({ mode }) => {
 						) {
 							return "mermaid-bundle"
 						}
+						return undefined
 					},
 				},
 			},

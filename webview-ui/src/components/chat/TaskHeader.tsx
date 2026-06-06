@@ -90,7 +90,7 @@ const TaskHeader = ({
 	const hasTodos = todos && Array.isArray(todos) && todos.length > 0
 
 	// Determine if this is a subtask (has a parent)
-	const isSubtask = !!parentTaskId
+	const isSubtask = Boolean(parentTaskId)
 
 	const handleBackToParent = () => {
 		if (parentTaskId) {
@@ -237,7 +237,7 @@ const TaskHeader = ({
 									})()}
 								</span>
 							</StandardTooltip>
-							{!!totalCost && (
+							{Boolean(totalCost) && (
 								<>
 									<span>·</span>
 									<StandardTooltip
@@ -364,7 +364,7 @@ const TaskHeader = ({
 										</tr>
 									)}
 
-									{!!totalCost && (
+									{Boolean(totalCost) && (
 										<tr>
 											<th className="font-medium text-left align-top w-1 whitespace-nowrap pr-3 h-[24px]">
 												{t("chat:task.apiCost")}
@@ -407,7 +407,7 @@ const TaskHeader = ({
 									)}
 
 									{/* Size display */}
-									{!!currentTaskItem?.size && currentTaskItem.size > 0 && (
+									{Boolean(currentTaskItem?.size) && currentTaskItem.size > 0 && (
 										<tr>
 											<th className="font-medium text-left align-top w-1 whitespace-nowrap pr-2 h-[20px]">
 												{t("chat:task.size")}

@@ -40,7 +40,7 @@ export const OpenRouter = ({
 }: OpenRouterProps) => {
 	const { t } = useAppTranslation()
 
-	const [openRouterBaseUrlSelected, setOpenRouterBaseUrlSelected] = useState(!!apiConfiguration?.openRouterBaseUrl)
+	const [openRouterBaseUrlSelected, setOpenRouterBaseUrlSelected] = useState(Boolean(apiConfiguration?.openRouterBaseUrl)
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(

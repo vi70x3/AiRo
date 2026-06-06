@@ -367,6 +367,7 @@ describe("OpenAiHandler", () => {
 			const stream = reasoningHandler.createMessage(systemPrompt, messages)
 			// Consume the stream to trigger the API call
 			for await (const _chunk of stream) {
+				// noop - consume stream
 			}
 			// Assert the mockCreate was called with reasoning_effort
 			expect(mockCreate).toHaveBeenCalled()
@@ -384,6 +385,7 @@ describe("OpenAiHandler", () => {
 			const stream = noReasoningHandler.createMessage(systemPrompt, messages)
 			// Consume the stream to trigger the API call
 			for await (const _chunk of stream) {
+				// noop - consume stream
 			}
 			// Assert the mockCreate was called without reasoning_effort
 			expect(mockCreate).toHaveBeenCalled()
@@ -405,6 +407,7 @@ describe("OpenAiHandler", () => {
 			const stream = handlerWithMaxTokens.createMessage(systemPrompt, messages)
 			// Consume the stream to trigger the API call
 			for await (const _chunk of stream) {
+				// noop - consume stream
 			}
 			// Assert the mockCreate was called with max_tokens
 			expect(mockCreate).toHaveBeenCalled()
@@ -426,6 +429,7 @@ describe("OpenAiHandler", () => {
 			const stream = handlerWithoutMaxTokens.createMessage(systemPrompt, messages)
 			// Consume the stream to trigger the API call
 			for await (const _chunk of stream) {
+				// noop - consume stream
 			}
 			// Assert the mockCreate was called without max_tokens
 			expect(mockCreate).toHaveBeenCalled()
@@ -447,6 +451,7 @@ describe("OpenAiHandler", () => {
 			const stream = handlerWithDefaultMaxTokens.createMessage(systemPrompt, messages)
 			// Consume the stream to trigger the API call
 			for await (const _chunk of stream) {
+				// noop - consume stream
 			}
 			// Assert the mockCreate was called without max_tokens
 			expect(mockCreate).toHaveBeenCalled()
@@ -469,6 +474,7 @@ describe("OpenAiHandler", () => {
 			const stream = handlerWithUserMaxTokens.createMessage(systemPrompt, messages)
 			// Consume the stream to trigger the API call
 			for await (const _chunk of stream) {
+				// noop - consume stream
 			}
 			// Assert the mockCreate was called with user-configured modelMaxTokens (32000), not model default maxTokens (4096)
 			expect(mockCreate).toHaveBeenCalled()
@@ -491,6 +497,7 @@ describe("OpenAiHandler", () => {
 			const stream = handlerWithoutUserMaxTokens.createMessage(systemPrompt, messages)
 			// Consume the stream to trigger the API call
 			for await (const _chunk of stream) {
+				// noop - consume stream
 			}
 			// Assert the mockCreate was called with model default maxTokens (4096) as fallback
 			expect(mockCreate).toHaveBeenCalled()

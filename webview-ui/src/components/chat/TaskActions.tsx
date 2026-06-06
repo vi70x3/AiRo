@@ -38,7 +38,7 @@ export const TaskActions = ({ item, buttonsDisabled }: TaskActionsProps) => {
 					onClick={(e) => copyWithFeedback(item.task, e)}
 				/>
 			)}
-			{!!item?.size && item.size > 0 && (
+			{Boolean(item?.size) && item.size > 0 && (
 				<>
 					<LucideIconButton
 						icon={Trash2Icon}

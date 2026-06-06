@@ -1,4 +1,4 @@
-import * as crypto from "crypto"
+import * as crypto from "node:crypto"
 
 /**
  * OpenAI Responses API maximum length for call_id field.

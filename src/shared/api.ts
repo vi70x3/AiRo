@@ -47,7 +47,7 @@ export const shouldUseReasoningBudget = ({
 }: {
 	model: ModelInfo
 	settings?: ProviderSettings
-}): boolean => !!model.requiredReasoningBudget || (!!model.supportsReasoningBudget && !!settings?.enableReasoningEffort)
+}): boolean => Boolean(model.requiredReasoningBudget) || (Boolean(model.supportsReasoningBudget) && Boolean(settings?.enableReasoningEffort))
 
 export const shouldUseReasoningEffort = ({
 	model,
@@ -76,12 +76,12 @@ export const shouldUseReasoningEffort = ({
 
 	// Capability array: use only if selected is included (treat "none"/"minimal" as valid)
 	if (Array.isArray(cap)) {
-		return !!selectedEffort && (cap as ReadonlyArray<string>).includes(selectedEffort as string)
+		return Boolean(selectedEffort) && (cap as ReadonlyArray<string>).includes(selectedEffort as string)
 	}
 
 	// Boolean capability: true → require a selected effort
 	if (model.supportsReasoningEffort === true) {
-		return !!selectedEffort
+		return Boolean(selectedEffort)
 	}
 
 	// Not explicitly supported: only allow when the model itself defines a default effort
@@ -93,7 +93,7 @@ export const shouldUseReasoningEffort = ({
 		| "medium"
 		| "high"
 		| undefined
-	return !!modelDefaultEffort
+	return Boolean(modelDefaultEffort)
 }
 
 export const DEFAULT_HYBRID_REASONING_MODEL_MAX_TOKENS = 16_384

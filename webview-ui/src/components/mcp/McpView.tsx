@@ -192,6 +192,7 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 			case "disconnected":
 				return "var(--vscode-testing-iconFailed)"
 		}
+		return undefined
 	}
 
 	const handleRowClick = () => {

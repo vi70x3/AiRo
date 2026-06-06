@@ -43,7 +43,7 @@ export const OpenAICompatible = ({
 }: OpenAICompatibleProps) => {
 	const { t } = useAppTranslation()
 
-	const [azureApiVersionSelected, setAzureApiVersionSelected] = useState(!!apiConfiguration?.azureApiVersion)
+	const [azureApiVersionSelected, setAzureApiVersionSelected] = useState(Boolean(apiConfiguration?.azureApiVersion)
 
 	const [openAiModels, setOpenAiModels] = useState<Record<string, ModelInfo> | null>(null)
 
@@ -253,7 +253,7 @@ export const OpenAICompatible = ({
 					}}>
 					{t("settings:providers.setReasoningLevel")}
 				</Checkbox>
-				{!!apiConfiguration.enableReasoningEffort && (
+				{Boolean(apiConfiguration.enableReasoningEffort && (
 					<ThinkingBudget
 						apiConfiguration={{
 							...apiConfiguration,

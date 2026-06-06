@@ -76,6 +76,42 @@ export const MAX_CHECKPOINT_TIMEOUT_SECONDS = 60
 export const DEFAULT_CHECKPOINT_TIMEOUT_SECONDS = 15
 
 /**
+ * Default value for autoCondenseOnModelSwitch.
+ * When true, context is automatically condensed when a model switch is detected.
+ */
+export const DEFAULT_AUTO_CONDENSE_ON_MODEL_SWITCH = true
+
+/**
+ * Default value for autoCondenseModelSwitchLookback.
+ * How many recent turns to consider when detecting a model switch (range 1–10).
+ */
+export const DEFAULT_AUTO_CONDENSE_MODEL_SWITCH_LOOKBACK = 1
+
+/**
+ * Minimum value for autoCondenseModelSwitchLookback.
+ */
+export const MIN_AUTO_CONDENSE_MODEL_SWITCH_LOOKBACK = 1
+
+/**
+ * Maximum value for autoCondenseModelSwitchLookback.
+ */
+export const MAX_AUTO_CONDENSE_MODEL_SWITCH_LOOKBACK = 10
+
+/**
+ * Validates and normalizes autoCondenseModelSwitchLookback.
+ * Must be an integer in range 1–10; falls back to default on invalid values.
+ */
+export function validateAutoCondenseModelSwitchLookback(value: unknown): number {
+	if (typeof value !== "number" || !Number.isInteger(value)) {
+		return DEFAULT_AUTO_CONDENSE_MODEL_SWITCH_LOOKBACK
+	}
+	if (value < MIN_AUTO_CONDENSE_MODEL_SWITCH_LOOKBACK || value > MAX_AUTO_CONDENSE_MODEL_SWITCH_LOOKBACK) {
+		return DEFAULT_AUTO_CONDENSE_MODEL_SWITCH_LOOKBACK
+	}
+	return value
+}
+
+/**
  * GlobalSettings
  */
 
@@ -119,6 +155,8 @@ export const globalSettingsSchema = z.object({
 	allowedMaxCost: z.number().nullish(),
 	autoCondenseContext: z.boolean().optional(),
 	autoCondenseContextPercent: z.number().optional(),
+	autoCondenseOnModelSwitch: z.boolean().optional(),
+	autoCondenseModelSwitchLookback: z.number().int().min(1).max(10).optional(),
 
 	/**
 	 * Whether to include current time in the environment details
@@ -181,6 +219,19 @@ export const globalSettingsSchema = z.object({
 
 	diagnosticsEnabled: z.boolean().optional(),
 
+	loopDetection: z
+		.object({
+			enabled: z.boolean().optional().default(false),
+			windowSize: z.number().int().min(5).max(100).optional().default(20),
+			threshold: z.number().min(0.5).max(0.95).optional().default(0.7),
+			increment: z.number().min(0.01).max(0.5).optional().default(0.1),
+			decrement: z.number().min(0.01).max(0.5).optional().default(0.15),
+			cooldownTurns: z.number().int().min(1).max(10).optional().default(3),
+			cooldownDecay: z.number().min(0.01).max(0.5).optional().default(0.1),
+		})
+		.optional()
+		.default({}),
+
 	rateLimitSeconds: z.number().optional(),
 	experiments: experimentsSchema.optional(),
 
@@ -234,6 +285,8 @@ export const globalSettingsSchema = z.object({
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>
+
+export type LoopDetectionConfig = z.infer<typeof globalSettingsSchema>["loopDetection"]
 
 export const GLOBAL_SETTINGS_KEYS = globalSettingsSchema.keyof().options
 

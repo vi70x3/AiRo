@@ -1,0 +1,5 @@
+export { Agent } from './agent'
+export { WorkingSet } from './working-set'
+export { NotificationHandler } from './notification-handler'
+export { ConflictStrategies, StrategyProposal, StrategyEvaluation, SequentialOrder, RebaseProposal, FilePartition, FileSection } from './conflict-strategies'
+export { OptimisticConcurrency, ConcurrencyDecision, ConcurrencyAction, FileConcurrencyAssessment } from './optimistic-concurrency'

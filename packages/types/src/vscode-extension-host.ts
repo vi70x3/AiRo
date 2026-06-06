@@ -92,6 +92,10 @@ export interface ExtensionMessage {
 		| "folderSelected"
 		| "skills"
 		| "fileContent"
+		| "planState"
+		| "planStateError"
+		| "swarmState"
+		| "swarmStateError"
 	text?: string
 	/** For fileContent: { path, content, error? } */
 	fileContent?: { path: string; content: string | null; error?: string }
@@ -327,6 +331,8 @@ export type ExtensionState = Pick<
 
 	autoCondenseContext: boolean
 	autoCondenseContextPercent: number
+	autoCondenseOnModelSwitch: boolean
+	autoCondenseModelSwitchLookback: number
 	profileThresholds: Record<string, number>
 	hasOpenedModeSelector: boolean
 	openRouterImageApiKey?: string
@@ -521,6 +527,8 @@ export interface WebviewMessage {
 		| "updateSkillModes"
 		| "openSkillFile"
 		| "modeSwitchingEnabled"
+		| "getPlanState"
+		| "getSwarmState"
 	text?: string
 	taskId?: string
 	editedMessageContent?: string

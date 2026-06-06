@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    },
+    "jcodemunch": {
+      "command": "jcodemunch-mcp",
+      "args": [],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    }
+  }
+}

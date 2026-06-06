@@ -75,6 +75,7 @@ export const FollowUpSuggest = ({
 		} else {
 			setCountdown(null)
 		}
+		return undefined
 	}, [
 		autoApprovalEnabled,
 		alwaysAllowFollowupQuestions,

@@ -14,7 +14,7 @@ interface AutoApprovalToggles {
 export function useAutoApprovalState(toggles: AutoApprovalToggles, autoApprovalEnabled?: boolean) {
 	const hasEnabledOptions = useMemo(() => {
 		const { modeSwitchingEnabled: _, ...actualToggles } = toggles
-		return Object.values(actualToggles).some((value) => !!value)
+		return Object.values(actualToggles).some((value) => Boolean(value)
 	}, [toggles])
 
 	const effectiveAutoApprovalEnabled = useMemo(() => {

@@ -31,6 +31,8 @@ export class DecorationController {
 				return fadedOverlayDecorationType
 			case "activeLine":
 				return activeLineDecorationType
+		default:
+			return undefined
 		}
 	}
 

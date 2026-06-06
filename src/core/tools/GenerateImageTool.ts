@@ -124,7 +124,7 @@ export class GenerateImageTool extends BaseTool<"generate_image"> {
 		// Use shared utility for backwards compatibility logic
 		const imageProvider = getImageGenerationProvider(
 			state?.imageGenerationProvider,
-			!!state?.openRouterImageGenerationSelectedModel,
+			Boolean(state?.openRouterImageGenerationSelectedModel),
 		)
 
 		// Get the selected model

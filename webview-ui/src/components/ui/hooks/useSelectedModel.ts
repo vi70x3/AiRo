@@ -59,7 +59,7 @@ export const useSelectedModel = (apiConfiguration?: ProviderSettings) => {
 	const ollamaModelId = activeProvider === "ollama" ? apiConfiguration?.ollamaModelId : undefined
 
 	// Only fetch router models for dynamic providers
-	const shouldFetchRouterModels = !!dynamicProvider
+	const shouldFetchRouterModels = Boolean(dynamicProvider
 	const routerModels = useRouterModels({
 		provider: dynamicProvider,
 		enabled: shouldFetchRouterModels,

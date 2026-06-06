@@ -192,7 +192,7 @@ const ApiOptions = ({
 		apiConfiguration?.openRouterBaseUrl,
 		{
 			enabled:
-				!!apiConfiguration?.openRouterModelId &&
+				Boolean(apiConfiguration?.openRouterModelId) &&
 				routerModels?.openrouter &&
 				Object.keys(routerModels.openrouter).length > 1 &&
 				apiConfiguration.openRouterModelId in routerModels.openrouter,
@@ -313,7 +313,7 @@ const ApiOptions = ({
 				}
 
 				const filteredModels = filterModels(staticModels, provider, organizationAllowList)
-				const isValidModel = !!filteredModels && Object.prototype.hasOwnProperty.call(filteredModels, modelId)
+				const isValidModel = Boolean(filteredModels) && Object.prototype.hasOwnProperty.call(filteredModels, modelId)
 				if (!isValidModel) {
 					setApiConfigurationField(field, defaultValue, false)
 				}

@@ -1013,5 +1013,76 @@
             "output": "Output",
             "cacheReads": "Cache reads"
         }
+    },
+    "settings:tools.autoApprove": {
+        "header": "Auto-Approve",
+        "description": "Run these actions without asking for permission. Only enable for actions you fully trust and if you understand the security risks.",
+        "enabled": "Auto-Approve Enabled",
+        "modeSwitchingEnabled": {
+            "label": "Allow Mode Switching",
+            "description": "When enabled, the agent can request to switch between modes. When disabled, the agent cannot request mode switches."
+        },
+        "read": {
+            "label": "Read",
+            "description": "When enabled, Roo will automatically view directory contents and read files without requiring you to click the Approve button.",
+            "outsideWorkspace": {
+                "label": "Include files outside workspace",
+                "description": "Allow Roo to read files outside the current workspace without requiring approval."
+            }
+        },
+        "write": {
+            "label": "Write",
+            "description": "Automatically create and edit files without requiring approval",
+            "delayLabel": "Delay after writes to allow diagnostics to detect potential problems",
+            "outsideWorkspace": {
+                "label": "Include files outside workspace",
+                "description": "Allow Roo to create and edit files outside the current workspace without requiring approval."
+            },
+            "protected": {
+                "label": "Include protected files",
+                "description": "Allow Roo to create and edit protected files (like .rooignore and .roo/ configuration files) without requiring approval."
+            }
+        },
+        "mcp": {
+            "label": "MCP",
+            "description": "Enable auto-approval of individual MCP tools in the MCP Servers view (requires both this setting and the tool's individual \"Always allow\" checkbox)"
+        },
+        "modeSwitch": {
+            "label": "Mode",
+            "description": "Automatically switch between different modes without requiring approval"
+        },
+        "execute": {
+            "label": "Execute",
+            "description": "Automatically execute allowed terminal commands without requiring approval",
+            "allowedCommands": "Allowed Auto-Execute Commands",
+            "allowedCommandsDescription": "Command prefixes that can be auto-executed when \"Always approve execute operations\" is enabled. Add * to allow all commands (use with caution).",
+            "deniedCommands": "Denied Commands",
+            "deniedCommandsDescription": "Command prefixes that will be automatically denied without asking for approval. In case of conflicts with allowed commands, the longest prefix match takes precedence. Add * to deny all commands.",
+            "commandPlaceholder": "Enter command prefix (e.g., 'git ')",
+            "deniedCommandPlaceholder": "Enter command prefix to deny (e.g., 'rm -rf')",
+            "addButton": "Add",
+            "autoDenied": "Commands with the prefix `{{prefix}}` have been forbidden by the user. Do not bypass this restriction by running another command."
+        },
+        "followupQuestions": {
+            "label": "Question",
+            "description": "Automatically select the first suggested answer for follow-up questions after the configured timeout",
+            "timeoutLabel": "Time to wait before auto-selecting the first answer"
+        },
+        "subtasks": {
+            "label": "Subtasks",
+            "description": "Allow creation and completion of subtasks without requiring approval"
+        },
+        "maxLimits": {
+            "description": "Automatically make requests up to these limits before asking for approval to continue."
+        }
+    },
+    "settings:tools.imageGeneration": {
+        "header": "Enable AI image generation"
+    },
+    "settings:tools.customTools": {
+        "header": "Enable custom tools"
+    },
+    "settings:tools.slashCommands": {
+        "header": "Slash Commands"
     }
 }

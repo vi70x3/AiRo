@@ -590,7 +590,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 		{
 			enabled:
 				currentSettings.codebaseIndexEmbedderProvider === "openrouter" &&
-				!!currentSettings.codebaseIndexEmbedderModelId,
+				Boolean(currentSettings.codebaseIndexEmbedderModelId),
 		},
 	)
 

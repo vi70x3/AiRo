@@ -38,7 +38,7 @@ export function SettingsSearchInput({
 		onBlur?.()
 	}
 
-	const isWide = isExpanded || !!value
+	const isWide = isExpanded || Boolean(value)
 
 	return (
 		<div className="relative flex items-center justify-end">

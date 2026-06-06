@@ -17,6 +17,7 @@ export const McpErrorRow = ({ error }: McpErrorRowProps) => {
 			case "info":
 				return "var(--vscode-testing-iconPassed)"
 		}
+		return undefined
 	}, [error.level])
 
 	return (
