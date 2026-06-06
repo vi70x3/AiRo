@@ -1,13 +1,14 @@
-<p align="center">
+<div align="center">
+  <h1> airiOS - Code </h1>
+  <img width="256" height="384" alt="airiOS mascot" src="https://github.com/user-attachments/assets/840b1add-258b-4d7f-99a1-4bafe845a059" />
+  <br>
   <a href="https://github.com/vi70x3/airo/releases">
-    <img src="https://img.shields.io/github/downloads/vi70x3/airo/total?style=flat&logo=vscode" alt="Latest Nightly Release">
+    <img src="https://img.shields.io/github/downloads/airi-os/code/total?style=flat&logo=vscode" alt="Latest Nightly Release">
   </a>
-  <a href="https://app.deepsource.com/gh/vi70x4/AiRo/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/vi70x4/AiRo.svg/?label=code+coverage&show_trend=true&token=5cHwCeZo4DT18G34XmGaJZXJ"/></a>
-  <a href="https://app.deepsource.com/gh/vi70x4/AiRo/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/vi70x4/AiRo.svg/?label=active+issues&show_trend=true&token=5cHwCeZo4DT18G34XmGaJZXJ"/></a>
-  <a href="https://app.deepsource.com/gh/vi70x4/AiRo/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/vi70x4/AiRo.svg/?label=resolved+issues&show_trend=true&token=5cHwCeZo4DT18G34XmGaJZXJ"/></a>
-</p>
-
-# AiRo Code
+  <a href="https://app.deepsource.com/gh/airi-os/code/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/airi-os/code.svg/?label=code+coverage&show_trend=true&token=uaeCVqRkDRLwRVYU8OIYJAKC"/></a>
+  <a href="https://app.deepsource.com/gh/airi-os/code/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/airi-os/code.svg/?label=active+issues&show_trend=true&token=uaeCVqRkDRLwRVYU8OIYJAKC"/></a>
+  <a href="https://app.deepsource.com/gh/airi-os/code/" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://app.deepsource.com/gh/airi-os/code.svg/?label=resolved+issues&show_trend=true&token=uaeCVqRkDRLwRVYU8OIYJAKC"/></a>
+</div>
 
 <details>
 <summary> <h4> ⚠️ Show Disclaimer </h4> </summary>
