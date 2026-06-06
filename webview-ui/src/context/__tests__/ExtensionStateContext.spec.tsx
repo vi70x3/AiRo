@@ -205,6 +205,8 @@ describe("mergeExtensionState", () => {
 			organizationAllowList: { allowAll: true, providers: {} },
 			autoCondenseContext: true,
 			autoCondenseContextPercent: 100,
+			autoCondenseOnModelSwitch: true,
+			autoCondenseModelSwitchLookback: 3,
 			profileThresholds: {},
 			hasOpenedModeSelector: false, // Add the new required property
 			maxImageFileSize: 5,
@@ -268,6 +270,8 @@ describe("mergeExtensionState", () => {
 			organizationAllowList: { allowAll: true, providers: {} },
 			autoCondenseContext: true,
 			autoCondenseContextPercent: 100,
+			autoCondenseOnModelSwitch: true,
+			autoCondenseModelSwitchLookback: 3,
 			profileThresholds: {},
 			hasOpenedModeSelector: false,
 			maxImageFileSize: 5,

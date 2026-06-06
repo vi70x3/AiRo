@@ -50,12 +50,18 @@ export class DecorationController {
 			this.ranges.push(new vscode.Range(startIndex, 0, endLine, Number.MAX_SAFE_INTEGER))
 		}
 
-		this.editor.setDecorations(this.getDecoration(), this.ranges)
+		const decoration = this.getDecoration();
+		if (decoration) {
+			this.editor.setDecorations(decoration, this.ranges)
+		}
 	}
 
 	clear() {
 		this.ranges = []
-		this.editor.setDecorations(this.getDecoration(), this.ranges)
+		const decoration = this.getDecoration();
+		if (decoration) {
+			this.editor.setDecorations(decoration, this.ranges)
+		}
 	}
 
 	updateOverlayAfterLine(line: number, totalLines: number) {
@@ -73,11 +79,17 @@ export class DecorationController {
 		}
 
 		// Apply the updated decorations
-		this.editor.setDecorations(this.getDecoration(), this.ranges)
+		const decoration = this.getDecoration();
+		if (decoration) {
+			this.editor.setDecorations(decoration, this.ranges)
+		}
 	}
 
 	setActiveLine(line: number) {
 		this.ranges = [new vscode.Range(line, 0, line, Number.MAX_SAFE_INTEGER)]
-		this.editor.setDecorations(this.getDecoration(), this.ranges)
+		const decoration = this.getDecoration();
+		if (decoration) {
+			this.editor.setDecorations(decoration, this.ranges)
+		}
 	}
 }

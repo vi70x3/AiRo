@@ -229,8 +229,7 @@ export const globalSettingsSchema = z.object({
 			cooldownTurns: z.number().int().min(1).max(10).optional().default(3),
 			cooldownDecay: z.number().min(0.01).max(0.5).optional().default(0.1),
 		})
-		.optional()
-		.default({}),
+		.optional(),
 
 	rateLimitSeconds: z.number().optional(),
 	experiments: experimentsSchema.optional(),

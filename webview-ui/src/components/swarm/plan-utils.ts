@@ -1,4 +1,4 @@
-import type { TaskNode, SwarmTaskStatus } from "@roo-code/types"
+import { TaskNode, SwarmTaskStatus } from "@roo-code/types"
 
 /**
  * Result of critical path computation.
@@ -200,7 +200,7 @@ export function getBlockedTasks(tasks: TaskNode[]): BlockedTaskInfo[] {
 		taskMap.set(task.taskId, task)
 	}
 
-	const completedStatus: SwarmTaskStatus = "completed"
+	const completedStatus = SwarmTaskStatus.Completed
 
 	// Helper: check if a task is completed
 	const isCompleted = (task: TaskNode): boolean => task.status === completedStatus

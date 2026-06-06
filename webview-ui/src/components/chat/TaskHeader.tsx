@@ -407,13 +407,13 @@ const TaskHeader = ({
 									)}
 
 									{/* Size display */}
-									{Boolean(currentTaskItem?.size) && currentTaskItem.size > 0 && (
+									{Boolean(currentTaskItem?.size) && (currentTaskItem?.size ?? 0) > 0 && (
 										<tr>
 											<th className="font-medium text-left align-top w-1 whitespace-nowrap pr-2 h-[20px]">
 												{t("chat:task.size")}
 											</th>
 											<td className="font-light align-top">
-												{prettyBytes(currentTaskItem.size)}
+												{prettyBytes(currentTaskItem?.size ?? 0)}
 											</td>
 										</tr>
 									)}

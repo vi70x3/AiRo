@@ -71,10 +71,10 @@ export const ThinkingBudget = ({ apiConfiguration, setApiConfigurationField, mod
 	const minThinkingTokens = isGemini25Pro ? GEMINI_25_PRO_MIN_THINKING_TOKENS : 1024
 
 	// Check model capabilities
-	const isReasoningSupported = Boolean(modelInfo) && modelInfo.supportsReasoningBinary
-	const isReasoningBudgetSupported = Boolean(modelInfo) && modelInfo.supportsReasoningBudget
-	const isReasoningBudgetRequired = Boolean(modelInfo) && modelInfo.requiredReasoningBudget
-	const isReasoningEffortSupported = Boolean(modelInfo) && modelInfo.supportsReasoningEffort
+	const isReasoningSupported = Boolean(modelInfo?.supportsReasoningBinary)
+	const isReasoningBudgetSupported = Boolean(modelInfo?.supportsReasoningBudget)
+	const isReasoningBudgetRequired = Boolean(modelInfo?.requiredReasoningBudget)
+	const isReasoningEffortSupported = Boolean(modelInfo?.supportsReasoningEffort)
 
 	// Build available reasoning efforts list from capability
 	const supports = modelInfo?.supportsReasoningEffort

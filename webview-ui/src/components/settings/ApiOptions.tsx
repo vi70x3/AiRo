@@ -195,7 +195,7 @@ const ApiOptions = ({
 				Boolean(apiConfiguration?.openRouterModelId) &&
 				routerModels?.openrouter &&
 				Object.keys(routerModels.openrouter).length > 1 &&
-				apiConfiguration.openRouterModelId in routerModels.openrouter,
+				(apiConfiguration.openRouterModelId ?? "") in routerModels.openrouter,
 		},
 	)
 
