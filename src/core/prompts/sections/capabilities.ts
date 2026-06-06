@@ -85,7 +85,8 @@ function hasAnyMcpContentAvailable(mcpHub: McpHub): boolean {
 	let servers: ReturnType<McpHub["getServers"]>
 	try {
 		servers = mcpHub.getServers()
-	} catch {
+	} catch (error) {
+		console.warn("[capabilities] getServers() threw an error, hiding MCP section:", error)
 		return false
 	}
 	if (!Array.isArray(servers)) {
