@@ -184,7 +184,8 @@ describe("SemanticLoopDetector — Integration Tests", () => {
 			expect(event.reason).toBe("loop_detected")
 			expect(event.turnsAtCompression).toBe(5)
 			expect(detector.getLoopConfidenceState().cooldownActive).toBe(true)
-			expect(detector.getTurnCount()).toBe(0)
+			// Turn count is preserved after compression to support RelapseDetector
+			expect(detector.getTurnCount()).toBe(5)
 		})
 	})
 
@@ -412,7 +413,8 @@ describe("SemanticLoopDetector — Integration Tests", () => {
 			const compression1 = detector.onCompression("loop_detected")
 			expect(compression1.id).toBe("mock-uuid-1")
 			expect(detector.getLoopConfidenceState().cooldownActive).toBe(true)
-			expect(detector.getTurnCount()).toBe(0)
+			// Turn count is preserved after compression to support RelapseDetector
+			expect(detector.getTurnCount()).toBe(5)
 
 			// ── Cooldown: 3 turns of decay ──
 			detector.onTurn(loopTurn("cooldown-1a"))
@@ -436,7 +438,8 @@ describe("SemanticLoopDetector — Integration Tests", () => {
 			const compression2 = detector.onCompression("loop_detected")
 			expect(compression2.id).toBe("mock-uuid-2") // different UUID from first compression
 			expect(detector.getLoopConfidenceState().cooldownActive).toBe(true)
-			expect(detector.getTurnCount()).toBe(0)
+			// Turn count is preserved after compression to support RelapseDetector
+			expect(detector.getTurnCount()).toBe(16)
 
 			// Recovery state should track the SECOND compression
 			const recovery = detector.getCompressionRecoveryState()
@@ -595,7 +598,8 @@ describe("SemanticLoopDetector — Integration Tests", () => {
 			expect(compressionEvents.length).toBe(1)
 			expect(event.turnsAtCompression).toBe(5)
 			expect(detectorFull.getLoopConfidenceState().cooldownActive).toBe(true)
-			expect(detectorFull.getTurnCount()).toBe(0)
+			// Turn count is preserved after compression to support RelapseDetector
+			expect(detectorFull.getTurnCount()).toBe(5)
 
 			// ── Phase 3: Cooldown ──
 			detectorFull.onTurn(loopTurn("cooldown-1"))

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
-import crypto from "crypto"
+import crypto from "node:crypto"
 
 import { t } from "../../i18n"
 import { ApiHandler, ApiHandlerCreateMessageMetadata } from "../../api"

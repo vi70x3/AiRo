@@ -34,7 +34,8 @@ export class RelapseDetector {
     const lastSuccess = this.recoveryMap.get(strategy)
     if (lastSuccess === undefined) return { relapsed: false }
     const elapsed = currentTurn - lastSuccess
-    if (!patternDetected || elapsed > this.config.relapseWindow) {
+    // Defensive check: reject non-monotonic turn counts (e.g., after compression resets)
+    if (!patternDetected || elapsed <= 0 || elapsed > this.config.relapseWindow) {
       return { relapsed: false }
     }
     // Determine severity based on how quickly relapse occurred

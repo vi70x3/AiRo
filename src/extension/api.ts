@@ -319,7 +319,7 @@ export class API extends EventEmitter<RooCodeEvents> implements RooCodeAPI {
 
 			task.on(RooCodeEventName.TaskCompleted, async (_, tokenUsage, toolUsage) => {
 				this.emit(RooCodeEventName.TaskCompleted, task.taskId, tokenUsage, toolUsage, {
-					isSubtask: !!task.parentTaskId,
+					isSubtask: Boolean(task.parentTaskId),
 				})
 
 				await this.fileLog(

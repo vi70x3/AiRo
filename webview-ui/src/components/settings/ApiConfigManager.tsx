@@ -100,16 +100,24 @@ const ApiConfigManager = ({
 	useEffect(() => {
 		if (isRenaming) {
 			const timeoutId = setTimeout(() => inputRef.current?.focus(), 0)
-			return () => clearTimeout(timeoutId)
+			return () => {
+				clearTimeout(timeoutId)
+				return undefined
+			}
 		}
+		return undefined
 	}, [isRenaming])
 
 	// Focus input when opening new dialog.
 	useEffect(() => {
 		if (isCreating) {
 			const timeoutId = setTimeout(() => newProfileInputRef.current?.focus(), 0)
-			return () => clearTimeout(timeoutId)
+			return () => {
+				clearTimeout(timeoutId)
+				return undefined
+			}
 		}
+		return undefined
 	}, [isCreating])
 
 	// Reset state when current profile changes.

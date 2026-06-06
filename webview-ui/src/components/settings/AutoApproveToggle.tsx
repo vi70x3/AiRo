@@ -101,7 +101,7 @@ export const AutoApproveToggle = ({ onToggle, modeSwitchingEnabled, ...props }: 
 							variant={props[key] ? "primary" : "secondary"}
 							onClick={() => onToggle(key, !props[key])}
 							aria-label={t(labelKey)}
-							aria-pressed={!!props[key]}
+							aria-pressed={Boolean(props[key])}
 							data-testid={testId}
 							className={cn("gap-1.5 text-xs whitespace-nowrap", !props[key] && "opacity-50")}>
 							<span className={`codicon codicon-${icon} text-sm`} />

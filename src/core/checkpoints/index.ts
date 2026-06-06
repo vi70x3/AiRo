@@ -91,7 +91,7 @@ export async function getCheckpointService(task: Task, { interval = 250 }: { int
 					console.log(
 						`[Task#getCheckpointService] waiting for service to initialize (${Math.round(elapsed / 1000)}s)`,
 					)
-					return !!task.checkpointService && !!task?.checkpointService?.isInitialized
+					return Boolean(task.checkpointService && task?.checkpointService?.isInitialized)
 				},
 				{ interval, timeout: checkpointTimeoutMs },
 			)
@@ -168,7 +168,7 @@ async function checkGitInstallation(
 				provider?.postMessageToWebview({
 					type: "currentCheckpointUpdated",
 					text: to,
-					suppressMessage: !!suppressMessage,
+					suppressMessage: Boolean(suppressMessage),
 				})
 
 				// Always create the chat message but include the suppress flag in the payload
@@ -178,7 +178,7 @@ async function checkGitInstallation(
 					to,
 					undefined,
 					undefined,
-					{ from, to, suppressMessage: !!suppressMessage },
+					{ from, to, suppressMessage: Boolean(suppressMessage) },
 					undefined,
 					{ isNonInteractive: true },
 				).catch((err) => {
@@ -212,7 +212,7 @@ export async function checkpointSave(task: Task, force = false, suppressMessage 
 	const service = await getCheckpointService(task)
 
 	if (!service) {
-		return
+		return undefined
 	}
 
 	// Start the checkpoint process in the background.

@@ -495,6 +495,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 		return () => {
 			observer?.disconnect()
+			return undefined
 		}
 	}, [])
 

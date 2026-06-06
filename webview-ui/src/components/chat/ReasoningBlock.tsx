@@ -35,6 +35,7 @@ export const ReasoningBlock = ({ content, isStreaming, isLast }: ReasoningBlockP
 			const id = setInterval(tick, 1000)
 			return () => clearInterval(id)
 		}
+		return undefined
 	}, [isLast, isStreaming])
 
 	const seconds = Math.floor(elapsed / 1000)

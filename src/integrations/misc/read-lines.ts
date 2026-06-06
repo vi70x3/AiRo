@@ -25,7 +25,8 @@ export function readLines(filepath: string, endLine?: number, startLine?: number
 	return new Promise((resolve, reject) => {
 		// Reject if startLine is defined but not a number
 		if (startLine !== undefined && typeof startLine !== "number") {
-			return reject(new RangeError(`Invalid startLine: ${startLine}. Line numbers must be numbers.`))
+			reject(new RangeError(`Invalid startLine: ${startLine}. Line numbers must be numbers.`))
+			return
 		}
 
 		// Force startLine to be an integer and clamp to 0 if negative
@@ -35,7 +36,8 @@ export function readLines(filepath: string, endLine?: number, startLine?: number
 
 		// Reject if endLine is defined but not a number
 		if (endLine !== undefined && typeof endLine !== "number") {
-			return reject(new RangeError(`Invalid endLine: ${endLine}. Line numbers must be numbers.`))
+			reject(new RangeError(`Invalid endLine: ${endLine}. Line numbers must be numbers.`))
+			return
 		}
 
 		// Force endLine to be an integer

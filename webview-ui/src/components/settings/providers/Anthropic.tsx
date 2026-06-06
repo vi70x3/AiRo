@@ -20,7 +20,7 @@ export const Anthropic = ({ apiConfiguration, setApiConfigurationField }: Anthro
 	const { t } = useAppTranslation()
 	const selectedModel = useSelectedModel(apiConfiguration)
 
-	const [anthropicBaseUrlSelected, setAnthropicBaseUrlSelected] = useState(!!apiConfiguration?.anthropicBaseUrl)
+	const [anthropicBaseUrlSelected, setAnthropicBaseUrlSelected] = useState(Boolean(apiConfiguration?.anthropicBaseUrl))
 
 	// Check if the current model supports 1M context beta
 	const supports1MContextBeta =

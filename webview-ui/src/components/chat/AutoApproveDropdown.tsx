@@ -135,7 +135,7 @@ export const AutoApproveDropdown = ({ disabled = false, triggerClassName = "" }:
 	}, [autoApprovalEnabled, setAutoApprovalEnabled])
 
 	const enabledCount = React.useMemo(() => {
-		return settingsArray.filter((setting) => !!toggles[setting.key]).length
+		return settingsArray.filter((setting) => Boolean(toggles[setting.key]).length
 	}, [settingsArray, toggles])
 
 	const totalCount = settingsArray.length

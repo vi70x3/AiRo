@@ -234,43 +234,43 @@ export class CodeIndexConfigManager {
 		if (this.embedderProvider === "openai") {
 			const openAiKey = this.openAiOptions?.openAiNativeApiKey
 			const qdrantUrl = this.qdrantUrl
-			return !!(openAiKey && qdrantUrl)
+			return Boolean(openAiKey && qdrantUrl)
 		} else if (this.embedderProvider === "ollama") {
 			// Ollama model ID has a default, so only base URL is strictly required for config
 			const ollamaBaseUrl = this.ollamaOptions?.ollamaBaseUrl
 			const qdrantUrl = this.qdrantUrl
-			return !!(ollamaBaseUrl && qdrantUrl)
+			return Boolean(ollamaBaseUrl && qdrantUrl)
 		} else if (this.embedderProvider === "openai-compatible") {
 			const baseUrl = this.openAiCompatibleOptions?.baseUrl
 			const apiKey = this.openAiCompatibleOptions?.apiKey
 			const qdrantUrl = this.qdrantUrl
-			const isConfigured = !!(baseUrl && apiKey && qdrantUrl)
+			const isConfigured = Boolean(baseUrl && apiKey && qdrantUrl)
 			return isConfigured
 		} else if (this.embedderProvider === "gemini") {
 			const apiKey = this.geminiOptions?.apiKey
 			const qdrantUrl = this.qdrantUrl
-			const isConfigured = !!(apiKey && qdrantUrl)
+			const isConfigured = Boolean(apiKey && qdrantUrl)
 			return isConfigured
 		} else if (this.embedderProvider === "mistral") {
 			const apiKey = this.mistralOptions?.apiKey
 			const qdrantUrl = this.qdrantUrl
-			const isConfigured = !!(apiKey && qdrantUrl)
+			const isConfigured = Boolean(apiKey && qdrantUrl)
 			return isConfigured
 		} else if (this.embedderProvider === "vercel-ai-gateway") {
 			const apiKey = this.vercelAiGatewayOptions?.apiKey
 			const qdrantUrl = this.qdrantUrl
-			const isConfigured = !!(apiKey && qdrantUrl)
+			const isConfigured = Boolean(apiKey && qdrantUrl)
 			return isConfigured
 		} else if (this.embedderProvider === "bedrock") {
 			// Only region is required for Bedrock (profile is optional)
 			const region = this.bedrockOptions?.region
 			const qdrantUrl = this.qdrantUrl
-			const isConfigured = !!(region && qdrantUrl)
+			const isConfigured = Boolean(region && qdrantUrl)
 			return isConfigured
 		} else if (this.embedderProvider === "openrouter") {
 			const apiKey = this.openRouterOptions?.apiKey
 			const qdrantUrl = this.qdrantUrl
-			const isConfigured = !!(apiKey && qdrantUrl)
+			const isConfigured = Boolean(apiKey && qdrantUrl)
 			return isConfigured
 		}
 		return false // Should not happen if embedderProvider is always set correctly

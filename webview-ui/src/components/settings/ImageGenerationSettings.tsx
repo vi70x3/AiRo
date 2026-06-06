@@ -29,7 +29,7 @@ export const ImageGenerationSettings = ({
 	// Use shared utility for backwards compatibility logic
 	const currentProvider = getImageGenerationProvider(
 		imageGenerationProvider,
-		!!openRouterImageGenerationSelectedModel,
+		Boolean(openRouterImageGenerationSelectedModel),
 	)
 
 	const availableModels = useMemo(() => {

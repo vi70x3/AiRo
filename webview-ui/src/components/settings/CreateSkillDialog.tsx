@@ -43,6 +43,7 @@ const getSkillNameErrorTranslationKey = (error: SkillNameValidationError): strin
 		case SkillNameValidationError.InvalidFormat:
 			return "settings:skills.validation.nameInvalid"
 	}
+	return "settings:skills.validation.nameInvalid"
 }
 
 /**

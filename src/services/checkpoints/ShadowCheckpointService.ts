@@ -1,7 +1,7 @@
 import fs from "fs/promises"
 import os from "os"
 import * as path from "path"
-import crypto from "crypto"
+import crypto from "node:crypto"
 import EventEmitter from "events"
 
 import simpleGit, { SimpleGit, SimpleGitOptions } from "simple-git"
@@ -98,7 +98,7 @@ export abstract class ShadowCheckpointService extends EventEmitter {
 	}
 
 	public get isInitialized() {
-		return !!this.git
+		return Boolean(this.git)
 	}
 
 	public getCheckpoints(): string[] {

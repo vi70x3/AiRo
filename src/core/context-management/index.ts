@@ -1,5 +1,5 @@
 import { Anthropic } from "@anthropic-ai/sdk"
-import crypto from "crypto"
+import crypto from "node:crypto"
 
 import { ApiHandler, ApiHandlerCreateMessageMetadata } from "../../api"
 import { MAX_CONDENSE_THRESHOLD, MIN_CONDENSE_THRESHOLD, summarizeConversation, SummarizeResponse } from "../condense"

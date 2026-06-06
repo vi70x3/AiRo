@@ -85,7 +85,7 @@ export abstract class BaseTool<TName extends ToolName> {
 	protected hasPathStabilized(path: string | undefined): boolean {
 		const pathHasStabilized = this.lastSeenPartialPath !== undefined && this.lastSeenPartialPath === path
 		this.lastSeenPartialPath = path
-		return pathHasStabilized && !!path
+		return pathHasStabilized && Boolean(path)
 	}
 
 	/**

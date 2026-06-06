@@ -334,6 +334,8 @@ export class SkillsManager {
 				return t("skills:errors.name_length", { maxLength: SKILL_NAME_MAX_LENGTH, length: name.length })
 			case SkillNameValidationError.InvalidFormat:
 				return t("skills:errors.name_format")
+		default:
+			return undefined as unknown as string
 		}
 	}
 

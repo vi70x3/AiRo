@@ -117,7 +117,7 @@ export function getAllModes(customModes?: ModeConfig[]): ModeConfig[] {
 // are recognized as custom when compared against built-in slugs (e.g., "spec").
 export function isCustomMode(slug: string, customModes?: ModeConfig[]): boolean {
 	const resolvedSlug = resolveModeSlug(slug)
-	return !!customModes?.some((mode) => resolveModeSlug(mode.slug) === resolvedSlug)
+	return Boolean(customModes?.some((mode) => resolveModeSlug(mode.slug) === resolvedSlug))
 }
 
 /**

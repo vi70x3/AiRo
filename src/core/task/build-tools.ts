@@ -117,9 +117,9 @@ export async function buildNativeToolsArrayWithRestrictions(options: BuildToolsO
 	// This ensures they aren't even defined for models that support function call restrictions (like Gemini)
 	nativeTools = nativeTools.filter((tool) => {
 		const name = getToolName(tool)
-		if (name === "generate_image") return !!experiments?.imageGeneration
-		if (name === "run_slash_command") return !!experiments?.runSlashCommand
-		if (name === "async_task") return !!experiments?.asyncSubtasks
+		if (name === "generate_image") return Boolean(experiments?.imageGeneration)
+		if (name === "run_slash_command") return Boolean(experiments?.runSlashCommand)
+		if (name === "async_task") return Boolean(experiments?.asyncSubtasks)
 		return true
 	})
 

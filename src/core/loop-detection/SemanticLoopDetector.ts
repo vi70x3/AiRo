@@ -184,7 +184,7 @@ export default class SemanticLoopDetector {
     this.compressionRecoveryState = { lastCompressionId: id, isRecovered: false, turnsSinceLastCompression: 0 };
 
     this.stateTracker.clear();
-    this.globalTurnCount = 0;
+    // NOTE: Do NOT reset globalTurnCount here — RelapseDetector depends on monotonic turn counts
     return event;
   }
 

@@ -42,7 +42,7 @@ const TaskItemFooter: React.FC<TaskItemFooterProps> = ({
 				</StandardTooltip>
 
 				{/* Cost */}
-				{!!item.totalCost && (
+				{Boolean(item.totalCost) && (
 					<>
 						<span>·</span>
 						<span className="flex items-center" data-testid="cost-footer-compact">

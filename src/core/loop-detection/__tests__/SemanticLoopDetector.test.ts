@@ -291,8 +291,8 @@ describe("SemanticLoopDetector", () => {
 			detector.onTurn(createMockTurn("2"))
 			expect(detector.getTurnCount()).toBe(2)
 			detector.onCompression("test")
-			// getTurnCount returns global count, which is reset to 0 after compression
-			expect(detector.getTurnCount()).toBe(0)
+			// getTurnCount preserves global count after compression to support RelapseDetector
+			expect(detector.getTurnCount()).toBe(2)
 		})
 	})
 
@@ -383,12 +383,12 @@ describe("SemanticLoopDetector", () => {
 			expect(d.getTurnCount()).toBe(5)
 		})
 
-		it("should return 0 after compression clears the tracker", () => {
+		it("should preserve turn count after compression (for RelapseDetector)", () => {
 			detector.onTurn(createMockTurn("1"))
 			detector.onTurn(createMockTurn("2"))
 			detector.onCompression("test")
-			// getTurnCount returns global count, which is reset to 0 after compression
-			expect(detector.getTurnCount()).toBe(0)
+			// getTurnCount preserves global count after compression to support RelapseDetector
+			expect(detector.getTurnCount()).toBe(2)
 		})
 	})
 
@@ -413,7 +413,8 @@ describe("SemanticLoopDetector", () => {
 			const event = detector.onCompression("loop_detected")
 			expect(event.reason).toBe("loop_detected")
 			expect(detector.getLoopConfidenceState().cooldownActive).toBe(true)
-			expect(detector.getTurnCount()).toBe(0)
+			// Turn count is preserved after compression to support RelapseDetector
+			expect(detector.getTurnCount()).toBeGreaterThan(0)
 
 			// After compression, cooldown prevents immediate re-trigger
 			expect(detector.shouldCompress()).toBe(false)

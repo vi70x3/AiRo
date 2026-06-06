@@ -2349,17 +2349,17 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 		}
 		case "requestCodeIndexSecretStatus": {
 			// Check if secrets are set using the VSCode context directly for async access
-			const hasOpenAiKey = !!(await provider.context.secrets.get("codeIndexOpenAiKey"))
-			const hasQdrantApiKey = !!(await provider.context.secrets.get("codeIndexQdrantApiKey"))
-			const hasOpenAiCompatibleApiKey = !!(await provider.context.secrets.get(
+			const hasOpenAiKey = Boolean(await provider.context.secrets.get("codeIndexOpenAiKey"))
+			const hasQdrantApiKey = Boolean(await provider.context.secrets.get("codeIndexQdrantApiKey"))
+			const hasOpenAiCompatibleApiKey = Boolean(await provider.context.secrets.get(
 				"codebaseIndexOpenAiCompatibleApiKey",
 			))
-			const hasGeminiApiKey = !!(await provider.context.secrets.get("codebaseIndexGeminiApiKey"))
-			const hasMistralApiKey = !!(await provider.context.secrets.get("codebaseIndexMistralApiKey"))
-			const hasVercelAiGatewayApiKey = !!(await provider.context.secrets.get(
+			const hasGeminiApiKey = Boolean(await provider.context.secrets.get("codebaseIndexGeminiApiKey"))
+			const hasMistralApiKey = Boolean(await provider.context.secrets.get("codebaseIndexMistralApiKey"))
+			const hasVercelAiGatewayApiKey = Boolean(await provider.context.secrets.get(
 				"codebaseIndexVercelAiGatewayApiKey",
 			))
-			const hasOpenRouterApiKey = !!(await provider.context.secrets.get("codebaseIndexOpenRouterApiKey"))
+			const hasOpenRouterApiKey = Boolean(await provider.context.secrets.get("codebaseIndexOpenRouterApiKey"))
 
 			provider.postMessageToWebview({
 				type: "codeIndexSecretStatus",

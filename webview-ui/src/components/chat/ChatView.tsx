@@ -185,7 +185,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 	// Compute whether auto-approval is paused (user is typing in a followup)
 	const isFollowUpAutoApprovalPaused = useMemo(() => {
-		return !!(inputValue && inputValue.trim().length > 0 && clineAsk === "followup")
+		return Boolean(inputValue && inputValue.trim().length > 0 && clineAsk === "followup")
 	}, [inputValue, clineAsk])
 
 	// Cancel auto-approval timeout when user starts typing
@@ -198,7 +198,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [isFollowUpAutoApprovalPaused])
 
 	const isProfileDisabled = useMemo(
-		() => !!apiConfiguration && !ProfileValidator.isProfileAllowed(apiConfiguration, organizationAllowList),
+		() => Boolean(apiConfiguration) && !ProfileValidator.isProfileAllowed(apiConfiguration, organizationAllowList),
 		[apiConfiguration, organizationAllowList],
 	)
 
@@ -502,7 +502,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// and should be resolved with optimizations as it's likely a rendering
 		// bug. But as a final guard for now, the cancel button will show if the
 		// last message is not an ask.
-		const isLastAsk = !!modifiedMessages.at(-1)?.ask
+		const isLastAsk = Boolean(modifiedMessages.at(-1)?.ask)
 
 		const isToolCurrentlyAsking =
 			isLastAsk && clineAsk !== undefined && enableButtons && primaryButtonText !== undefined
@@ -1254,7 +1254,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		taskTs: task?.ts,
 		isStreaming,
 		isHidden,
-		hasTask: !!task,
+		hasTask: Boolean(task),
 	})
 
 	// Expanding a row indicates the user is browsing; disable sticky follow.
@@ -1334,7 +1334,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			// Check if we need to switch modes
 			if (suggestion.mode) {
 				// Only switch modes if it's a manual click (event exists) or auto-approval is allowed
-				const isManualClick = !!event
+				const isManualClick = Boolean(event)
 				if (isManualClick || (alwaysAllowModeSwitch && modeSwitchingEnabled !== false)) {
 					// Switch mode without waiting
 					switchToMode(suggestion.mode)
@@ -1424,7 +1424,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 									tool = { tool: "updateTodoList" }
 								}
 							}
-							return tool.tool === "updateTodoList" && enableButtons && !!primaryButtonText
+							return tool.tool === "updateTodoList" && enableButtons && Boolean(primaryButtonText)
 						})()
 					}
 					hasCheckpoint={hasCheckpoint}

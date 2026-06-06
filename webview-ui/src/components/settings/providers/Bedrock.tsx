@@ -26,20 +26,20 @@ type BedrockProps = {
 
 export const Bedrock = ({ apiConfiguration, setApiConfigurationField, selectedModelInfo }: BedrockProps) => {
 	const { t } = useAppTranslation()
-	const [awsEndpointSelected, setAwsEndpointSelected] = useState(!!apiConfiguration?.awsBedrockEndpointEnabled)
+	const [awsEndpointSelected, setAwsEndpointSelected] = useState(Boolean(apiConfiguration?.awsBedrockEndpointEnabled))
 
 	// Check if the selected model supports 1M context (supported Claude 4 models)
 	const supports1MContextBeta =
-		!!apiConfiguration?.apiModelId && BEDROCK_1M_CONTEXT_MODEL_IDS.includes(apiConfiguration.apiModelId as any)
+		Boolean(apiConfiguration?.apiModelId) && BEDROCK_1M_CONTEXT_MODEL_IDS.includes(apiConfiguration.apiModelId as any)
 
 	// Check if the selected model supports Global Inference profile routing
 	const supportsGlobalInference =
-		!!apiConfiguration?.apiModelId &&
+		Boolean(apiConfiguration?.apiModelId) &&
 		BEDROCK_GLOBAL_INFERENCE_MODEL_IDS.includes(apiConfiguration.apiModelId as any)
 
 	// Check if the selected model supports service tiers
 	const supportsServiceTiers =
-		!!apiConfiguration?.apiModelId && BEDROCK_SERVICE_TIER_MODEL_IDS.includes(apiConfiguration.apiModelId as any)
+		Boolean(apiConfiguration?.apiModelId) && BEDROCK_SERVICE_TIER_MODEL_IDS.includes(apiConfiguration.apiModelId as any)
 
 	// Update the endpoint enabled state when the configuration changes
 	useEffect(() => {

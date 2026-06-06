@@ -319,7 +319,7 @@ export class VsCodeLmHandler extends BaseProvider implements SingleCompletionHan
 		if (!this.client) {
 			console.debug("Roo Code <Language Model API>: Getting client with options:", {
 				vsCodeLmModelSelector: this.options.vsCodeLmModelSelector,
-				hasOptions: !!this.options,
+				hasOptions: Boolean(this.options),
 				selectorKeys: this.options.vsCodeLmModelSelector ? Object.keys(this.options.vsCodeLmModelSelector) : [],
 			})
 

@@ -1,7 +1,7 @@
 import * as path from "path"
 import * as vscode from "vscode"
 import os from "os"
-import crypto from "crypto"
+import crypto from "node:crypto"
 import { v7 as uuidv7 } from "uuid"
 import EventEmitter from "events"
 

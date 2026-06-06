@@ -95,7 +95,7 @@ export function useGroupedTasks(tasks: HistoryItem[], searchQuery: string): Grou
 
 		return tasks.map((task) => ({
 			...task,
-			isSubtask: !!task.parentTaskId && taskMap.has(task.parentTaskId),
+			isSubtask: Boolean(task.parentTaskId) && taskMap.has(task.parentTaskId),
 		})) as DisplayHistoryItem[]
 	}, [tasks, taskMap, isSearchMode])
 

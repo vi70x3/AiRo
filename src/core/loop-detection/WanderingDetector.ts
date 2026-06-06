@@ -74,12 +74,15 @@ export default class WanderingDetector {
 		}
 
 		if (similarityScore < this.config.dissimilarityThreshold && progressScore < this.config.lowProgressThreshold) {
+			// Set wanderingStartTurn when consecutiveWanderingTurns transitions from 0 to 1
+			const isNewWandering = this.state.consecutiveWanderingTurns === 0
 			this.state = {
 				...this.state,
 				consecutiveWanderingTurns: this.state.consecutiveWanderingTurns + 1,
 				cumulativeProgress: this.state.cumulativeProgress + progressScore,
 				uniqueFilesTouched: this.allFilesSeen.size,
 				uniqueToolsUsed: this.allToolsSeen.size,
+				wanderingStartTurn: isNewWandering ? this.turnCount : this.state.wanderingStartTurn,
 			}
 		} else {
 			// Reset wandering state — agent either found similarity (loop) or made progress

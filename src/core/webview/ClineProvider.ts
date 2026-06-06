@@ -671,7 +671,7 @@ export class ClineProvider
 
 		// If still no visible provider, return
 		if (!visibleProvider) {
-			return
+			return undefined
 		}
 
 		return visibleProvider
@@ -954,7 +954,7 @@ export class ClineProvider
 							// that only contain 'id' and 'name' fields. Activating such a profile would
 							// overwrite the CLI's working API configuration with empty settings.
 							const fullProfile = await this.providerSettingsManager.getProfile({ name: profile.name })
-							const hasActualSettings = !!fullProfile.apiProvider
+							const hasActualSettings = Boolean(fullProfile.apiProvider)
 
 							if (hasActualSettings) {
 								await this.activateProviderProfile({ name: profile.name })
@@ -1386,7 +1386,7 @@ export class ClineProvider
 				// Skip activation if the profile has no apiProvider set - this indicates
 				// an unconfigured/empty profile.
 				const fullProfile = await this.providerSettingsManager.getProfile({ name: profile.name })
-				const hasActualSettings = !!fullProfile.apiProvider
+				const hasActualSettings = Boolean(fullProfile.apiProvider)
 
 				if (hasActualSettings) {
 					await this.activateProviderProfile({ name: profile.name })
@@ -1461,7 +1461,7 @@ export class ClineProvider
 	}
 
 	public hasProviderProfileEntry(name: string): boolean {
-		return !!this.getProviderProfileEntry(name)
+		return Boolean(this.getProviderProfileEntry(name)
 	}
 
 	async upsertProviderProfile(
