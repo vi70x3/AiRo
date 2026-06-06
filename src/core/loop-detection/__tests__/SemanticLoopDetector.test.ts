@@ -4,7 +4,7 @@ import type {
 	ReasoningTurn,
 	LoopConfidenceState,
 	CompressionRecoveryState,
-} from "../../../../packages/types/src/loop-detection"
+} from "@roo-code/types"
 
 // Mock crypto.randomUUID for deterministic testing of onCompression
 vi.mock("node:crypto", () => ({

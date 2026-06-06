@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import ProgressDetector from "../ProgressDetector"
-import { ReasoningTurn, ProgressTier } from "../../../../packages/types/src/loop-detection"
+import { ReasoningTurn, ProgressTier } from "@roo-code/types"
 
 describe("ProgressDetector", () => {
 	const detector = new ProgressDetector()

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 
-import type { StrategyRecord, ToolCategory, CompressionEvent } from "../../../packages/types/src/loop-detection"
+import type { StrategyRecord, ToolCategory, CompressionEvent } from "@roo-code/types"
 
 /**
  * StrategyMemory maintains a bounded history of strategies tried and detects

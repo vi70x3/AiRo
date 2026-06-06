@@ -1,4 +1,4 @@
-import { LoopConfidenceState } from "../../../packages/types/src/loop-detection"
+import { LoopConfidenceState } from "@roo-code/types"
 
 /**
  * Outcome of an intervention.

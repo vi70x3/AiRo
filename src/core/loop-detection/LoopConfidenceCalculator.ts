@@ -1,7 +1,7 @@
 import {
 	LoopConfidenceState,
 	CompressionRecoveryState,
-} from "../../../packages/types/src/loop-detection"
+} from "@roo-code/types"
 
 /**
  * Configuration for the LoopConfidenceCalculator.

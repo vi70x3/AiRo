@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import SimilarityScorer from "../SimilarityScorer"
-import { ReasoningTurn } from "../../../../packages/types/src/loop-detection"
+import { ReasoningTurn } from "@roo-code/types"
 
 describe("SimilarityScorer", () => {
 	const scorer = new SimilarityScorer()

@@ -1,5 +1,5 @@
 import SemanticLoopDetector from "../SemanticLoopDetector";
-import type { ReasoningTurn } from "../../../packages/types/src/loop-detection";
+import type { ReasoningTurn } from "@roo-code/types";
 
 describe("SemanticLoopDetector — Phase 4 Integration Tests", () => {
   let detector: SemanticLoopDetector;

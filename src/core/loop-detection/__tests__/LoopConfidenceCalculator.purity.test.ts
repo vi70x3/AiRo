@@ -3,7 +3,7 @@ import LoopConfidenceCalculator from "../LoopConfidenceCalculator"
 import type {
 	LoopConfidenceState,
 	CompressionRecoveryState,
-} from "../../../../packages/types/src/loop-detection"
+} from "@roo-code/types"
 
 const createState = (overrides: Partial<LoopConfidenceState> = {}): LoopConfidenceState => ({
 	score: 0.0,

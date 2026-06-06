@@ -4,8 +4,8 @@ import type {
 	ReasoningTurn,
 	LoopConfidenceState,
 	CompressionRecoveryState,
-} from "../../../../packages/types/src/loop-detection"
-import { ProgressTier } from "../../../../packages/types/src/loop-detection"
+} from "@roo-code/types"
+import { ProgressTier } from "@roo-code/types"
 
 // Counter-based UUID mock so multiple compressions get distinct IDs
 let uuidCounter = 0

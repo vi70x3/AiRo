@@ -1,4 +1,4 @@
-import { ReasoningTurn, SemanticState } from "../../../packages/types/src/loop-detection"
+import { ReasoningTurn, SemanticState } from "@roo-code/types"
 
 /**
  * SemanticStateTracker manages a rolling window of ReasoningTurn objects.

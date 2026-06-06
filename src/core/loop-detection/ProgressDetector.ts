@@ -1,4 +1,4 @@
-import { ReasoningTurn, ProgressEvent, ProgressTier } from "../../../packages/types/src/loop-detection"
+import { ReasoningTurn, ProgressEvent, ProgressTier } from "@roo-code/types"
 
 /**
  * ProgressDetector analyzes reasoning turns to determine whether the agent is

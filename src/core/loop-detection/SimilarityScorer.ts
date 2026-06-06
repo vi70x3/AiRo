@@ -1,4 +1,4 @@
-import { ReasoningTurn } from "../../../packages/types/src/loop-detection"
+import { ReasoningTurn } from "@roo-code/types"
 
 /**
  * Computes deterministic similarity scores between two ReasoningTurn objects

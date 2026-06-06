@@ -1,4 +1,4 @@
-import type { ReasoningTurn, WanderingState } from "../../../packages/types/src/loop-detection"
+import type { ReasoningTurn, WanderingState } from "@roo-code/types"
 
 export interface WanderingConfig {
 	/** Similarity threshold below which a turn is "dissimilar". Default: 0.4 */

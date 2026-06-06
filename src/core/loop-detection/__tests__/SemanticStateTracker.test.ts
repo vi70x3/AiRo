@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { SemanticStateTracker } from "../SemanticStateTracker"
-import { ReasoningTurn } from "../../../../packages/types/src/loop-detection"
+import { ReasoningTurn } from "@roo-code/types"
 
 describe("SemanticStateTracker", () => {
 	let tracker: SemanticStateTracker

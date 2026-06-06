@@ -14,7 +14,7 @@ import type {
   CompressionRecoveryState,
   CompressionEvent,
   ProgressEvent,
-} from "../../../packages/types/src/loop-detection";
+} from "@roo-code/types";
 
 export interface SemanticLoopDetectorConfig {
   windowSize?: number;
@@ -120,13 +120,20 @@ export default class SemanticLoopDetector {
       this.compressionRecoveryState,
     );
 
-    // Record intervention effectiveness with actual turn context
-    this.interventionTracker.record("loop_check", "success");
-    this.relapseDetector.recordSuccess("loop_check", this.globalTurnCount);
-    // Adaptation failures are recorded on compression (see onCompression).
-
     // Emit loop‑detected telemetry.
     if (similarityScore >= this.similarityThreshold && progressScore < 0.3) {
+      // Derive strategy name from tool category sequence for dynamic naming
+      const strategyName = this.deriveStrategyName(turn);
+      this.interventionTracker.record(strategyName, "success");
+
+      // Check for relapse when a loop is detected
+      const relapseResult = this.relapseDetector.check(strategyName, this.globalTurnCount);
+      if (relapseResult.isRelapse) {
+        // Handle relapse - record failure and trigger additional intervention
+        this.interventionTracker.record(strategyName, "failure");
+        this.adaptationFailureDetector.recordFailure("relapse");
+      }
+
       this.onLoopDetected?.({
         confidenceScore: this.loopConfidenceState.score,
         similarityScore,
@@ -147,6 +154,13 @@ export default class SemanticLoopDetector {
         turnsToRecover,
       });
       this.compressionRecoveryState = { ...this.compressionRecoveryState, isRecovered: true };
+
+      // Record success only when recovery is detected
+      const strategyName = this.deriveStrategyName(turn);
+      this.relapseDetector.recordSuccess(strategyName, this.globalTurnCount);
+
+      // Reset adaptation failure detector on successful recovery
+      this.adaptationFailureDetector.reset("default");
     }
 
     return {
@@ -211,5 +225,18 @@ export default class SemanticLoopDetector {
 
   getTurnCount(): number {
     return this.globalTurnCount;
+  }
+
+  /**
+   * Derives a dynamic strategy name from the current turn's tool pattern.
+   * Uses the tool category sequence as a fingerprint for the strategy.
+   */
+  private deriveStrategyName(turn: ReasoningTurn): string {
+    if (turn.toolPattern.length === 0) {
+      return "loop_check";
+    }
+    // Create a fingerprint from the tool pattern
+    const fingerprint = turn.toolPattern.slice(-3).join("_");
+    return `loop_check_${fingerprint}`;
   }
 }

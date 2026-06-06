@@ -1,5 +1,5 @@
-import { ToolCategory } from "../../../packages/types/src/loop-detection"
-import type { ReasoningTurn, CompressionEvent } from "../../../packages/types/src/loop-detection"
+import { ToolCategory } from "@roo-code/types"
+import type { ReasoningTurn, CompressionEvent } from "@roo-code/types"
 
 /**
  * StrategyClassifier classifies turns into coarse categories and identifies
