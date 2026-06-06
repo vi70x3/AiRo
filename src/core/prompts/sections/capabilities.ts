@@ -82,11 +82,19 @@ CAPABILITIES
 	* - At least one resource template
 	*/
 function hasAnyMcpContentAvailable(mcpHub: McpHub): boolean {
-	const servers = mcpHub.getServers()
+	let servers: ReturnType<McpHub["getServers"]>
+	try {
+		servers = mcpHub.getServers()
+	} catch {
+		return false
+	}
+	if (!Array.isArray(servers)) {
+		return false
+	}
 	return servers.some(
 		(server) =>
-			server.tools && server.tools.some((tool) => tool.enabledForPrompt !== false) ||
-			server.resources && server.resources.length > 0 ||
-			server.resourceTemplates && server.resourceTemplates.length > 0,
+			(server.tools && server.tools.some((tool) => tool.enabledForPrompt !== false)) ||
+			(server.resources && server.resources.length > 0) ||
+			(server.resourceTemplates && server.resourceTemplates.length > 0),
 	)
 }

@@ -14,7 +14,7 @@ import { SkillsManager } from "../../services/skills/SkillsManager"
 import type { SystemPromptSettings } from "./types"
 import { ToolAvailabilityContext } from "./tools/tool-availability-context"
 import { stripDisabledToolReferences } from "./tools/strip-tool-references"
-import { getMcpDisabledToolNames } from "./tools/mcp-disabled-tools"
+import { getMcpDisabledToolNames } from "./tools/native-tools"
 import {
 	getRulesSection,
 	getSystemInfoSection,
