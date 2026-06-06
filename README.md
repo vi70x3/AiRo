@@ -29,7 +29,7 @@
 
 ---
 
-## Coming Soon
+## Alpha Features
 
 ### 1. Swarm Architecture
 
@@ -91,15 +91,6 @@ This system detects reasoning loops, wandering behaviors, and model changes, tak
 
 #### D. Model Switch Auto-Condensation
 * **Model Usage Tracker (`ModelUsageTracker`)**: Tracks which model and provider served each turn. If a user switches to a different model, the system detects this change and can force conversation history condensation (summarization) so that the incoming model receives a clean context summary rather than raw history from a model it has no relation to.
-
----
-
-### 3. Verification & Testing
-
-The codebase includes corresponding test suites using the **Vitest** framework to verify these systems under isolated and simulated conditions:
-* **Loop Detection Tests**: Confirm the correctness of the sliding window tracker, the Jaccard/LCS similarity algorithms, progress and wandering thresholds, and the pure, state-carrying confidence calculator.
-* **Swarm & Crash Recovery Tests**: Validate snapshot consistency checkups, transaction rollbacks in the context store, process exit crash detection, checkpoint management, and Git worktree mount/cleanup operations.
-
 
 ---
 
