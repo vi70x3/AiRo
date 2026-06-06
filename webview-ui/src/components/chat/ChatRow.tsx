@@ -71,6 +71,7 @@ import {
 	Split,
 	ArrowRight,
 	Check,
+	ChevronRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PathTooltip } from "../ui/PathTooltip"
@@ -251,13 +252,13 @@ export const ChatRowContent = ({
 		vscode.postMessage({ type: "selectImages", context: "edit", messageTs: message.ts })
 	}, [message.ts])
 
-	const [cost, apiReqCancelReason, apiReqStreamingFailedMessage] = useMemo(() => {
+	const [cost, apiReqCancelReason, apiReqStreamingFailedMessage, apiRequestData] = useMemo(() => {
 		if (message.text !== null && message.text !== undefined && message.say === "api_req_started") {
 			const info = safeJsonParse<ClineApiReqInfo>(message.text)
-			return [info?.cost, info?.cancelReason, info?.streamingFailedMessage]
+			return [info?.cost, info?.cancelReason, info?.streamingFailedMessage, info?.request]
 		}
 
-		return [undefined, undefined, undefined]
+		return [undefined, undefined, undefined, undefined]
 	}, [message.text, message.say])
 
 	// When resuming task, last won't be api_req_failed but a resume_task
@@ -1066,12 +1067,25 @@ export const ChatRowContent = ({
 					const isApiRequestInProgress =
 						apiReqCancelReason === undefined && apiRequestFailedMessage === undefined && cost === undefined
 
+					// Determine if the API request is expandable (completed and has request data)
+					const isExpandable = !isApiRequestInProgress && !!apiRequestData
+
+					// Memoize formatted JSON for performance
+					const formattedRequestJson = useMemo(() => {
+						if (!apiRequestData) return null
+						try {
+							return JSON.stringify(JSON.parse(apiRequestData), null, 2)
+						} catch {
+							return apiRequestData
+						}
+					}, [apiRequestData])
+
 					return (
 						<>
 							<div
 								className={`group text-sm transition-opacity ${
 									isApiRequestInProgress ? "opacity-100" : "opacity-40 hover:opacity-100"
-								}`}
+								} ${isExpandable ? "cursor-pointer" : ""}`}
 								style={{
 									...headerStyle,
 									marginBottom:
@@ -1080,8 +1094,27 @@ export const ChatRowContent = ({
 											? 10
 											: 0,
 									justifyContent: "space-between",
-								}}>
+								}}
+								role={isExpandable ? "button" : undefined}
+								tabIndex={isExpandable ? 0 : undefined}
+								aria-expanded={isExpandable ? isExpanded : undefined}
+								onClick={isExpandable ? handleToggleExpand : undefined}
+								onKeyDown={
+									isExpandable
+										? (e) => {
+												if (e.key === "Enter" || e.key === " ") {
+													e.preventDefault()
+													handleToggleExpand()
+												}
+										  }
+										: undefined
+								}>
 								<div style={{ display: "flex", alignItems: "center", gap: "10px", flexGrow: 1 }}>
+									{isExpandable && (
+										<ChevronRight
+											className={cn("size-3 transition-transform", isExpanded && "rotate-90")}
+										/>
+									)}
 									{icon}
 									{title}
 								</div>
@@ -1103,6 +1136,11 @@ export const ChatRowContent = ({
 									}
 									errorDetails={apiReqStreamingFailedMessage}
 								/>
+							)}
+							{isExpanded && isExpandable && formattedRequestJson && (
+								<div className="ml-6 mt-2 p-3 bg-vscode-editor-background border border-vscode-border rounded-xs overflow-auto max-h-96">
+									<pre className="text-xs font-mono whitespace-pre-wrap">{formattedRequestJson}</pre>
+								</div>
 							)}
 						</>
 					)
