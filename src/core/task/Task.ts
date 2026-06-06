@@ -4146,6 +4146,20 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		const abortSignal = this.currentRequestAbortController.signal
 		// Reset the flag after using it
 		this.skipPrevResponseIdOnce = false
+		// Capture the request payload for debugging (expandable in chat).
+		const lastApiReqIndex = findLastIndex(this.clineMessages, (m) => m.say === "api_req_started")
+		if (lastApiReqIndex >= 0 && this.clineMessages[lastApiReqIndex]) {
+			const existingData = JSON.parse(this.clineMessages[lastApiReqIndex].text || "{}")
+			this.clineMessages[lastApiReqIndex].text = JSON.stringify({
+				...existingData,
+				request: JSON.stringify({
+					model: this.api.getModel().id,
+					system: systemPrompt,
+					messages: cleanConversationHistory,
+					...metadata,
+				}),
+			} satisfies ClineApiReqInfo)
+		}
 
 		// The provider accepts reasoning items alongside standard messages; cast to the expected parameter type.
 		const stream = this.api.createMessage(
