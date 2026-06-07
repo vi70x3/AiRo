@@ -12,5 +12,5 @@
 
 ## Completion Criteria
 - [ ] Semantic Loop Detector integrated with `Task.ts`.
-- [ ] Debug FSM enforces Investigat -> Hypothesize -> Validate -> Confirm -> Fix -> Verify.
+- [ ] Debug FSM enforces Investigate -> Hypothesize -> Validate -> Confirm -> Fix -> Verify.
 - [ ] Feedback Generator injects actionable hints.
