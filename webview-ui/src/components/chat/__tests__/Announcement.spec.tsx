@@ -25,29 +25,7 @@ vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 }))
 
 vi.mock("react-i18next", () => ({
-	Trans: ({ i18nKey }: { i18nKey: string; components?: Record<string, React.ReactElement> }) => {
-		if (i18nKey === "chat:announcement.finalRelease.intro") {
-			return (
-				<span>
-					This release brings powerful new capabilities: <strong>Swarm Architecture</strong> for structured
-					multi-agent coordination with crash recovery, intent avoidance, and semantic conflict detection;{" "}
-					<strong>Semantic Loop Detection</strong> that identifies reasoning loops and wandering behaviors,
-					auto-condensing context on model switch; <strong>Asynchronous Subtasks</strong> (Alpha) for
-					concurrent parallel task execution with automatic git worktree merging; and{" "}
-					<strong>Spec-driven development</strong> with Kiro-style Spec mode replacing Architect mode.
-				</span>
-			)
-		}
-
-		if (i18nKey === "chat:announcement.finalRelease.alternatives") {
-			return (
-				<span>
-					Explore the full feature set including Vibe, Spec, Ask, Debug, and Custom modes, MCP support, and the
-					new Tools Control settings panel.
-				</span>
-			)
-		}
-
+	Trans: ({ i18nKey }: { i18nKey: string }) => {
 		return <span>{i18nKey}</span>
 	},
 }))
@@ -56,9 +34,21 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 	useAppTranslation: () => ({
 		t: (key: string, options?: { version?: string }) => {
 			const translations: Record<string, string> = {
-				"chat:announcement.finalRelease.title": "New Features in airiOS Code",
+				"chat:announcement.finalRelease.title": "airiOS Code 3.53.0 Released",
+				"chat:announcement.finalRelease.intro":
+					"This release brings powerful new capabilities to airiOS Code.",
+				"chat:announcement.finalRelease.feature1":
+					"Swarm Architecture: Structured multi-agent coordination with crash recovery, intent avoidance, and semantic conflict detection.",
+				"chat:announcement.finalRelease.feature2":
+					"Semantic Loop Detection: Identifies reasoning loops and wandering behaviors, auto-condensing context on model switch.",
+				"chat:announcement.finalRelease.feature3":
+					"Asynchronous Subtasks (Alpha): Concurrent parallel task execution with automatic git worktree merging.",
+				"chat:announcement.finalRelease.feature4":
+					"Spec-driven development: Kiro-style Spec mode replacing Architect mode for better planning.",
 				"chat:announcement.finalRelease.continuity":
 					"airiOS Code continues to evolve with new features, model provider updates, and community contributions. Stay tuned for more!",
+				"chat:announcement.finalRelease.alternatives":
+					"Explore the full feature set including Vibe, Spec, Ask, Debug, and Custom modes, MCP support, and the new Tools Control settings panel.",
 				"chat:announcement.finalRelease.signoff": "Happy coding!",
 			}
 
@@ -75,8 +65,10 @@ describe("Announcement", () => {
 	it("renders the new features announcement", () => {
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
-		expect(screen.getByText("New Features in airiOS Code")).toBeInTheDocument()
-		expect(screen.getByText(/This release brings powerful new capabilities/)).toBeInTheDocument()
+		expect(screen.getByText("airiOS Code 3.53.0 Released")).toBeInTheDocument()
+		expect(
+			screen.getByText("This release brings powerful new capabilities to airiOS Code."),
+		).toBeInTheDocument()
 		expect(
 			screen.getByText(
 				"airiOS Code continues to evolve with new features, model provider updates, and community contributions. Stay tuned for more!",
