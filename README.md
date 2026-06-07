@@ -1,5 +1,7 @@
 <div align="center">
-  <h1> airiOS - Code </h1>
+  
+  # [airiOS](https://github.com/airi-os/core) - Code
+  
   <img width="256" height="384" alt="airiOS mascot" src="https://github.com/user-attachments/assets/840b1add-258b-4d7f-99a1-4bafe845a059" />
   <br>
   <a href="https://github.com/airi-os/code/releases">
