@@ -350,10 +350,10 @@
 		"title": "airiOS Code {{version}} Released",
 		"support": "Please support airiOS Code by starring us on <githubLink>GitHub</githubLink>.",
 		"finalRelease": {
-			"title": "The last airiOS Code release",
-			"intro": "This is the last airiOS Code release. <announcementLink>As we announced a few weeks ago</announcementLink>, we've decided to shift our focus to <roomoteLink>Roomote</roomoteLink>, our cloud agent platform, which we believe to be the future of software development. Thank you so much for your support throughout the past year or so.",
-			"continuity": "This extension should continue to work indefinitely, but it won't receive bug fixes, new features, or model updates.",
-			"alternatives": "If you want to use an extension, we recommend checking out <zooCodeLink>ZooCode</zooCodeLink> (a airiOS Code fork by the community) and <clineLink>Cline</clineLink> (where airiOS Code originally started).",
+			"title": "New Features in airiOS Code",
+			"intro": "This release brings powerful new capabilities: <bold>Swarm Architecture</bold> for structured multi-agent coordination with crash recovery, intent avoidance, and semantic conflict detection; <bold>Semantic Loop Detection</bold> that identifies reasoning loops and wandering behaviors, auto-condensing context on model switch; <bold>Asynchronous Subtasks</bold> (Alpha) for concurrent parallel task execution with automatic git worktree merging; and <bold>Spec-driven development</bold> with Kiro-style Spec mode replacing Architect mode.",
+			"continuity": "airiOS Code continues to evolve with new features, model provider updates, and community contributions. Stay tuned for more!",
+			"alternatives": "Explore the full feature set including Vibe, Spec, Ask, Debug, and Custom modes, MCP support, and the new Tools Control settings panel.",
 			"signoff": "Happy coding!"
 		},
 		"release": {

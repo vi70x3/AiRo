@@ -25,17 +25,16 @@ vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 }))
 
 vi.mock("react-i18next", () => ({
-	Trans: ({ i18nKey, components }: { i18nKey: string; components?: Record<string, React.ReactElement> }) => {
+	Trans: ({ i18nKey }: { i18nKey: string; components?: Record<string, React.ReactElement> }) => {
 		if (i18nKey === "chat:announcement.finalRelease.intro") {
 			return (
 				<span>
-					This is the last airiOS Code release.{" "}
-					{components?.announcementLink &&
-						React.cloneElement(components.announcementLink, {}, "As we announced a few weeks ago")}
-					, we{"'"}ve decided to shift our focus to{" "}
-					{components?.roomoteLink && React.cloneElement(components.roomoteLink, {}, "Roomote")}, our cloud
-					agent platform, which we believe to be the future of software development. Thank you so much for
-					your support throughout the past year or so.
+					This release brings powerful new capabilities: <strong>Swarm Architecture</strong> for structured
+					multi-agent coordination with crash recovery, intent avoidance, and semantic conflict detection;{" "}
+					<strong>Semantic Loop Detection</strong> that identifies reasoning loops and wandering behaviors,
+					auto-condensing context on model switch; <strong>Asynchronous Subtasks</strong> (Alpha) for
+					concurrent parallel task execution with automatic git worktree merging; and{" "}
+					<strong>Spec-driven development</strong> with Kiro-style Spec mode replacing Architect mode.
 				</span>
 			)
 		}
@@ -43,10 +42,8 @@ vi.mock("react-i18next", () => ({
 		if (i18nKey === "chat:announcement.finalRelease.alternatives") {
 			return (
 				<span>
-					If you want to use an extension, we recommend checking out{" "}
-					{components?.zooCodeLink && React.cloneElement(components.zooCodeLink, {}, "ZooCode")} and{" "}
-					{components?.clineLink && React.cloneElement(components.clineLink, {}, "Cline")} (where airiOS Code
-					originally started).
+					Explore the full feature set including Vibe, Spec, Ask, Debug, and Custom modes, MCP support, and the
+					new Tools Control settings panel.
 				</span>
 			)
 		}
@@ -59,9 +56,9 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 	useAppTranslation: () => ({
 		t: (key: string, options?: { version?: string }) => {
 			const translations: Record<string, string> = {
-				"chat:announcement.finalRelease.title": "The last airiOS Code release",
+				"chat:announcement.finalRelease.title": "New Features in airiOS Code",
 				"chat:announcement.finalRelease.continuity":
-					"This extension should continue to work indefinitely, but it won't receive bug fixes, new features, or model updates.",
+					"airiOS Code continues to evolve with new features, model provider updates, and community contributions. Stay tuned for more!",
 				"chat:announcement.finalRelease.signoff": "Happy coding!",
 			}
 
@@ -75,38 +72,35 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 }))
 
 describe("Announcement", () => {
-	it("renders the final release announcement", () => {
+	it("renders the new features announcement", () => {
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
-		expect(screen.getByText("The last airiOS Code release")).toBeInTheDocument()
-		expect(screen.getByText(/This is the last airiOS Code release/)).toBeInTheDocument()
+		expect(screen.getByText("New Features in airiOS Code")).toBeInTheDocument()
+		expect(screen.getByText(/This release brings powerful new capabilities/)).toBeInTheDocument()
 		expect(
 			screen.getByText(
-				"This extension should continue to work indefinitely, but it won't receive bug fixes, new features, or model updates.",
+				"airiOS Code continues to evolve with new features, model provider updates, and community contributions. Stay tuned for more!",
 			),
 		).toBeInTheDocument()
 		expect(screen.getByText("Happy coding!")).toBeInTheDocument()
 	})
 
-	it("renders the external links", () => {
+	it("renders feature highlights", () => {
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
-		expect(screen.getByRole("link", { name: "As we announced a few weeks ago" })).toHaveAttribute(
-			"href",
-			"https://x.com/mattrubens/status/2046636598859559114",
-		)
-		expect(screen.getByRole("link", { name: "ZooCode" })).toHaveAttribute(
-			"href",
-			"https://github.com/Zoo-Code-Org/Zoo-Code/",
-		)
-		expect(screen.getByRole("link", { name: "Cline" })).toHaveAttribute("href", "https://cline.bot/")
+		expect(screen.getByText(/Swarm Architecture/)).toBeInTheDocument()
+		expect(screen.getByText(/Semantic Loop Detection/)).toBeInTheDocument()
+		expect(screen.getByText(/Asynchronous Subtasks/)).toBeInTheDocument()
+		expect(screen.getByText(/Spec-driven development/)).toBeInTheDocument()
 	})
 
-	it("does not render corporate handoff links", () => {
+	it("renders the alternatives text", () => {
 		render(<Announcement hideAnnouncement={vi.fn()} />)
 
-		expect(screen.queryByRole("listitem")).not.toBeInTheDocument()
-		expect(screen.queryByText("chat:announcement.handoff.description")).not.toBeInTheDocument()
-		expect(screen.queryByRole("link", { name: "X" })).not.toBeInTheDocument()
+		expect(
+			screen.getByText(
+				/Explore the full feature set including Vibe, Spec, Ask, Debug, and Custom modes/,
+			),
+		).toBeInTheDocument()
 	})
 })
