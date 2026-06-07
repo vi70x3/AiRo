@@ -32,7 +32,8 @@ The Agent Grounding and Metrics system ensures agent reliability through explici
 
 ### Requirement 4: Reliability Metrics Collection
 1. THE system SHALL quantify five dimensions: Diagnosis Accuracy, Hallucinated Edit Rate, Tool Efficiency, Token Efficiency, and Recovery Rate.
-2. THE system SHALL persist reliability metrics alongside task metadata and surface them in the UI TaskHeader.
+4. THE system SHALL persist reliability metrics alongside task metadata and surface them in the `[Component:TaskHeader]`.
+
 3. THE system SHALL emit events when reliability thresholds are violated.
 
 ## Out of Scope

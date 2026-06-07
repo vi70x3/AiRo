@@ -1,7 +1,7 @@
 # Constraints: API Debug UX
 
 ## MUST Rules
-1. THE system MUST use the existing `expandedRows` state in `ChatView.tsx`.
+1. THE system MUST use the existing `expandedRows` state in `[Component:ChatView]`.
 2. THE expanded view MUST use VSCode theme variables for colors.
 3. THE system SHALL only enable expansion for `api_req_started` messages where the `request` field is populated.
 

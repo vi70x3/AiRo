@@ -38,7 +38,7 @@ graph TD
 
 ### Integration Points
 
-1.  **Task Execution Loop (`Task.ts`)**: Hooks into `recursivelyMakeClineRequests` to capture turn data and check for loops/FSM transitions.
+1.  **Task Execution Loop (`[Component:Task]`)**: Hooks into `recursivelyMakeClineRequests` to capture turn data and check for loops/FSM transitions.
 2.  **Tool Filtering Pipeline**: `ToolRestrictionEvaluator` injects phase-based constraints into `filterNativeToolsForMode`.
 3.  **Environment Details**: `FeedbackGenerator` injects recovery hints into the user message context.
 4.  **Context Management**: Triggers `manageContext` for loop-break compression.

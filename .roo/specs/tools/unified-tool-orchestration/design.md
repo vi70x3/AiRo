@@ -40,8 +40,8 @@ graph TD
 ### Integration Points
 
 1.  **Tool Building Pipeline**: `buildNativeToolsArrayWithRestrictions` invokes `ToolRouter` and merges MCP disabled tools into `TAC`.
-2.  **Settings Navigation**: `SettingsView.tsx` removed separate tabs for AutoApprove/SlashCommands.
-3.  **Prompt Generation**: `system.ts` uses `TAC` and `StripToolReferences` to sanitize base instructions and custom instructions.
+2.  **Settings Navigation**: `[Component:SettingsView]` removed separate tabs for AutoApprove/SlashCommands.
+3.  **Prompt Generation**: `[Component:PromptGenerator]` uses `TAC` and `StripToolReferences` to sanitize base instructions and custom instructions.
 
 ## Data Structures
 

@@ -21,8 +21,8 @@ The Unified Tool Orchestration system provides a single source of truth for tool
 4. THE system SHALL inject a `TOOL ROUTING` section into the system prompt explaining preferences.
 
 ### Requirement 2: Settings Single Source of Truth (SSOT)
-1. THE system SHALL consolidate all tool settings (Auto-Approve, Slash Commands, Image Generation, Custom Tools) into the "Tools" tab.
-2. THE system SHALL remove the "Auto-Approve" and "Slash Commands" tabs from the settings sidebar.
+1. THE system SHALL consolidate all tool settings (Auto-Approve, Slash Commands, Image Generation, Custom Tools) into the `[Component:ToolsSettings]` within the "Tools" tab.
+2. THE system SHALL remove the "Auto-Approve" and "Slash Commands" tabs from the `[Component:SettingsView]` sidebar.
 3. THE system SHALL maintain existing state fields and persistence logic during UI reorganization.
 
 ### Requirement 3: Prompt Safety for Disabled Tools

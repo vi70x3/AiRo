@@ -39,10 +39,10 @@ graph TD
 
 ### Integration Points
 
-1.  **System Prompt Generation (`system.ts`)**: Wraps existing section functions with `ContextCompressionEngine` to assemble layers L0-L3.
-2.  **Environment Details (`getEnvironmentDetails.ts`)**: Splits environment injection into Tier A (Critical) and Tier B (Detailed).
-3.  **Task Execution Loop (`Task.ts`)**: `TaskMemoryWriter` listens to tool signals; `ModelSwitchDetector` monitors model changes.
-4.  **Condensation Pipeline (`condense/index.ts`)**: `summarizeConversation()` is augmented with `TaskMemory` and evidence blocks.
+1.  **System Prompt Generation (`[Component:PromptGenerator]`)**: Wraps existing section functions with `ContextCompressionEngine` to assemble layers L0-L3.
+2.  **Environment Details (`[Component:EnvironmentDetails]`)**: Splits environment injection into Tier A (Critical) and Tier B (Detailed).
+3.  **Task Execution Loop (`[Component:Task]`)**: `TaskMemoryWriter` listens to tool signals; `ModelSwitchDetector` monitors model changes.
+4.  **Condensation Pipeline (`[Component:CondensePipeline]`)**: `summarizeConversation()` is augmented with `TaskMemory` and evidence blocks.
 
 ## Data Structures
 

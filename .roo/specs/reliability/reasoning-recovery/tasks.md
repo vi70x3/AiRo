@@ -13,10 +13,10 @@
 ## Phase 3: Feedback & Monitoring
 - [ ] Implement `FeedbackGenerator` and `StrategyMemory`.
 - [ ] Implement `SilentFailureTracker` and `WanderingDetector`.
-- [ ] Integrate feedback injection into `getEnvironmentDetails`.
+- [ ] Integrate feedback injection into `[Component:EnvironmentDetails]`.
 
 ## Phase 4: Integration & Tuning
-- [ ] Hook `SemanticLoopDetector` into `Task.ts` execution loop.
+- [ ] Hook `SemanticLoopDetector` into `[Component:Task]` execution loop.
 - [ ] Implement loop-break compression trigger in `manageContext`.
 - [ ] Tune similarity weights and confidence thresholds.
 - [ ] Comprehensive verification of recovery effectiveness.

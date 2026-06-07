@@ -34,7 +34,7 @@ The Adaptive Context Management system provides a comprehensive architecture for
 3. THE system SHALL enforce a configurable `contextBudget` (default 6000 tokens) by reducing layers in order: L3 -> L2 -> L1 extended -> Tier B -> L1 base.
 
 ### Requirement 4: Tiered Environment Details
-1. THE system SHALL split environment details into Tier A (Critical: mode, model, workspace) and Tier B (Detailed: file list, git status, terminals).
+1. THE system SHALL split environment details into Tier A (Critical: mode, model, workspace) and Tier B (Detailed: file list, git status, terminals) using `[Component:EnvironmentDetails]`.
 2. THE system SHALL prioritize Tier B items (modified files > visible files > terminals) when budget allows.
 
 ## Out of Scope

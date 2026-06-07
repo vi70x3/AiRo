@@ -35,15 +35,15 @@ graph TD
     VO --> ER
     ESG & ER --> MC
     MC --> MA
-    MA --> UI[TaskHeader UI]
+    MA --> UI["[Component:TaskHeader] UI"]
 ```
 
 ### Integration Points
 
-1.  **Task Execution Loop (`Task.ts`)**: Initializes state/registry; intercepts tool results to update evidence and drive state transitions.
-2.  **Edit Flow (`DiffViewProvider.ts`)**: Triggers `VerificationOrchestrator` after file writes.
-3.  **Prompt Generation (`system.ts`)**: Injects `ExecutionStateGraph` into environment details.
-4.  **Condensation (`condense/index.ts`)**: Preserves evidence summaries and unresolved contradictions.
+1.  **Task Execution Loop (`[Component:Task]`)**: Initializes state/registry; intercepts tool results to update evidence and drive state transitions.
+2.  **Edit Flow (`[Component:DiffViewProvider]`)**: Triggers `VerificationOrchestrator` after file writes.
+3.  **Prompt Generation (`[Component:PromptGenerator]`)**: Injects `ExecutionStateGraph` into environment details.
+4.  **Condensation (`[Component:CondensePipeline]`)**: Preserves evidence summaries and unresolved contradictions.
 
 ## Data Structures
 

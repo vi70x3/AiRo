@@ -11,8 +11,8 @@
 - [ ] Add `TOOL ROUTING` section to system prompt guidelines.
 
 ## Phase 3: UI Consolidation (SSOT)
-- [ ] Expand `ToolsSettings.tsx` to include Auto-Approve, Image Gen, and Slash Command sections.
-- [ ] Remove redundant tabs from `SettingsView.tsx` navigation.
+- [ ] Expand `[Component:ToolsSettings]` to include Auto-Approve, Image Gen, and Slash Command sections.
+- [ ] Remove redundant tabs from `[Component:SettingsView]` navigation.
 - [ ] Update i18n keys for unified tool configuration.
 
 ## Phase 4: Verification & Observability

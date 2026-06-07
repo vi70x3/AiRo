@@ -1,7 +1,7 @@
 # Verification: API Debug UX
 
 ## Test Strategy
-- **Unit Testing**: Test click/keyboard toggle logic in `ChatRow.tsx`.
+- **Unit Testing**: Test click/keyboard toggle logic in `[Component:ChatRow]`.
 - **UI Testing**: Verify rotating chevron and formatted JSON block visibility.
 - **End-to-End**: Trigger an API request, wait for it to finish, and verify it can be expanded.
 

@@ -19,8 +19,7 @@
 3. THE constraints.md MUST NOT contain user stories or acceptance criteria (those belong in requirements.md).
 4. THE verification.md MUST NOT contain test code or test file paths (those belong in tasks.md).
 5. THE tasks.md MUST NOT describe implementation at the level of individual code changes (e.g., "add field X as optional prop").
-6. THE spec MUST NOT use inline style objects — Tailwind CSS classes must be used for any styling (per steering rules).
-7. THE spec MUST NOT disable any lint rules without explicit user approval (per steering rules).
+6. THE spec MUST NOT violate any project steering rules defined in `.roo/rules/rules.md` (e.g., Tailwind-only styling, lint rule disabling).
 
 ## Assumptions
 

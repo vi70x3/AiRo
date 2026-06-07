@@ -11,7 +11,7 @@
 - Handle cases where `request` field is undefined or empty
 
 **Files to Modify:**
-- `webview-ui/src/components/chat/ChatRow.tsx`
+- `[Component:ChatRow]`
 
 ---
 
@@ -26,7 +26,7 @@
 - Create a boolean variable `isExpandable` for use in rendering
 
 **Files to Modify:**
-- `webview-ui/src/components/chat/ChatRow.tsx`
+- `[Component:ChatRow]`
 
 ---
 
@@ -40,7 +40,7 @@
 - Prevent event propagation for non-expandable requests
 
 **Files to Modify:**
-- `webview-ui/src/components/chat/ChatRow.tsx`
+- `[Component:ChatRow]`
 
 ---
 
@@ -55,7 +55,7 @@
 - Add hover effects for better UX
 
 **Files to Modify:**
-- `webview-ui/src/components/chat/ChatRow.tsx`
+- `[Component:ChatRow]`
 
 ---
 
@@ -70,7 +70,7 @@
 - Add proper padding and margins for visual hierarchy
 
 **Files to Modify:**
-- `webview-ui/src/components/chat/ChatRow.tsx`
+- `[Component:ChatRow]`
 
 ---
 
@@ -85,7 +85,7 @@
 - Ensure focus indicators are visible
 
 **Files to Modify:**
-- `webview-ui/src/components/chat/ChatRow.tsx`
+- `[Component:ChatRow]`
 
 ---
 
@@ -99,7 +99,7 @@
 - Maintain consistent behavior with click handler
 
 **Files to Modify:**
-- `webview-ui/src/components/chat/ChatRow.tsx`
+- `[Component:ChatRow]`
 
 ---
 
@@ -112,7 +112,7 @@
 - Use `JSON.parse` and `JSON.stringify` with proper error handling
 
 **Files to Modify:**
-- `webview-ui/src/components/chat/ChatRow.tsx`
+- `[Component:ChatRow]`
 
 ---
 
@@ -126,7 +126,7 @@
 - Add subtle transitions for smooth animations
 
 **Files to Modify:**
-- `webview-ui/src/components/chat/ChatRow.tsx`
+- `[Component:ChatRow]`
 
 ---
 
@@ -179,7 +179,7 @@ This is a focused feature with clear requirements. The implementation involves:
 
 ## Notes
 
-- The existing `expandedRows` state in `ChatView.tsx` already handles state management
+- The existing `expandedRows` state in `[Component:ChatView]` already handles state management
 - The `ChevronRight` icon is already used elsewhere in the codebase
 - The `ClineApiReqInfo` interface already has the `request` field defined
 - No changes to the backend or message types are required
