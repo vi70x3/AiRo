@@ -1,6 +1,6 @@
 /**
  * Cookie consent constants and types
- * Shared across all Roo Code repositories
+ * Shared across all airiOS Code repositories
  */
 
 /**
