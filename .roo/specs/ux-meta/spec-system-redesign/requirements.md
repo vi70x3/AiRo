@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Spec System Redesign is a meta-spec that restructures the spec template and authoring process for all future specs in the AiRo project. The current spec format mixes implementation details with intent, producing bloated documents that reduce agent reasoning quality. Tasks read like generated code instructions ("modify line x, add variable y"), which shifts agent focus from understanding the problem to mechanically following steps. This redesign separates **what** and **why** from **how**, establishing a cleaner structure: Requirements (what), Design (why), Constraints (boundaries), and Verification (tests). Implementation details are confined to tasks.md and expressed at the level of "what to implement," not "how to implement it."
+The Spec System Redesign is a meta-spec that restructures the spec template and authoring process for all future specs in the airiOS Code project. The current spec format mixes implementation details with intent, producing bloated documents that reduce agent reasoning quality. Tasks read like generated code instructions ("modify line x, add variable y"), which shifts agent focus from understanding the problem to mechanically following steps. This redesign separates **what** and **why** from **how**, establishing a cleaner structure: Requirements (what), Design (why), Constraints (boundaries), and Verification (tests). Implementation details are confined to tasks.md and expressed at the level of "what to implement," not "how to implement it."
 
 ## Glossary
 
