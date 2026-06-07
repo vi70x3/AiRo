@@ -213,16 +213,16 @@ vi.mock("../providers/LiteLLM", () => ({
 	),
 }))
 
-// Mock Roo provider for tests
-vi.mock("../providers/Roo", () => ({
-	Roo: ({ cloudIsAuthenticated }: any) => (
+// Mock airiOS provider for tests
+vi.mock("../providers/airiOS", () => ({
+	airiOS: ({ cloudIsAuthenticated }: any) => (
 		<div data-testid="roo-provider">{cloudIsAuthenticated ? "Authenticated" : "Not Authenticated"}</div>
 	),
 }))
 
-// Mock RooBalanceDisplay for tests
-vi.mock("../providers/RooBalanceDisplay", () => ({
-	RooBalanceDisplay: () => <div data-testid="roo-balance-display">Balance: $10.00</div>,
+// Mock airiOSBalanceDisplay for tests
+vi.mock("../providers/airiOSBalanceDisplay", () => ({
+	airiOSBalanceDisplay: () => <div data-testid="roo-balance-display">Balance: $10.00</div>,
 }))
 
 vi.mock("@src/components/ui/hooks/useSelectedModel", () => ({
@@ -582,7 +582,7 @@ describe("ApiOptions", () => {
 		expect(screen.queryByTestId("litellm-provider")).not.toBeInTheDocument()
 	})
 
-	it("renders Roo-specific retired provider message for Roo Code Router", () => {
+	it("renders airiOS-specific retired provider message for airiOS Code Router", () => {
 		renderApiOptions({
 			apiConfiguration: {
 				apiProvider: "roo" as any,
